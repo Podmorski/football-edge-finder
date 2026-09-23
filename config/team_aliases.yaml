@@ -1,0 +1,19 @@
+# Team-name aliases and explicit non-merges.
+#
+# `non_merge` pairs look similar but are DIFFERENT clubs. They must never be
+# collapsed into a single team, no matter how close the string similarity is.
+#
+# `aliases` maps variant spellings onto a canonical name. It is intentionally
+# empty: only add an entry with evidence, because a wrong merge silently
+# corrupts team strength estimates.
+
+non_merge:
+  - league: ligue_2_t2
+    a: "Ajaccio"
+    b: "Ajaccio GFCO"
+    reason: >-
+      Different clubs: AC Ajaccio and GFC Ajaccio (Gazelec Ajaccio). Both
+      appeared in Ligue 2. The Bishop-style name-containment heuristic flags
+      them, but they are not the same team. NEVER MERGE.
+
+aliases: []
