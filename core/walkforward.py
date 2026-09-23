@@ -36,25 +36,21 @@ import numpy as np
 import pandas as pd
 
 from core import splits
-from penaltyblog.models import (
-    DixonColesGoalModel,
-    create_dixon_coles_grid,
-    dixon_coles_weights,
-)
+from penaltyblog.models import DixonColesGoalModel, dixon_coles_weights
 
 CONFIRMATION_SEASONS = tuple(splits.split_seasons("confirmation"))
 ALLOWED_SEASONS = tuple(splits.split_seasons("warmup")) + tuple(
     splits.split_seasons("discovery")
 )
 
-# penaltyblog's ``predict(..., max_goals=15)`` builds a 15x15 grid, i.e. goals
-# 0..14. ``create_dixon_coles_grid`` interprets max_goals as the inclusive
-# upper index, so pass 14 to match.
-GRID_MAX_GOALS = 14
+# penaltyblog's ``predict(..., max_goals=15)`` builds a 15x15 grid (goals 0..14).
+# We now go through penaltyblog's own compiled path, so use its default.
+GRID_MAX_GOALS = 15
 
 DATA_DIR = Path("data/historical")
 CACHE_DIR = Path("data/cache/walkforward")
 PRED_DIR = Path("data/predictions/league_one")
+LABELS_PATH = Path("data/auxiliary/newcomer_labels.parquet")
 
 NEWCOMER_HORIZON_DAYS = 365
 NEWCOMER_K = 10
@@ -63,15 +59,17 @@ NEWCOMER_K = 10
 @dataclass(frozen=True)
 class Config:
     league: str = "league_one_t3"
-    xi: float = 0.001
-    drop_2020_21: bool = False
-    newcomer: str = "exclude"  # exclude | league_avg | newcomer_prior
+    xi: float = 0.002
+    # include | exclude_after | downweight_0.5
+    #   exclude_after : 2020-21 is in training only when the target IS 2020-21
+    #   downweight_0.5: 2020-21 weights are halved for later targets
+    covid_mode: str = "include"
+    newcomer: str = "newcomer_prior"  # exclude | league_avg | newcomer_prior
     grid_max_goals: int = GRID_MAX_GOALS
 
     @property
     def config_id(self) -> str:
-        covid = "drop2021" if self.drop_2020_21 else "incl2021"
-        return f"{self.league}__xi{self.xi:g}__{covid}__nw-{self.newcomer}"
+        return f"{self.league}__xi{self.xi:g}__{self.covid_mode}__nw-{self.newcomer}"
 
 
 # --------------------------------------------------------------------------- #
@@ -117,20 +115,42 @@ def cutoff_mondays(df: pd.DataFrame) -> pd.DatetimeIndex:
 # fitting (cached)
 # --------------------------------------------------------------------------- #
 def _cache_path(config: Config, cutoff: pd.Timestamp) -> Path:
-    """Fits depend on xi and the COVID switch only, not on the newcomer policy
-    (which is applied at prediction time). Keying without ``newcomer`` lets all
-    newcomer policies share one cached fit per cutoff."""
-    covid = "drop2021" if config.drop_2020_21 else "incl2021"
-    return CACHE_DIR / config.league / f"xi{config.xi:g}__{covid}" / f"{cutoff.date()}.json"
+    """Fits depend on xi and covid_mode only, not on the newcomer policy (which
+    is applied at prediction time). Keying without ``newcomer`` lets all newcomer
+    policies share one cached fit per cutoff."""
+    return (
+        CACHE_DIR
+        / config.league
+        / f"xi{config.xi:g}__{config.covid_mode}"
+        / f"{cutoff.date()}.json"
+    )
 
 
-def fit_at(config: Config, train_df: pd.DataFrame, cutoff: pd.Timestamp) -> pd.Series:
+def _decay_weights(
+    train: pd.DataFrame, config: Config, target_season: str | None
+) -> np.ndarray:
+    """Time-decay weights, with the COVID downweight applied when configured."""
+    weights = np.asarray(dixon_coles_weights(train["date"], xi=config.xi), dtype=float)
+    if (
+        config.covid_mode == "downweight_0.5"
+        and target_season is not None
+        and target_season > "2020-2021"
+    ):
+        mask = (train["season"] == "2020-2021").to_numpy()
+        weights = weights.copy()
+        weights[mask] *= 0.5
+    return weights
+
+
+def fit_at(
+    config: Config, train_df: pd.DataFrame, cutoff: pd.Timestamp, target_season: str | None = None
+) -> pd.Series:
     """Fit (or load a cached fit for) the model on ``train_df``."""
     cache = _cache_path(config, cutoff)
     if cache.exists():
         return pd.Series(json.loads(cache.read_text(encoding="utf-8")))
 
-    weights = dixon_coles_weights(train_df["date"], xi=config.xi)
+    weights = _decay_weights(train_df, config, target_season)
     model = DixonColesGoalModel(
         train_df["fthg"].to_numpy(),
         train_df["ftag"].to_numpy(),
@@ -147,14 +167,25 @@ def fit_at(config: Config, train_df: pd.DataFrame, cutoff: pd.Timestamp) -> pd.S
 
 
 def training_frame_for(
-    pool: pd.DataFrame, cutoff: pd.Timestamp, config: Config, min_rows: int = 100
+    pool: pd.DataFrame,
+    cutoff: pd.Timestamp,
+    config: Config,
+    target_season: str | None = None,
+    min_rows: int = 100,
 ) -> pd.DataFrame | None:
     """Training rows for a cutoff: strictly before it, never confirmation.
 
     ``date < cutoff`` is strict so a match on the cutoff day is never in-sample.
+    ``covid_mode == 'exclude_after'`` removes 2020-21 from training for targets
+    after that season, but keeps it when the target IS 2020-21 (so the option can
+    actually affect the target it is meant to affect).
     """
     train = pool[pool["date"] < cutoff].copy()
-    if config.drop_2020_21:
+    if (
+        config.covid_mode == "exclude_after"
+        and target_season is not None
+        and target_season > "2020-2021"
+    ):
         train = train[train["season"] != "2020-2021"]
     assert_no_confirmation(train, f"training rows at cutoff {cutoff.date()}")
     if len(train) < min_rows:
@@ -190,6 +221,22 @@ def newcomer_type(pool: pd.DataFrame, cutoff: pd.Timestamp, team: str) -> str | 
     return "relegated_in" if seen else "promoted_in"
 
 
+def load_labels() -> dict[tuple[str, str], str]:
+    """(season, team) -> 'relegated_in' | 'promoted_in' | 'other'.
+
+    Derived from auxiliary E1/E3 by ``newcomer_labels.py``. Known before each
+    season starts, so using them is not leakage.
+    """
+    if not LABELS_PATH.exists():
+        return {}
+    frame = pd.read_parquet(LABELS_PATH)
+    return {(row.season, row.team): row.label for row in frame.itertuples(index=False)}
+
+
+def season_start_dates(pool: pd.DataFrame) -> dict[str, pd.Timestamp]:
+    return pool.groupby("season")["date"].min().to_dict()
+
+
 def team_spell_starts(pool: pd.DataFrame, cutoff: pd.Timestamp, team: str) -> list[pd.Timestamp]:
     """Starts of a team's spells in this league before ``cutoff``.
 
@@ -215,40 +262,44 @@ def team_spell_starts(pool: pd.DataFrame, cutoff: pd.Timestamp, team: str) -> li
 
 
 def newcomer_priors(
-    pool: pd.DataFrame, params: pd.Series, cutoff: pd.Timestamp
-) -> dict[str, tuple[float, float]]:
+    pool: pd.DataFrame,
+    params: pd.Series,
+    cutoff: pd.Timestamp,
+    label_map: dict[tuple[str, str], str] | None = None,
+    target_season: str | None = None,
+) -> dict:
     """Mean fitted ratings of earlier newcomers of each type, as of ``cutoff``.
 
-    Only uses the fit at ``cutoff`` (trained strictly before it) and genuine
-    arrivals, so there is no leakage. Teams present from the very start of the
-    data are not newcomers and are excluded, otherwise they would drag the prior
-    onto the league average.
-
-    Type is decided by *which spell* the arrival starts: the team's debut in the
-    data is ``promoted_in``; a later return after a gap longer than a year is
-    ``relegated_in`` (it has come back down). Teams whose debut falls before our
-    data begins are invisible, so early seasons have few or no earlier newcomers.
+    Types come from the auxiliary E1/E3 labels (``newcomer_labels.py``), not from
+    a League-One-only heuristic. Only newcomers from seasons **strictly before**
+    the target season are used, and only once they are past their first year, so
+    there is no leakage.
     """
     ratings = ratings_from(params)
     league_attack = float(np.mean([a for a, _ in ratings.values()]))
     league_defence = float(np.mean([d for _, d in ratings.values()]))
 
-    pool_start = pool["date"].min()
+    labels = label_map if label_map is not None else load_labels()
+    starts = season_start_dates(pool)
 
-    buckets: dict[str, list[tuple[float, float]]] = {"promoted_in": [], "relegated_in": []}
-    for team, (attack, defence) in ratings.items():
-        starts = team_spell_starts(pool, cutoff, team)
-        if not starts:
+    buckets: dict[str, list[tuple[float, float]]] = {
+        "promoted_in": [],
+        "relegated_in": [],
+        "other": [],
+    }
+    for (season, team), label in labels.items():
+        if target_season is not None and season >= target_season:
             continue
-        for index, start in enumerate(starts):
-            if (start - pool_start).days < NEWCOMER_HORIZON_DAYS:
-                continue  # present before our data starts: not a visible arrival
-            if (cutoff - start).days <= NEWCOMER_HORIZON_DAYS:
-                continue  # still in their first year: not an *earlier* newcomer
-            kind = "promoted_in" if index == 0 else "relegated_in"
-            buckets[kind].append((attack, defence))
+        season_start = starts.get(season)
+        if season_start is None:
+            continue
+        if (cutoff - season_start).days <= NEWCOMER_HORIZON_DAYS:
+            continue  # not yet past their first year in the league
+        if team not in ratings:
+            continue
+        buckets.setdefault(label, []).append(ratings[team])
 
-    priors = {}
+    priors: dict = {}
     for kind, values in buckets.items():
         priors[kind] = (
             (float(np.mean([v[0] for v in values])), float(np.mean([v[1] for v in values])))
@@ -258,6 +309,7 @@ def newcomer_priors(
     priors["league_avg"] = (league_attack, league_defence)
     priors["n_promoted_in"] = len(buckets["promoted_in"])
     priors["n_relegated_in"] = len(buckets["relegated_in"])
+    priors["n_other"] = len(buckets["other"])
     return priors
 
 
@@ -284,30 +336,47 @@ def blended_rating(
 # --------------------------------------------------------------------------- #
 # prediction
 # --------------------------------------------------------------------------- #
-def grid_probs(attack_h, defence_h, attack_a, defence_a, home_advantage, rho, max_goals):
-    lam_h = float(np.exp(attack_h + defence_a + home_advantage))
-    lam_a = float(np.exp(attack_a + defence_h))
+def model_from_ratings(
+    ratings: dict[str, tuple[float, float]], home_advantage: float, rho: float
+) -> DixonColesGoalModel:
+    """Rebuild a predict-capable model from persisted ratings.
 
-    # create_dixon_coles_grid enforces strict rho bounds for the given lambdas;
-    # clip defensively so an extreme fit can never crash a walk-forward run.
-    rho_min = max(-1.0 / lam_h, -1.0 / lam_a)
-    rho_max = min(1.0, 1.0 / (lam_h * lam_a))
-    rho_used = float(min(max(rho, rho_min), rho_max))
+    All markets are then produced by penaltyblog's own compiled grid, so results
+    are bit-identical to ``.predict()``. Ratings may include injected newcomer
+    values; the attack-sum constraint only binds during fitting.
+    """
+    teams = sorted(ratings)
+    model = DixonColesGoalModel(
+        [0, 1], [0, 1], ["__placeholder_a", "__placeholder_b"], ["__placeholder_b", "__placeholder_a"]
+    )
+    model.teams = np.array(teams, dtype=object)
+    model.n_teams = len(teams)
+    model.team_to_idx = {team: i for i, team in enumerate(teams)}
+    attack = np.array([ratings[t][0] for t in teams], dtype=np.float64)
+    defence = np.array([ratings[t][1] for t in teams], dtype=np.float64)
+    model._params = np.concatenate([attack, defence, [home_advantage, rho]])
+    model.fitted = True
+    return model
 
-    grid = create_dixon_coles_grid(lam_h, lam_a, rho_used, int(max_goals))
-    expected_h = float((grid.home_goal_distribution() * np.arange(grid.grid.shape[0])).sum())
-    expected_a = float((grid.away_goal_distribution() * np.arange(grid.grid.shape[1])).sum())
+
+def markets_from_grid(grid) -> dict:
+    """All markets for one fixture, straight from penaltyblog's grid."""
     return {
-        "expected_home_goals": lam_h,
-        "expected_away_goals": lam_a,
-        "grid_expected_home_goals": expected_h,
-        "grid_expected_away_goals": expected_a,
-        "rho": rho_used,
+        "expected_home_goals": float(grid.home_goal_expectation),
+        "expected_away_goals": float(grid.away_goal_expectation),
+        "grid_expected_home_goals": float(
+            (grid.home_goal_distribution() * np.arange(grid.grid.shape[0])).sum()
+        ),
+        "grid_expected_away_goals": float(
+            (grid.away_goal_distribution() * np.arange(grid.grid.shape[1])).sum()
+        ),
         "p_home": float(grid.home_win),
         "p_draw": float(grid.draw),
         "p_away": float(grid.away_win),
         "p_over25": float(grid.total_goals("over", 2.5)),
         "p_btts": float(grid.btts_yes),
+        # Full total-goals pmf (index = total goals), for dispersion diagnostics.
+        "total_goals_pmf": [float(v) for v in grid.total_goals_distribution()],
     }
 
 
@@ -326,20 +395,22 @@ def run(
 
     records: list[dict] = []
     skipped_newcomer = 0
+    label_map = load_labels()
 
     for cutoff in cutoff_mondays(targets):
         week = targets[(targets["date"] >= cutoff) & (targets["date"] < cutoff + pd.Timedelta(days=7))]
         if week.empty:
             continue
 
-        train = training_frame_for(pool, cutoff, config)
+        week_season = week["season"].iloc[0]
+        train = training_frame_for(pool, cutoff, config, week_season)
         if train is None:
             continue  # not enough history for a stable fit
 
-        params = fit_at(config, train, cutoff)
+        params = fit_at(config, train, cutoff, week_season)
         fitted = ratings_from(params)
         if config.newcomer == "newcomer_prior":
-            priors = newcomer_priors(pool, params, cutoff)
+            priors = newcomer_priors(pool, params, cutoff, label_map, week_season)
         else:
             # league_avg only needs the fitted means; skip the (slower) scan
             # for earlier newcomers.
@@ -352,10 +423,24 @@ def run(
             }
         home_advantage, rho = float(params["home_advantage"]), float(params["rho"])
 
+        # Build one model per cutoff with the policy-adjusted ratings, then let
+        # penaltyblog produce every market (exact parity with .predict()).
+        ratings_map = dict(fitted)
+        pending: list[dict] = []
+
         for match in week.itertuples(index=False):
             home, away = match.team_home, match.team_away
-            kind_h = newcomer_type(pool, cutoff, home)
-            kind_a = newcomer_type(pool, cutoff, away)
+            # Detection stays the 365-day rule; the TYPE comes from E1/E3 labels.
+            kind_h = (
+                label_map.get((match.season, home))
+                if recent_matches(pool, cutoff, home) == 0
+                else None
+            )
+            kind_a = (
+                label_map.get((match.season, away))
+                if recent_matches(pool, cutoff, away) == 0
+                else None
+            )
 
             if config.newcomer == "exclude" and (
                 home not in fitted or away not in fitted
@@ -374,16 +459,12 @@ def run(
 
             n_h = recent_matches(pool, cutoff, home)
             n_a = recent_matches(pool, cutoff, away)
-            attack_h, defence_h = blended_rating(home, fitted, priors, key_h, n_h)
-            attack_a, defence_a = blended_rating(away, fitted, priors, key_a, n_a)
+            ratings_map[home] = blended_rating(home, fitted, priors, key_h, n_h)
+            ratings_map[away] = blended_rating(away, fitted, priors, key_a, n_a)
 
-            probs = grid_probs(
-                attack_h, defence_h, attack_a, defence_a,
-                home_advantage, rho, config.grid_max_goals,
-            )
-            records.append(
+            pending.append(
                 {
-                    "match_key": match.id if hasattr(match, "id") else match.Index,
+                    "match_key": match.id,
                     "cutoff": cutoff,
                     "season": match.season,
                     "date": match.date,
@@ -392,20 +473,79 @@ def run(
                     "fthg": int(match.fthg),
                     "ftag": int(match.ftag),
                     "home_advantage": home_advantage,
+                    "rho": rho,
                     "home_newcomer": kind_h is not None,
                     "away_newcomer": kind_a is not None,
                     "home_newcomer_type": kind_h,
                     "away_newcomer_type": kind_a,
                     "home_recent_matches": n_h,
                     "away_recent_matches": n_a,
-                    **probs,
+                    "home_blend_weight": (
+                        min(n_h / NEWCOMER_K, 1.0) if home in fitted else 0.0
+                    ),
+                    "away_blend_weight": (
+                        min(n_a / NEWCOMER_K, 1.0) if away in fitted else 0.0
+                    ),
                 }
             )
+
+        if not pending:
+            continue
+
+        model = model_from_ratings(ratings_map, home_advantage, rho)
+        grids = model.predict_many(
+            [row["team_home"] for row in pending],
+            [row["team_away"] for row in pending],
+            max_goals=config.grid_max_goals,
+        )
+        for meta, grid in zip(pending, grids):
+            records.append({**meta, **markets_from_grid(grid)})
 
     frame = pd.DataFrame.from_records(records)
     frame.attrs["config_id"] = config.config_id
     frame.attrs["skipped_newcomer"] = skipped_newcomer
     return frame
+
+
+def grid_parity(n: int = 500, seed: int = 0, xi: float = 0.002) -> dict:
+    """Compare the rebuilt-model path against ``penaltyblog`` ``.predict()``.
+
+    Both sides now run the same compiled grid with identical parameters, so the
+    expected difference is exactly zero.
+    """
+    pool = load_pool("league_one_t3")
+    train = pool[pool["date"] < pd.Timestamp("2022-07-01")]
+    model = DixonColesGoalModel(
+        train["fthg"].to_numpy(),
+        train["ftag"].to_numpy(),
+        train["team_home"].to_numpy(),
+        train["team_away"].to_numpy(),
+        weights=dixon_coles_weights(train["date"], xi=xi),
+    )
+    model.fit()
+    params = model.get_params()
+    ratings = {
+        t: (float(params[f"attack_{t}"]), float(params[f"defence_{t}"]))
+        for t in model.teams
+    }
+    rebuilt = model_from_ratings(
+        ratings, float(params["home_advantage"]), float(params["rho"])
+    )
+
+    sample = train.sample(min(n, len(train)), random_state=seed)
+    worst = 0.0
+    for row in sample.itertuples(index=False):
+        ref = model.predict(row.team_home, row.team_away)
+        mine = rebuilt.predict(row.team_home, row.team_away)
+        worst = max(
+            worst,
+            abs(ref.home_win - mine.home_win),
+            abs(ref.draw - mine.draw),
+            abs(ref.away_win - mine.away_win),
+            abs(ref.total_goals("over", 2.5) - mine.total_goals("over", 2.5)),
+            abs(ref.btts_yes - mine.btts_yes),
+        )
+    return {"n": len(sample), "max_abs_diff": worst}
 
 
 def save_predictions(frame: pd.DataFrame, config: Config) -> Path:

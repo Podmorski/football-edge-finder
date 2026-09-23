@@ -60,6 +60,12 @@ OUT_1X2 = ("home", "draw", "away")
 OUT_OU = ("over", "under")
 OUT_AH = ("home", "away")
 
+# Single-source cascades, for separating the SHARP and market-average benchmarks.
+SHARP_CLOSING_1X2 = [("PSC", ("psch", "pscd", "psca"))]
+AVGC_1X2 = [("AvgC", ("avg_ch", "avg_cd", "avg_ca"))]
+SHARP_CLOSING_OU25 = [("PC>2.5", ("pc>2.5", "pc<2.5"))]
+AVGC_OU25 = [("AvgC>2.5", ("avg_c>2.5", "avg_c<2.5"))]
+
 
 @dataclass
 class Market:
@@ -107,6 +113,26 @@ def prematch_1x2(df: pd.DataFrame) -> Market:
 def closing_1x2(df: pd.DataFrame) -> Market:
     """AvgC, else PSC, else B365C, else unavailable."""
     return _cascade(df, CLOSING_1X2, OUT_1X2)
+
+
+def sharp_closing_1x2(df: pd.DataFrame) -> Market:
+    """The SHARP benchmark: Pinnacle closing only (no fallback)."""
+    return _cascade(df, SHARP_CLOSING_1X2, OUT_1X2)
+
+
+def avgc_closing_1x2(df: pd.DataFrame) -> Market:
+    """Market-average closing only (no fallback)."""
+    return _cascade(df, AVGC_1X2, OUT_1X2)
+
+
+def sharp_closing_ou25(df: pd.DataFrame) -> Market:
+    """Pinnacle closing O/U 2.5 only."""
+    return _cascade(df, SHARP_CLOSING_OU25, OUT_OU)
+
+
+def avgc_ou25(df: pd.DataFrame) -> Market:
+    """Market-average closing O/U 2.5 only."""
+    return _cascade(df, AVGC_OU25, OUT_OU)
 
 
 def prematch_ou25(df: pd.DataFrame) -> Market:

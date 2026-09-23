@@ -25,7 +25,7 @@ def test_no_training_row_is_on_or_after_the_cutoff(pool):
 
     checked = 0
     for cutoff in cutoffs:
-        train = wf.training_frame_for(pool, cutoff, config)
+        train = wf.training_frame_for(pool, cutoff, config, "2021-2022")
         if train is None:
             continue
         assert len(train) > 0
@@ -35,14 +35,36 @@ def test_no_training_row_is_on_or_after_the_cutoff(pool):
     assert checked > 30, f"only checked {checked} cutoffs"
 
 
-def test_drop_2020_21_removes_that_season_from_training(pool):
-    config = wf.Config(drop_2020_21=True)
+def test_exclude_after_keeps_2020_21_only_for_a_2020_21_target(pool):
+    config = wf.Config(covid_mode="exclude_after")
     cutoff = pd.Timestamp("2022-01-03")
-    train = wf.training_frame_for(pool, cutoff, config)
-    assert "2020-2021" not in set(train["season"].unique())
 
-    keep = wf.training_frame_for(pool, cutoff, wf.Config(drop_2020_21=False))
+    later = wf.training_frame_for(pool, cutoff, config, target_season="2021-2022")
+    assert "2020-2021" not in set(later["season"].unique())
+
+    # When the target IS 2020-21 the season is kept, so the option can affect it.
+    during = wf.training_frame_for(pool, pd.Timestamp("2021-03-01"), config, target_season="2020-2021")
+    assert "2020-2021" in set(during["season"].unique())
+
+    keep = wf.training_frame_for(pool, cutoff, wf.Config(covid_mode="include"), "2021-2022")
     assert "2020-2021" in set(keep["season"].unique())
+
+
+def test_downweight_halves_2020_21_weights_for_later_targets(pool):
+    cutoff = pd.Timestamp("2022-01-03")
+    config = wf.Config(covid_mode="downweight_0.5")
+    train = wf.training_frame_for(pool, cutoff, config, "2021-2022")
+
+    base = wf._decay_weights(train, wf.Config(covid_mode="include"), "2021-2022")
+    down = wf._decay_weights(train, config, "2021-2022")
+    mask = (train["season"] == "2020-2021").to_numpy()
+
+    assert np.allclose(down[mask], base[mask] * 0.5)
+    assert np.allclose(down[~mask], base[~mask])
+
+    # and it does NOT apply when the target is 2020-21 itself
+    during = wf._decay_weights(train, config, "2020-2021")
+    assert np.allclose(during, base)
 
 
 def test_confirmation_seasons_are_hard_refused():
@@ -54,41 +76,47 @@ def test_confirmation_seasons_are_hard_refused():
         wf.assert_no_confirmation(frame, "test data")
 
 
-def test_manual_lambda_path_matches_penaltyblog_predict(pool):
-    """Documents and bounds the known deviation.
+def test_grid_parity_is_exact(pool):
+    """The rebuilt-model path must match penaltyblog's .predict() exactly.
 
-    penaltyblog builds its fit-time grid in compiled code and its
-    ``create_dixon_coles_grid`` helper in pure Python; the two apply the
-    Dixon-Coles tau to the four low-score cells slightly differently, so the
-    1X2 probabilities differ by up to ~1.1e-3 (measured). Everything else
-    (lambdas, grid mass, Poisson body) agrees to ~1e-12. Log-loss impact is
-    ~1e-5, far below the effects this project measures.
+    Both sides run the same compiled grid with identical parameters, so this
+    replaced an earlier ~1.1e-3 deviation caused by mixing the compiled fit-time
+    grid with the pure-Python ``create_dixon_coles_grid`` helper.
     """
-    train = pool[pool["season"] != "2021-2022"]
-    model, _ = m.fit(train)
-    params = model.get_params()
+    result = wf.grid_parity(n=500, seed=7)
+    assert result["n"] == 500
+    assert result["max_abs_diff"] <= 1e-12, f"max abs diff {result['max_abs_diff']:.3e}"
 
-    worst = 0.0
-    for row in train.sample(120, random_state=3).itertuples(index=False):
-        reference = model.predict(row.team_home, row.team_away)
-        mine = wf.grid_probs(
-            params[f"attack_{row.team_home}"],
-            params[f"defence_{row.team_home}"],
-            params[f"attack_{row.team_away}"],
-            params[f"defence_{row.team_away}"],
-            params["home_advantage"],
-            params["rho"],
-            wf.GRID_MAX_GOALS,
-        )
-        worst = max(
-            worst,
-            abs(reference.home_win - mine["p_home"]),
-            abs(reference.draw - mine["p_draw"]),
-            abs(reference.away_win - mine["p_away"]),
-            abs(reference.total_goals("over", 2.5) - mine["p_over25"]),
-            abs(reference.btts_yes - mine["p_btts"]),
-        )
-    assert worst < 2e-3, f"manual path deviates by {worst:.2e}"
+
+def test_blend_arithmetic_n5_k10_is_half_and_half():
+    """A team with n=5 recent matches and k=10 gets exactly 0.5*prior + 0.5*fitted."""
+    fitted = {"Team": (2.0, -1.0)}
+    priors = {"league_avg": (0.0, 0.0)}
+    attack, defence = wf.blended_rating("Team", fitted, priors, "league_avg", n_recent=5)
+    assert attack == pytest.approx(0.5 * 2.0 + 0.5 * 0.0)
+    assert defence == pytest.approx(0.5 * (-1.0) + 0.5 * 0.0)
+
+
+def test_blend_weight_saturates_at_k():
+    fitted = {"Team": (2.0, -1.0)}
+    priors = {"league_avg": (0.0, 0.0)}
+    for n in (10, 11, 40):
+        attack, defence = wf.blended_rating("Team", fitted, priors, "league_avg", n_recent=n)
+        assert (attack, defence) == (2.0, -1.0)
+
+
+def test_unseen_team_gets_the_prior_outright():
+    priors = {"league_avg": (0.0, 0.0), "promoted_in": (1.5, -0.5)}
+    assert wf.blended_rating("New", {}, priors, "promoted_in", n_recent=0) == (1.5, -0.5)
+
+
+def test_blend_differs_between_policies_for_a_mid_weight_team():
+    """The prior chosen really does change the blended rating."""
+    fitted = {"Team": (2.0, -1.0)}
+    priors = {"league_avg": (0.0, 0.0), "promoted_in": (1.0, -0.5)}
+    avg = wf.blended_rating("Team", fitted, priors, "league_avg", n_recent=5)
+    promo = wf.blended_rating("Team", fitted, priors, "promoted_in", n_recent=5)
+    assert avg != promo
 
 
 def test_run_produces_one_row_per_predicted_match(pool):
