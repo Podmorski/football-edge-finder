@@ -1,19 +1,20 @@
-"""Benchmark the best walk-forward config against naive and the market.
+"""Step 5 — benchmarks with uncertainty, for the final config.
 
-Same match subset for every contender. Metrics: 1X2 log loss + Brier, and
-O/U 2.5 log loss against the market where available. Also 10-bin reliability
-for P(home) and P(over 2.5) pooled over validation seasons.
+Final config: xi = 0.002, covid_mode = exclude_after, newcomer = newcomer_prior.
+
+Per season (same subset for every contender):
+  model | naive | market pre-match | SHARP close (PSC) | AvgC (where it exists)
+De-margining reported both ways (proportional and power).
+
+Paired bootstrap (2000 resamples, resampled by MATCHDAY) gives 95% CIs for the
+model-minus-market log-loss difference, per season and pooled, for 1X2 and O/U 2.5.
 
 No ROI, no bet simulation, no edge language.
-
-STOP RULE: if the walk-forward model does not beat naive on the validation
-seasons, stop and report — no further tweaking.
 """
 
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -21,17 +22,22 @@ import pandas as pd
 from core import ledger, odds, walkforward as wf
 from models import league_one_dixon_coles as m
 
-ALL_SEASONS = ["2017-2018", "2018-2019", "2019-2020", "2020-2021", "2021-2022", "2022-2023"]
-TUNE_SEASONS = ["2017-2018", "2018-2019", "2020-2021"]
-VALIDATION_SEASONS = ["2021-2022", "2022-2023"]
+SEASONS = ["2017-2018", "2018-2019", "2019-2020", "2020-2021", "2021-2022", "2022-2023"]
+FINAL = wf.Config(xi=0.002, covid_mode="exclude_after", newcomer="newcomer_prior")
 
-# Stage-A winner with the Stage-B winning newcomer policy.
-BEST = wf.Config(xi=0.002, drop_2020_21=False, newcomer="newcomer_prior")
+BOOTSTRAP_N = 2000
+SEED = 20260923
 
-REPORT_PATH = Path("reports/phase2_step5_league_one.md")
+ODDS_COLUMNS = [
+    "avg_h", "avg_d", "avg_a", "avg_ch", "avg_cd", "avg_ca",
+    "psch", "pscd", "psca", "b365_h", "b365_d", "b365_a",
+    "b365_ch", "b365_cd", "b365_ca", "bb_av_h", "bb_av_d", "bb_av_a",
+    "avg>2.5", "avg<2.5", "avg_c>2.5", "avg_c<2.5", "bb_av>2.5", "bb_av<2.5",
+    "b365>2.5", "b365<2.5", "pc>2.5", "pc<2.5",
+]
 
 
-def outcome_index(frame: pd.DataFrame) -> np.ndarray:
+def outcome(frame: pd.DataFrame) -> np.ndarray:
     fthg, ftag = frame["fthg"].to_numpy(), frame["ftag"].to_numpy()
     out = np.full(len(frame), 1, dtype=int)
     out[fthg > ftag] = 0
@@ -39,213 +45,156 @@ def outcome_index(frame: pd.DataFrame) -> np.ndarray:
     return out
 
 
-def metrics(probs: np.ndarray, actual: np.ndarray) -> dict[str, float]:
-    return {
-        "log_loss": m.log_loss(probs, actual),
-        "brier": m.brier(probs, actual),
-        "accuracy": float((probs.argmax(axis=1) == actual).mean()),
-    }
+def row_log_loss(probs: np.ndarray, actual: np.ndarray) -> np.ndarray:
+    return -np.log(np.clip(probs[np.arange(len(actual)), actual], 1e-15, 1.0))
 
 
-def naive_per_cutoff(pool: pd.DataFrame, frame: pd.DataFrame, config: wf.Config) -> np.ndarray:
-    """Training base rates available at each row's own cutoff."""
-    out = np.full((len(frame), 3), np.nan)
-    for cutoff, group in frame.groupby("cutoff"):
-        train = wf.training_frame_for(pool, cutoff, config)
-        if train is None:
-            rates = np.array([1 / 3, 1 / 3, 1 / 3])
-        else:
-            actual = outcome_index(train)
-            rates = np.array([np.mean(actual == k) for k in (0, 1, 2)])
-        out[group.index.to_numpy()] = rates
-    return out
-
-
-def build_frame() -> pd.DataFrame:
-    pool = wf.load_pool(BEST.league)
-    preds = wf.run(BEST, ALL_SEASONS, pool=pool)
-
-    raw = pool.reset_index().rename(columns={"index": "row", "id": "match_key"})
-    merged = preds.merge(
-        raw[["match_key", "avg_h", "avg_d", "avg_a", "avg_ch", "avg_cd", "avg_ca",
-             "b365_h", "b365_d", "b365_a", "b365_ch", "b365_cd", "b365_ca",
-             "bb_av_h", "bb_av_d", "bb_av_a", "psch", "pscd", "psca",
-             "avg>2.5", "avg<2.5", "avg_c>2.5", "avg_c<2.5",
-             "bb_av>2.5", "bb_av<2.5", "b365>2.5", "b365<2.5"]],
-        on="match_key", how="left", suffixes=("", "_raw"),
-    )
-    assert len(merged) == len(preds)
-    return merged
-
-
-def fmt(value, width: int) -> str:
-    return " " * (width - 1) + "-" if value is None else f"{value:>{width}.3f}"
-
-
-def print_reliability(model_table, market_table) -> None:
-    print(f"    {'bin':<10}{'n':>5}{'model_pred':>12}{'mkt_pred':>10}{'observed':>10}")
-    for (bucket, n, pred, obs), (_, mn, mpred, mobs) in zip(model_table, market_table):
-        if pred is None and mpred is None:
-            print(f"    {bucket:<10}{0:>5}{fmt(None, 12)}{fmt(None, 10)}{fmt(None, 10)}")
-            continue
-        row_n = n if n else mn
-        observed = obs if obs is not None else mobs
-        print(
-            f"    {bucket:<10}{row_n:>5}{fmt(pred, 12)}{fmt(mpred, 10)}"
-            f"{fmt(observed, 10)}"
-        )
+def bootstrap_diff(
+    loss_a: np.ndarray, loss_b: np.ndarray, days: np.ndarray, n: int = BOOTSTRAP_N, seed: int = SEED
+) -> tuple[float, float, float]:
+    """Paired bootstrap of mean(loss_a) - mean(loss_b), resampling matchdays."""
+    rng = np.random.default_rng(seed)
+    unique_days, inverse = np.unique(days, return_inverse=True)
+    groups = [np.where(inverse == i)[0] for i in range(len(unique_days))]
+    diff = loss_a - loss_b
+    observed = float(diff.mean())
+    draws = np.empty(n)
+    for i in range(n):
+        picks = rng.integers(0, len(groups), len(groups))
+        idx = np.concatenate([groups[p] for p in picks])
+        draws[i] = diff[idx].mean()
+    return observed, float(np.percentile(draws, 2.5)), float(np.percentile(draws, 97.5))
 
 
 def main() -> int:
-    frame = build_frame()
-    print("=" * 82)
-    print(f"League One benchmark — best config: {BEST.config_id}")
-    print("=" * 82)
+    pool = wf.load_pool(FINAL.league)
+    preds = wf.run(FINAL, SEASONS, pool=pool)
+    raw = pool.reset_index().rename(columns={"index": "row", "id": "match_key"})
+    frame = preds.merge(raw[["match_key"] + ODDS_COLUMNS], on="match_key", how="left")
+    assert len(frame) == len(preds)
 
-    pre = odds.prematch_1x2(frame)
-    clo = odds.closing_1x2(frame)
-    probs_pre = odds.demargin(pre.odds.where(pre.available))
-    probs_clo = odds.demargin(clo.odds.where(clo.available))
-    naive = naive_per_cutoff(wf.load_pool(BEST.league), frame, BEST)
-    actual = outcome_index(frame)
+    actual = outcome(frame)
+    days = frame["date"].to_numpy()
 
-    print(f"pre-match source(s): {sorted(set(pre.source.dropna()))} "
-          f"({int(pre.available.sum())}/{len(frame)})")
-    print(f"closing source(s)  : {sorted(set(clo.source.dropna()))} "
-          f"({int(clo.available.sum())}/{len(frame)})")
-    print(f"pre-match margin   : {odds.booksum_margin(pre.odds[pre.available]).mean():.4f}")
-    print(f"closing margin     : {odds.booksum_margin(clo.odds[clo.available]).mean():.4f}")
+    print("=" * 96)
+    print(f"Step 5 — benchmarks for the final config: {FINAL.config_id}")
+    print("=" * 96)
 
-    rows = []
-    for season in ALL_SEASONS:
-        mask = (frame["season"] == season).to_numpy()
-        subset = frame[mask]
-        a = actual[mask]
-        model_p = subset[["p_home", "p_draw", "p_away"]].to_numpy()
+    prem = odds.prematch_1x2(frame)
+    sharp = odds.sharp_closing_1x2(frame)
+    avgc = odds.avgc_closing_1x2(frame)
+    pre_prop = odds.demargin(prem.odds.where(prem.available), "proportional")
+    pre_pow = odds.demargin(prem.odds.where(prem.available), "power")
+    sharp_prop = odds.demargin(sharp.odds.where(sharp.available), "proportional")
+    avgc_prop = odds.demargin(avgc.odds.where(avgc.available), "proportional")
 
-        has_pre = pre.available.to_numpy()
-        common = mask & has_pre
-        model_c = frame.loc[common, ["p_home", "p_draw", "p_away"]].to_numpy()
-        naive_c = naive[common]
-        pre_c = probs_pre[common].to_numpy()
-        a_c = actual[common]
+    print(f"pre-match  : {sorted(set(prem.source.dropna()))} ({int(prem.available.sum())}/{len(frame)})")
+    print(f"SHARP (PSC): {sorted(set(sharp.source.dropna()))} ({int(sharp.available.sum())}/{len(frame)})")
+    print(f"AvgC       : {sorted(set(avgc.source.dropna()))} ({int(avgc.available.sum())}/{len(frame)})")
 
+    # naive per cutoff
+    naive = np.full((len(frame), 3), np.nan)
+    for cutoff, group in frame.groupby("cutoff"):
+        train = wf.training_frame_for(pool, cutoff, FINAL, group["season"].iloc[0])
+        rates = (
+            np.array([np.mean(outcome(train) == k) for k in (0, 1, 2)])
+            if train is not None
+            else np.array([1 / 3, 1 / 3, 1 / 3])
+        )
+        naive[group.index.to_numpy()] = rates
+
+    model_p = frame[["p_home", "p_draw", "p_away"]].to_numpy()
+    loss_model = row_log_loss(model_p, actual)
+    loss_naive = row_log_loss(naive, actual)
+
+    print("\n--- 1X2 log loss / Brier per season (same subset = rows with PSC) ---")
+    print(f"{'season':<10}{'n':>5}{'model':>9}{'naive':>9}{'mkt pre':>9}"
+          f"{'SHARP PSC':>11}{'AvgC':>9}{'n_AvgC':>8}")
+    per_season = []
+    for season in SEASONS:
+        idx = np.where((frame["season"] == season).to_numpy() & sharp.available.to_numpy())[0]
+        a = actual[idx]
         row = {
             "season": season,
-            "n": int(common.sum()),
-            "model": m.log_loss(model_c, a_c),
-            "naive": m.log_loss(naive_c, a_c),
-            "market_pre": m.log_loss(pre_c, a_c),
-            "model_minus_market": m.log_loss(model_c, a_c) - m.log_loss(pre_c, a_c),
+            "n": len(idx),
+            "model": m.log_loss(model_p[idx], a),
+            "naive": m.log_loss(naive[idx], a),
+            "market_pre": m.log_loss(pre_prop.to_numpy()[idx], a),
         }
-        has_clo = mask & clo.available.to_numpy()
-        if has_clo.any():
-            row["n_closing"] = int(has_clo.sum())
-            row["market_closing"] = m.log_loss(probs_clo[has_clo].to_numpy(), actual[has_clo])
-            row["model_closing"] = m.log_loss(
-                frame.loc[has_clo, ["p_home", "p_draw", "p_away"]].to_numpy(), actual[has_clo]
-            )
-        rows.append(row)
+        avgc_idx = np.intersect1d(idx, np.where(avgc.available.to_numpy())[0])
+        row["sharp_psc"] = m.log_loss(sharp_prop.to_numpy()[idx], a)
+        row["avgc"] = m.log_loss(avgc_prop.to_numpy()[avgc_idx], actual[avgc_idx]) if len(avgc_idx) else float("nan")
+        row["n_avgc"] = len(avgc_idx)
+        row["model_brier"] = m.brier(model_p[idx], a)
+        row["market_brier"] = m.brier(pre_prop.to_numpy()[idx], a)
+        per_season.append(row)
+        print(f"{season:<10}{len(idx):>5}{row['model']:>9.4f}{row['naive']:>9.4f}"
+              f"{row['market_pre']:>9.4f}{row['sharp_psc']:>11.4f}{row['avgc']:>9.4f}{row['n_avgc']:>8}")
+    table = pd.DataFrame(per_season)
 
-    table = pd.DataFrame(rows)
-    print("\n--- 1X2 log loss per season (same pre-match subset) ---")
-    print(table.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    print("\n--- de-margin method sensitivity (1X2, pooled over PSC rows) ---")
+    idx = np.where(sharp.available.to_numpy())[0]
+    print(f"  pre-match : proportional {m.log_loss(pre_prop.to_numpy()[idx], actual[idx]):.5f} | "
+          f"power {m.log_loss(pre_pow.to_numpy()[idx], actual[idx]):.5f}")
+    print(f"  SHARP PSC : proportional {m.log_loss(sharp_prop.to_numpy()[idx], actual[idx]):.5f}")
 
-    brier_rows = []
-    for season in ALL_SEASONS:
-        common = (frame["season"] == season).to_numpy() & pre.available.to_numpy()
-        a_c = actual[common]
-        brier_rows.append({
-            "season": season,
-            "model_brier": m.brier(frame.loc[common, ["p_home", "p_draw", "p_away"]].to_numpy(), a_c),
-            "naive_brier": m.brier(naive[common], a_c),
-            "market_brier": m.brier(probs_pre[common].to_numpy(), a_c),
-        })
-    brier = pd.DataFrame(brier_rows)
-    print("\n--- 1X2 Brier per season ---")
-    print(brier.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    # ---------------- bootstrap CIs ----------------
+    print(f"\n--- paired bootstrap ({BOOTSTRAP_N} resamples by matchday) ---")
+    print(f"{'scope':<12}{'model-mkt_pre':>15}{'95% CI':>24}{'model-SHARP':>14}{'95% CI':>24}")
+    pooled = {"model_pre": [], "model_sharp": []}
+    for season in SEASONS:
+        idx = np.where((frame["season"] == season).to_numpy() & sharp.available.to_numpy())[0]
+        lm, lp = loss_model[idx], row_log_loss(pre_prop.to_numpy()[idx], actual[idx])
+        ls = row_log_loss(sharp_prop.to_numpy()[idx], actual[idx])
+        d1 = bootstrap_diff(lm, lp, days[idx])
+        d2 = bootstrap_diff(lm, ls, days[idx])
+        pooled["model_pre"].append((lm, lp, days[idx]))
+        pooled["model_sharp"].append((lm, ls, days[idx]))
+        print(f"{season:<12}{d1[0]:>15.4f}{f'[{d1[1]:.4f}, {d1[2]:.4f}]':>24}"
+              f"{d2[0]:>14.4f}{f'[{d2[1]:.4f}, {d2[2]:.4f}]':>24}")
 
-    # ---------------- O/U 2.5 vs market ----------------
-    ou_pre = odds.prematch_ou25(frame)
-    ou_rows = []
-    for season in ALL_SEASONS:
-        mask = (frame["season"] == season).to_numpy() & ou_pre.available.to_numpy()
-        if not mask.any():
-            continue
-        over = ((frame.loc[mask, "fthg"] + frame.loc[mask, "ftag"]) > 2.5).to_numpy().astype(int)
-        p_model = frame.loc[mask, "p_over25"].to_numpy()
-        mkt = odds.demargin(ou_pre.odds.where(ou_pre.available))[mask].to_numpy()
-        ou_rows.append({
-            "season": season,
-            "n": int(mask.sum()),
-            "model": m.log_loss(np.column_stack([1 - p_model, p_model]), over),
-            "market": m.log_loss(mkt, over),
-            "source": "+".join(sorted(set(ou_pre.source[mask].dropna()))),
-        })
-    ou = pd.DataFrame(ou_rows)
-    print("\n--- O/U 2.5 log loss vs market (pre-match) ---")
-    print(ou.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    lm_all = np.concatenate([x[0] for x in pooled["model_pre"]])
+    lp_all = np.concatenate([x[1] for x in pooled["model_pre"]])
+    ls_all = np.concatenate([x[2] for x in pooled["model_sharp"]])
+    days_all = np.concatenate([x[2] for x in pooled["model_pre"]])
+    ls_all = np.concatenate([x[1] for x in pooled["model_sharp"]])
+    d1 = bootstrap_diff(lm_all, lp_all, days_all)
+    d2 = bootstrap_diff(lm_all, ls_all, days_all)
+    print(f"{'POOLED':<12}{d1[0]:>15.4f}{f'[{d1[1]:.4f}, {d1[2]:.4f}]':>24}"
+          f"{d2[0]:>14.4f}{f'[{d2[1]:.4f}, {d2[2]:.4f}]':>24}")
 
-    # ---------------- reliability (validation, pooled) ----------------
-    val_mask = frame["season"].isin(VALIDATION_SEASONS).to_numpy()
-    val_pre = val_mask & pre.available.to_numpy()
-    print("\n--- 10-bin reliability, pooled over validation seasons "
-          f"({VALIDATION_SEASONS}) ---")
-    model_ph = frame.loc[val_pre, "p_home"].to_numpy()
-    mkt_ph = probs_pre.loc[val_pre, "home"].to_numpy()
-    a_val = actual[val_pre]
-    print("  P(home):")
-    print_reliability(
-        m.reliability_table(model_ph, a_val, bins=10),
-        m.reliability_table(mkt_ph, a_val, bins=10),
-    )
+    # O/U bootstrap
+    ou = odds.prematch_ou25(frame)
+    ou_mkt = odds.demargin(ou.odds.where(ou.available))
+    has = ou.available.to_numpy()
+    over = (frame["fthg"] + frame["ftag"] > 2.5).to_numpy().astype(int)
+    p_model_ou = np.column_stack([1 - frame["p_over25"].to_numpy(), frame["p_over25"].to_numpy()])
+    print(f"\n--- O/U 2.5, same rows with pre-match O/U odds ({int(has.sum())} rows) ---")
+    lm_ou = row_log_loss(p_model_ou[has], over[has])
+    lmkt_ou = row_log_loss(ou_mkt.to_numpy()[has], over[has])
+    d = bootstrap_diff(lm_ou, lmkt_ou, days[has])
+    print(f"  pooled model {lm_ou.mean():.4f} vs market {lmkt_ou.mean():.4f} "
+          f"| diff {d[0]:.4f} [{d[1]:.4f}, {d[2]:.4f}]")
 
-    over_val = ((frame.loc[val_mask, "fthg"] + frame.loc[val_mask, "ftag"]) > 2.5).to_numpy().astype(int)
-    model_po = frame.loc[val_mask, "p_over25"].to_numpy()
-    mkt_ou_val = odds.demargin(ou_pre.odds.where(ou_pre.available))
-    mkt_po = mkt_ou_val[val_mask].to_numpy()[:, 1]
-    valid = np.isfinite(mkt_po)
-    print("  P(over 2.5) [market available rows only]:")
-    print_reliability(
-        m.reliability_table(model_po[valid], over_val[valid], bins=10),
-        m.reliability_table(mkt_po[valid], over_val[valid], bins=10),
-    )
-
-    # ---------------- STOP RULE ----------------
-    val = table[table["season"].isin(VALIDATION_SEASONS)]
-    beats = bool((val["model"] < val["naive"]).all())
-    print("\n" + "=" * 82)
-    print("STOP RULE — model vs naive on validation seasons")
-    for row in val.itertuples(index=False):
-        verdict = "BEATS" if row.model < row.naive else "LOSES TO"
-        print(f"  {row.season}: model {row.model:.4f} {verdict} naive {row.naive:.4f}")
-    print(f"model beats naive on every validation season: {beats}")
-    if not beats:
-        print("!! STOP RULE TRIGGERED — stopping, no further tweaking")
-    else:
-        print("model beats naive out-of-sample on both validation seasons")
-
-    table.to_csv("reports/figures/league_one_benchmark_1x2.csv", index=False)
-    ou.to_csv("reports/figures/league_one_benchmark_ou25.csv", index=False)
-
+    table.to_csv("reports/figures/league_one_benchmark_final.csv", index=False)
     ledger.log_evaluation(
-        league=BEST.league,
+        league=FINAL.league,
         market="1X2",
         selection="home/draw/away",
-        rule_config=f"BENCHMARK {BEST.config_id}",
-        split="discovery:validation",
-        n_predictions=int(val["n"].sum()),
-        log_loss=float((val["model"] * val["n"]).sum() / val["n"].sum()),
+        rule_config=f"FINAL BENCHMARK {FINAL.config_id}",
+        split="discovery:all",
+        n_predictions=len(lm_all),
+        log_loss=float(lm_all.mean()),
         brier="",
-        benchmark_name="market_prematch + naive",
-        benchmark_log_loss=float((val["market_pre"] * val["n"]).sum() / val["n"].sum()),
+        benchmark_name="market_prematch",
+        benchmark_log_loss=float(lp_all.mean()),
         n_bets="",
         roi="",
         mean_clv="",
         notes=(
-            "beats naive on validation: "
-            f"{beats}; mean model-minus-market gap "
-            f"{float(((val['model'] - val['market_pre']) * val['n']).sum() / val['n'].sum()):.4f}"
+            f"pooled model-market diff {d1[0]:.4f} CI [{d1[1]:.4f},{d1[2]:.4f}]; "
+            f"vs SHARP PSC diff {d2[0]:.4f} CI [{d2[1]:.4f},{d2[2]:.4f}]; "
+            f"O/U diff {d[0]:.4f} CI [{d[1]:.4f},{d[2]:.4f}]"
         ),
     )
     return 0
