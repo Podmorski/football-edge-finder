@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from core.normalise import coalesce_bom_columns
 from leagues import LEAGUES, label_of
 from penaltyblog.scrapers import FootballData
 
@@ -40,6 +41,7 @@ def refresh_league(league: dict, season: str) -> tuple[int, object, object, int]
     """Merge the current season into the league's parquet. Returns summary."""
     path = DATA_DIR / f"{league['slug']}.parquet"
     existing = pd.read_parquet(path) if path.exists() else pd.DataFrame()
+    existing = coalesce_bom_columns(existing) if not existing.empty else existing
     before = len(existing)
 
     try:
@@ -65,6 +67,7 @@ def refresh_league(league: dict, season: str) -> tuple[int, object, object, int]
     added = len(combined) - before
     newest = pd.to_datetime(combined["date"], errors="coerce").max()
 
+    combined = coalesce_bom_columns(combined)
     path.parent.mkdir(parents=True, exist_ok=True)
     combined.to_parquet(path)
     return added, newest, before, len(combined)

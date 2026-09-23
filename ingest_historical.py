@@ -25,6 +25,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from core.normalise import coalesce_bom_columns
 from leagues import LEAGUES, label_of
 from penaltyblog.scrapers import FootballData
 
@@ -87,6 +88,7 @@ def main() -> int:
             continue
 
         out_path = DATA_DIR / f"{league['slug']}.parquet"
+        df = coalesce_bom_columns(df)
         df.to_parquet(out_path)
 
         dates = pd.to_datetime(df["date"], errors="coerce")
