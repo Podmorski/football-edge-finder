@@ -4,7 +4,12 @@ Source: https://www.football-data.co.uk/ (free, public CSV downloads, no auth).
 Access method: penaltyblog's ``FootballData`` scraper, which fetches the
 per-season CSV for a given competition slug.
 
-Output: one parquet file per league under ``data/historical/``.
+Output: one parquet file per league under ``data/historical/``, named by the
+league's tier-qualified slug (e.g. ``bundesliga_2.parquet`` for 2. Bundesliga).
+
+Tier labelling: every league entry carries an explicit ``tier`` so that
+same-named divisions in different tiers (e.g. Bundesliga vs 2. Bundesliga)
+can never be confused. Top-flight Bundesliga is deliberately NOT ingested here.
 
 Note on coverage: penaltyblog's football-data.co.uk scraper only maps a fixed
 set of competitions. Any league not in that set is reported as unavailable
@@ -30,24 +35,29 @@ DATA_DIR = Path("data/historical")
 
 # Leagues from CONFIG. ``penaltyblog`` is the competition key understood by
 # penaltyblog's football-data.co.uk scraper (None = not covered by the source).
+# ``tier`` is the division level within that country's pyramid, and is encoded
+# in the output slug so tiers can never be mixed up.
 LEAGUES = [
     {
-        "name": "Bundesliga",
+        "name": "2. Bundesliga",
+        "tier": 2,
         "api_football_id": 79,
-        "penaltyblog": "DEU Bundesliga 1",
-        "slug": "bundesliga",
+        "penaltyblog": "DEU Bundesliga 2",
+        "slug": "bundesliga_2",
     },
     {
         "name": "League One",
+        "tier": 3,
         "api_football_id": 41,
         "penaltyblog": "ENG League 1",
-        "slug": "league_one",
+        "slug": "league_one_t3",
     },
     {
         "name": "Ligue 2",
+        "tier": 2,
         "api_football_id": 62,
         "penaltyblog": "FRA Ligue 2",
-        "slug": "ligue_2",
+        "slug": "ligue_2_t2",
     },
 ]
 
@@ -87,34 +97,35 @@ def main() -> int:
     summary: list[tuple[str, int | None, object, object]] = []
 
     for league in LEAGUES:
-        print(f"\n=== {league['name']} (api_football_id={league['api_football_id']}) ===")
+        label = f"{league['name']} (tier {league['tier']})"
+        print(f"\n=== {label} | api_football_id={league['api_football_id']} ===")
 
         if league["penaltyblog"] is None:
             print("  NOT COVERED by penaltyblog's football-data.co.uk scraper.")
-            summary.append((league["name"], None, None, None))
+            summary.append((label, None, None, None))
             continue
 
         df = fetch_league(league["penaltyblog"])
         if df.empty:
             print("  no data retrieved")
-            summary.append((league["name"], 0, None, None))
+            summary.append((label, 0, None, None))
             continue
 
         out_path = DATA_DIR / f"{league['slug']}.parquet"
         df.to_parquet(out_path)
 
         dates = pd.to_datetime(df["date"], errors="coerce")
-        summary.append((league["name"], len(df), dates.min(), dates.max()))
+        summary.append((label, len(df), dates.min(), dates.max()))
         print(f"  saved {len(df)} rows -> {out_path}")
 
     print("\n=== SUMMARY (historical) ===")
-    for name, rows, date_min, date_max in summary:
+    for label, rows, date_min, date_max in summary:
         if rows is None:
-            print(f"{name}: NOT AVAILABLE from source")
+            print(f"{label}: NOT AVAILABLE from source")
         elif rows == 0:
-            print(f"{name}: 0 rows")
+            print(f"{label}: 0 rows")
         else:
-            print(f"{name}: {rows} rows, {date_min.date()} .. {date_max.date()}")
+            print(f"{label}: {rows} rows, {date_min.date()} .. {date_max.date()}")
 
     return 0
 

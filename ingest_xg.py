@@ -8,7 +8,12 @@ This is deliberately a *coverage test*, not a bug hunt: a league returning
 nothing is a valid outcome and is reported plainly. Understat only covers a
 handful of top divisions, so gaps are expected.
 
-Output: one parquet file per league that returns data, under ``data/xg/``.
+Output: one parquet file per league that returns data, under ``data/xg/``,
+named by the league's tier-qualified slug.
+
+Tier labelling: every league entry carries an explicit ``tier`` so that
+same-named divisions in different tiers can never be confused. Top-flight
+Bundesliga is deliberately NOT tested here.
 """
 
 from __future__ import annotations
@@ -29,25 +34,29 @@ warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 DATA_DIR = Path("data/xg")
 
 # Leagues from CONFIG. ``understat`` is the competition key understood by
-# penaltyblog's Understat scraper (None = not covered by Understat).
+# penaltyblog's Understat scraper (None = not covered by Understat). ``tier``
+# is the division level within that country's pyramid.
 LEAGUES = [
     {
-        "name": "Bundesliga",
+        "name": "2. Bundesliga",
+        "tier": 2,
         "api_football_id": 79,
-        "understat": "DEU Bundesliga 1",
-        "slug": "bundesliga",
+        "understat": None,
+        "slug": "bundesliga_2",
     },
     {
         "name": "League One",
+        "tier": 3,
         "api_football_id": 41,
         "understat": None,
-        "slug": "league_one",
+        "slug": "league_one_t3",
     },
     {
         "name": "Ligue 2",
+        "tier": 2,
         "api_football_id": 62,
         "understat": None,
-        "slug": "ligue_2",
+        "slug": "ligue_2_t2",
     },
 ]
 
@@ -85,11 +94,12 @@ def main() -> int:
     summary: list[tuple[str, str, int | None, object, object]] = []
 
     for league in LEAGUES:
-        print(f"\n=== {league['name']} (api_football_id={league['api_football_id']}) ===")
+        label = f"{league['name']} (tier {league['tier']})"
+        print(f"\n=== {label} | api_football_id={league['api_football_id']} ===")
 
         if league["understat"] is None:
             print("  NOT COVERED by Understat — no xG available from this source.")
-            summary.append((league["name"], "not covered", None, None, None))
+            summary.append((label, "not covered", None, None, None))
             continue
 
         df, notes = fetch_league(league["understat"])
@@ -98,24 +108,24 @@ def main() -> int:
 
         if df.empty:
             print("  RESULT: no xG data returned for any season.")
-            summary.append((league["name"], "no data", 0, None, None))
+            summary.append((label, "no data", 0, None, None))
             continue
 
         out_path = DATA_DIR / f"{league['slug']}.parquet"
         df.to_parquet(out_path)
 
         dates = pd.to_datetime(df["datetime"], errors="coerce")
-        summary.append((league["name"], "success", len(df), dates.min(), dates.max()))
+        summary.append((label, "success", len(df), dates.min(), dates.max()))
         print(f"  RESULT: success — saved {len(df)} rows -> {out_path}")
 
     print("\n=== SUMMARY (Understat xG coverage) ===")
-    for name, status, rows, date_min, date_max in summary:
+    for label, status, rows, date_min, date_max in summary:
         if status == "success":
-            print(f"{name}: SUCCESS — {rows} rows, {date_min.date()} .. {date_max.date()}")
+            print(f"{label}: SUCCESS — {rows} rows, {date_min.date()} .. {date_max.date()}")
         elif status == "not covered":
-            print(f"{name}: NOT COVERED by Understat")
+            print(f"{label}: NOT COVERED by Understat")
         else:
-            print(f"{name}: NO DATA returned")
+            print(f"{label}: NO DATA returned")
 
     return 0
 
