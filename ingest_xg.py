@@ -44,10 +44,10 @@ LEAGUES = [
         "slug": "league_one",
     },
     {
-        "name": "Serbian SuperLiga",
-        "api_football_id": 287,
+        "name": "Ligue 2",
+        "api_football_id": 62,
         "understat": None,
-        "slug": "serbian_superliga",
+        "slug": "ligue_2",
     },
 ]
 

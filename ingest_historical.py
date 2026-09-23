@@ -7,8 +7,8 @@ per-season CSV for a given competition slug.
 Output: one parquet file per league under ``data/historical/``.
 
 Note on coverage: penaltyblog's football-data.co.uk scraper only maps a fixed
-set of competitions. Serbian SuperLiga is not among them, so it is reported as
-unavailable rather than silently skipped.
+set of competitions. Any league not in that set is reported as unavailable
+rather than silently skipped.
 """
 
 from __future__ import annotations
@@ -44,10 +44,10 @@ LEAGUES = [
         "slug": "league_one",
     },
     {
-        "name": "Serbian SuperLiga",
-        "api_football_id": 287,
-        "penaltyblog": None,
-        "slug": "serbian_superliga",
+        "name": "Ligue 2",
+        "api_football_id": 62,
+        "penaltyblog": "FRA Ligue 2",
+        "slug": "ligue_2",
     },
 ]
 
