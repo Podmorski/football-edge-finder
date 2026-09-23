@@ -329,11 +329,17 @@ def main() -> int:
 
     attack = pd.Series({t: params[f"attack_{t}"] for t in model.teams})
     defence = pd.Series({t: params[f"defence_{t}"] for t in model.teams})
-    for name, series, biggest in (("attack", attack, True), ("attack", attack, False),
-                                  ("defence", defence, True), ("defence", defence, False)):
-        picked = series.nlargest(5) if biggest else series.nsmallest(5)
-        tag = "top5" if biggest else "bottom5"
-        print(f"{name} {tag:8}: " + ", ".join(f"{t}={v:.3f}" for t, v in picked.items()))
+    # Sign convention (verified empirically on 2020-21: corr with goals scored
+    # +0.92 for attack, corr with goals conceded +0.93 for defence): a LARGER
+    # defence coefficient means a WORSE defence.
+    def show(tag: str, series: pd.Series, largest: bool) -> None:
+        picked = series.nlargest(5) if largest else series.nsmallest(5)
+        print(f"{tag:<34}: " + ", ".join(f"{t}={v:.3f}" for t, v in picked.items()))
+
+    show("attack  best 5 (highest coeff)", attack, True)
+    show("attack  worst 5 (lowest coeff)", attack, False)
+    show("defence best 5 (lowest coeff)", defence, False)
+    show("defence worst 5 (highest coeff)", defence, True)
 
     holdout_grids = grids_for(model, remaining)
     train_grids = grids_for(model, train)
