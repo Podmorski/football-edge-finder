@@ -25,6 +25,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from leagues import LEAGUES, label_of
 from penaltyblog.scrapers import Understat
 
 # penaltyblog builds frames via repeated inserts; the resulting warnings are
@@ -33,32 +34,7 @@ warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 DATA_DIR = Path("data/xg")
 
-# Leagues from CONFIG. ``understat`` is the competition key understood by
-# penaltyblog's Understat scraper (None = not covered by Understat). ``tier``
-# is the division level within that country's pyramid.
-LEAGUES = [
-    {
-        "name": "2. Bundesliga",
-        "tier": 2,
-        "api_football_id": 79,
-        "understat": None,
-        "slug": "bundesliga_2",
-    },
-    {
-        "name": "League One",
-        "tier": 3,
-        "api_football_id": 41,
-        "understat": None,
-        "slug": "league_one_t3",
-    },
-    {
-        "name": "Ligue 2",
-        "tier": 2,
-        "api_football_id": 62,
-        "understat": None,
-        "slug": "ligue_2_t2",
-    },
-]
+# League registry (tier/role labelled) lives in leagues.py.
 
 SEASONS = [f"{year}-{year + 1}" for year in range(2015, 2027)]
 
@@ -94,7 +70,7 @@ def main() -> int:
     summary: list[tuple[str, str, int | None, object, object]] = []
 
     for league in LEAGUES:
-        label = f"{league['name']} (tier {league['tier']})"
+        label = label_of(league)
         print(f"\n=== {label} | api_football_id={league['api_football_id']} ===")
 
         if league["understat"] is None:

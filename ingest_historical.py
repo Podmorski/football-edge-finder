@@ -25,6 +25,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from leagues import LEAGUES, label_of
 from penaltyblog.scrapers import FootballData
 
 # penaltyblog builds frames via repeated inserts; the resulting warnings are
@@ -33,33 +34,7 @@ warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 DATA_DIR = Path("data/historical")
 
-# Leagues from CONFIG. ``penaltyblog`` is the competition key understood by
-# penaltyblog's football-data.co.uk scraper (None = not covered by the source).
-# ``tier`` is the division level within that country's pyramid, and is encoded
-# in the output slug so tiers can never be mixed up.
-LEAGUES = [
-    {
-        "name": "2. Bundesliga",
-        "tier": 2,
-        "api_football_id": 79,
-        "penaltyblog": "DEU Bundesliga 2",
-        "slug": "bundesliga_2",
-    },
-    {
-        "name": "League One",
-        "tier": 3,
-        "api_football_id": 41,
-        "penaltyblog": "ENG League 1",
-        "slug": "league_one_t3",
-    },
-    {
-        "name": "Ligue 2",
-        "tier": 2,
-        "api_football_id": 62,
-        "penaltyblog": "FRA Ligue 2",
-        "slug": "ligue_2_t2",
-    },
-]
+# League registry (tier/role labelled) lives in leagues.py.
 
 # Seasons to attempt. football-data.co.uk coverage varies by league/season;
 # missing seasons are reported and skipped.
@@ -97,7 +72,7 @@ def main() -> int:
     summary: list[tuple[str, int | None, object, object]] = []
 
     for league in LEAGUES:
-        label = f"{league['name']} (tier {league['tier']})"
+        label = label_of(league)
         print(f"\n=== {label} | api_football_id={league['api_football_id']} ===")
 
         if league["penaltyblog"] is None:

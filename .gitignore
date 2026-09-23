@@ -4,6 +4,9 @@
 # Data artifacts
 data/
 
+# Local request log (source of truth for API usage)
+logs/
+
 # Python
 __pycache__/
 *.py[cod]
