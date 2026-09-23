@@ -101,3 +101,50 @@ Initial gates (revisable — record changes in the decision log):
 ## Resolved
 
 - **Ajaccio vs Ajaccio GFCO are different clubs — never merge.**
+
+## Decision log
+
+### Benchmark roles (decided 2026-09-23)
+
+| Role | Source | Availability |
+|---|---|---|
+| **SHARP benchmark** | Pinnacle closing (`PSCH/PSCD/PSCA`) | 2015-16 … 2024-25 |
+| **SHARP benchmark** | market-average closing (`AvgCH/CD/CA`) | 2025-26 onward (Pinnacle degrades to 0% in 2026-27) |
+| **BET PRICE proxy** | B365 pre-match (`B365H/D/A`) | all seasons |
+
+The bet price is a *proxy* until the user names a real book. Because the sharp
+source changes over time, **`AvgC*` must always be reported alongside `PSC*`** so
+a mid-sample switch can never be mistaken for a change in achievable edge.
+
+### Tuning design rule (decided 2026-09-23)
+
+> **A tuned option must be able to affect the tune seasons.**
+
+If an option cannot influence a season, that season cannot judge it. Such an
+option may still be chosen, but only on a *stated theory*, and the choice must be
+flagged **"post-hoc, discovery-only"** and re-verified on confirmation.
+
+### Findings and corrections (external review, 2026-09-23)
+
+1. **Newcomer blend was inert.** All of the `league_avg` vs `newcomer_prior`
+difference sat in the 39 `n = 0` matches; there was **zero** effect for `n = 1..9`.
+2. **`promoted_in` / `relegated_in` cannot be derived from League One data**
+   alone, and the derived priors looked **inverted**. Requires auxiliary
+   divisions (E1/E3).
+3. **The COVID option was mis-designed.** "drop" removed 2020-21 *in-season*
+data when predicting 2020-21 itself, and could not affect 2017-18 or 2018-19, so
+   the tune seasons could not judge it.
+4. **O/U 2.5 was under-predicted by ~10pp** in the middle reliability bins.
+5. **The closing benchmark mixed sources** (`PSC` pre-2019, `AvgC` 2019+), which
+   confounds the sharp reference across the sample.
+6. **No confidence intervals** were reported anywhere.
+7. **The pure-Python grid differed from `penaltyblog` `predict` by ~1.1e-3.**
+
+> **Void:** the Stage A COVID selection from the previous session is **void** —
+the option could not affect the tune seasons. It is superseded by the
+`covid_mode` design in Step 4.
+
+### Auxiliary divisions
+
+**E1 (Championship)** and **E3 (League Two)** are ingested as *auxiliary* data
+purely to label League One newcomers. They are **never in scope for betting**.
