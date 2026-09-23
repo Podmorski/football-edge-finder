@@ -1,1 +1,2 @@
-penaltyblog
+penaltyblog==1.12.2
+pyarrow==25.0.1
