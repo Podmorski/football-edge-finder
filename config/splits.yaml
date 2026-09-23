@@ -1,0 +1,37 @@
+# Data splits.
+#
+# The `confirmation` split is LOCKED. It may only be read through
+# `core.splits.load_split(..., split="confirmation", confirm=True, reason="...")`,
+# and every access is appended to research/confirmation_access.csv.
+#
+# Each confirmation season is a one-shot resource: once used it is no longer
+# fresh. One pre-registered candidate rule gets one shot.
+
+splits:
+  warmup:
+    seasons:
+      - "2015-2016"
+      - "2016-2017"
+    locked: false
+
+  discovery:
+    seasons:
+      - "2017-2018"
+      - "2018-2019"
+      - "2019-2020"
+      - "2020-2021"
+      - "2021-2022"
+      - "2022-2023"
+    locked: false
+
+  confirmation:
+    seasons:
+      - "2023-2024"
+      - "2024-2025"
+      - "2025-2026"
+    locked: true
+
+  live:
+    seasons:
+      - "2026-2027"
+    locked: false

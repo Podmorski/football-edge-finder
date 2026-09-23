@@ -1,0 +1,324 @@
+# Bucket registry.
+#
+# Schema per entry:
+#   bucket_id      stable id: <league>__<market>__<selection>
+#   league         league slug (see leagues.py)
+#   market         one of: 1X2, OU2.5, AH
+#   selection      home|draw|away|over|under
+#   odds_band      optional [min, max] price band; null = no band yet
+#   stage          CANDIDATE|BACKTEST_PASSED|PAPER|LIVE_SMALL|LIVE_FULL|SUSPENDED
+#   stage_history  append-only list of {timestamp, from, to, note}
+#
+# Stage transitions follow docs/PROJECT_PLAN.md. No odds bands yet.
+#
+# NOTE: values below are data, not comments; keep YAML valid when editing.
+
+buckets:
+- bucket_id: bundesliga_2__1x2__home
+  league: bundesliga_2
+  market: 1X2
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_2__1x2__draw
+  league: bundesliga_2
+  market: 1X2
+  selection: draw
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_2__1x2__away
+  league: bundesliga_2
+  market: 1X2
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_2__ou2.5__over
+  league: bundesliga_2
+  market: OU2.5
+  selection: over
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_2__ou2.5__under
+  league: bundesliga_2
+  market: OU2.5
+  selection: under
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_2__ah__home
+  league: bundesliga_2
+  market: AH
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_2__ah__away
+  league: bundesliga_2
+  market: AH
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_1__1x2__home
+  league: bundesliga_1
+  market: 1X2
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_1__1x2__draw
+  league: bundesliga_1
+  market: 1X2
+  selection: draw
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_1__1x2__away
+  league: bundesliga_1
+  market: 1X2
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_1__ou2.5__over
+  league: bundesliga_1
+  market: OU2.5
+  selection: over
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_1__ou2.5__under
+  league: bundesliga_1
+  market: OU2.5
+  selection: under
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_1__ah__home
+  league: bundesliga_1
+  market: AH
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: bundesliga_1__ah__away
+  league: bundesliga_1
+  market: AH
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: league_one_t3__1x2__home
+  league: league_one_t3
+  market: 1X2
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: league_one_t3__1x2__draw
+  league: league_one_t3
+  market: 1X2
+  selection: draw
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: league_one_t3__1x2__away
+  league: league_one_t3
+  market: 1X2
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: league_one_t3__ou2.5__over
+  league: league_one_t3
+  market: OU2.5
+  selection: over
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: league_one_t3__ou2.5__under
+  league: league_one_t3
+  market: OU2.5
+  selection: under
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: league_one_t3__ah__home
+  league: league_one_t3
+  market: AH
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: league_one_t3__ah__away
+  league: league_one_t3
+  market: AH
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: ligue_2_t2__1x2__home
+  league: ligue_2_t2
+  market: 1X2
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: ligue_2_t2__1x2__draw
+  league: ligue_2_t2
+  market: 1X2
+  selection: draw
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: ligue_2_t2__1x2__away
+  league: ligue_2_t2
+  market: 1X2
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: ligue_2_t2__ou2.5__over
+  league: ligue_2_t2
+  market: OU2.5
+  selection: over
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: ligue_2_t2__ou2.5__under
+  league: ligue_2_t2
+  market: OU2.5
+  selection: under
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: ligue_2_t2__ah__home
+  league: ligue_2_t2
+  market: AH
+  selection: home
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
+- bucket_id: ligue_2_t2__ah__away
+  league: ligue_2_t2
+  market: AH
+  selection: away
+  odds_band: null
+  stage: CANDIDATE
+  stage_history:
+  - timestamp: '2026-09-23T17:36:56+00:00'
+    from: null
+    to: CANDIDATE
+    note: initial registration
