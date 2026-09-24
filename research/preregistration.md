@@ -62,3 +62,75 @@ Report the distribution of `EV_max` across matches. The hypothesis is
 ## What this does NOT claim
 No ROI, no staking, no bet simulation. A supported hypothesis is a
 **CONFIRMATION CANDIDATE** only.
+
+---
+
+# MAINLINE-HIST-1 (written 2026-09-24, BEFORE any number in this run)
+
+Same hypothesis as MAINLINE-1, tested on history instead of on captures we could
+not collect. Frozen before any figure below was computed.
+
+## Hypothesis
+At bet time, a **soft** book's **pre-match** price for a main-line market is
+sometimes above the de-margined **sharp pre-match** price by more than the cushion.
+
+## Fair probability (the only inputs)
+```
+fair_prob = Pinnacle PRE-MATCH odds de-margined with the POWER method
+fair_odds = 1 / fair_prob
+```
+No model is involved: this is a pure market-relative test.
+
+## Bet rule
+Bet **1 unit** at the SOFT book's **pre-match** odds whenever
+
+```
+soft_odds >= fair_odds x 1.035
+```
+
+Nothing else. **Never** `Max` / best-of-market: one book at a time, the price it
+actually showed.
+
+## Soft books — tested SEPARATELY
+| Book | Columns |
+|---|---|
+| **B365** | `b365_h/d/a`, `b365>2.5/<2.5`, `b365_ahh/aha` |
+| **market average** | `avg_*` where present, else `bb_av_*` (the `Avg` block does not exist before 2019-20) |
+
+The average series always names the source actually used on each row.
+
+## Markets
+**1X2** (each outcome), **O/U 2.5** (each side), **AH main line** (home, away).
+Only rows where BOTH the Pinnacle pre-match price AND the soft price exist.
+
+## Evaluation (per soft book x market)
+1. **P&L and ROI** with a bootstrap 95% CI, resampling **by matchday**
+   (2000 draws, fixed seed). Standard stakes of 1 unit.
+2. **CLV** `= soft_odds / fair_close - 1`, where `fair_close` is the de-margined
+   Pinnacle **CLOSING** price (`psch/pscd/psca`, `pc>2.5/<2.5`, `pcahh/pcaha`),
+   power method, with a bootstrap 95% CI by matchday.
+
+The closing price is used **ONLY** for evaluation, never as an input to a decision.
+
+## Discovery window
+**2017-18 .. 2022-23**, all four leagues. **Confirmation seasons are not opened.**
+
+## Data availability disclosed before computing
+Pinnacle **pre-match O/U and AH do not exist before 2019-20** (see the data
+check). Those two markets therefore cover **four** discovery seasons, not six, and
+the `n >= 300` gate is applied to what exists.
+
+## Success criterion (per soft book x market)
+**mean CLV > 0 with the 95% CI above 0 AND n >= 300 bets.**
+Holm correction across the tests; raw and corrected p-values both reported.
+
+## Reported but NEVER used to select
+* edge bucket (3.5-5%, 5-8%, 8%+),
+* odds band (<2, 2-4, 4+),
+* threshold sensitivity at 1.00 and 1.07.
+
+## What this does NOT claim
+B365 and the market average are **proxies for Mozzart**, not Mozzart. **A FAIL
+does not rule out local books, and a PASS is encouraging, not proof.** A PASS
+becomes a **CONFIRMATION CANDIDATE** with this rule text frozen; the locked
+confirmation seasons stay locked.

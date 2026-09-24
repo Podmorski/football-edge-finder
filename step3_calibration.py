@@ -49,11 +49,13 @@ ODDS_COLUMNS = [
 ]
 
 DIRECT_FAMILIES = {
-    "WIN_BOTH_HALVES", "WIN_TO_NIL", "MARGIN", "NO_BET",
+    "WIN_BOTH_HALVES", "WIN_BOTH_HALVES_TO_NIL", "WIN_TO_NIL", "MARGIN", "NO_BET",
     "MORE_GOALS_HALF", "FIRST_GOAL", "TO_QUALIFY",
 }
 
 PREREG = Path("research/preregistration.md")
+PHASE3_MARKER = "# Pre-registration — derived goal markets (Phase 3)"
+PHASE3_RULE_CONFIG = "PHASE3 CALIBRATION"
 
 
 def logit(p):
@@ -96,6 +98,7 @@ def boot(diff, days, n=BOOTSTRAP_N, seed=SEED):
 
 
 def load_markets() -> list:
+    """Every catalogue market, each carrying the section that decides its meaning."""
     catalogue = yaml.safe_load(Path("config/markets_catalogue.yaml").read_text(encoding="utf-8"))["markets"]
     direct = {m.code: m for m in direct_markets()}
     out = []
@@ -103,12 +106,18 @@ def load_markets() -> list:
         if entry["family"] in DIRECT_FAMILIES:
             out.append(direct[entry["code"]])
         else:
-            out.append(parse(entry["code"], entry["family"]))
+            out.append(parse(entry["code"], entry["family"], section=entry.get("section")))
     return out
 
 
 def preregister() -> None:
-    text = """# Pre-registration — derived goal markets (Phase 3)
+    """Write the Phase-3 entry **once**, without clobbering other entries.
+
+    This script re-runs whenever the catalogue changes, and the file also holds
+    the MAINLINE entries; overwriting it would silently delete pre-registered
+    rules.
+    """
+    text = f"""{PHASE3_MARKER}
 
 Written **before** any calibration number was computed (2026-09-24).
 
@@ -131,9 +140,22 @@ Holm correction across families; raw and corrected p-values both reported.
 ## What this does NOT claim
 No ROI, no staking, no edge. A family that passes is a **CONFIRMATION
 CANDIDATE** only. Confirmation seasons (2023-24+) are untouched.
+
+## Amendment (2026-09-24, after the first run)
+The grammar let a **bare code's** meaning override its family, so 12 codes in the
+goal-range families settled as results, double chance or half markets. The rule
+now fixes the family as the authority on the token type, and the calibration was
+re-run in full. The earlier run's rows are superseded in the ledger, not deleted;
+its PASS list is kept side by side in
+`reports/figures/family_calibration_preparserfix.csv`.
 """
     PREREG.parent.mkdir(parents=True, exist_ok=True)
-    PREREG.write_text(text, encoding="utf-8")
+    existing = PREREG.read_text(encoding="utf-8") if PREREG.exists() else ""
+    if PHASE3_MARKER in existing:
+        print(f"pre-registration already present -> {PREREG}")
+        return
+    PREREG.write_text(existing.rstrip() + "\n\n---\n\n" + text if existing.strip() else text,
+                      encoding="utf-8")
     ledger.append_note(
         "PRE-REGISTRATION (Phase 3 derived markets): per family, success = pooled "
         "2017-18..2022-23 calibration slope in [0.85,1.15] AND log loss better than B0 "
@@ -338,15 +360,29 @@ def main() -> int:
     else:
         print("  none")
 
-    ledger.log_evaluation(
+    new_row = ledger.log_evaluation(
         league="ALL", market="derived", selection="families",
-        rule_config="PHASE3 CALIBRATION", split="discovery:walk-forward",
+        rule_config=PHASE3_RULE_CONFIG, split="discovery:walk-forward",
         n_predictions=len(df), log_loss=float(fam["ll_model"].mean()), brier="",
         benchmark_name="B0", benchmark_log_loss=float(fam["ll_B0"].mean()),
         n_bets="", roi="", mean_clv="",
         notes=(f"families={len(fam)}; raw_pass={int(fam['raw_pass'].sum())}; "
-               f"best={fam.iloc[0]['family']} gain {fam.iloc[0]['gain_vs_B0']:+.4f}"),
+               f"holm_pass={int(fam['final_pass'].sum())}; "
+               f"pass={','.join(sorted(fam.loc[fam['final_pass'], 'family']))}"),
     )
+    print(f"\nlogged the run to the ledger as {new_row['run_id']}")
+
+    # Supersede earlier runs of the same pre-registered rule. Rows are never
+    # deleted: each supersession appends a marker naming the replacement.
+    stale = [row["run_id"] for row in ledger.active_rows()
+             if row["rule_config"] == PHASE3_RULE_CONFIG
+             and row["run_id"] != new_row["run_id"]]
+    for run_id in stale:
+        ledger.supersede(run_id, str(new_row["run_id"]),
+                         "family calibration re-run: the family now decides a code's "
+                         "token type, so 12 goal-range codes no longer settle as "
+                         "result / double chance / half markets")
+    print(f"superseded {len(stale)} earlier {PHASE3_RULE_CONFIG} run(s)")
     return 0
 
 
