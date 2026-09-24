@@ -35,6 +35,17 @@ python -m venv venv
 ./venv/Scripts/python.exe -m pip install -r requirements.txt   # Windows
 ```
 
+`requirements.txt` is the top-level list. For **reproducible results**, install
+the fully pinned set instead:
+
+```bash
+./venv/Scripts/python.exe -m pip install -r requirements-lock.txt
+```
+
+The lock file is the exact environment every result in `reports/` was produced
+with. Results are sensitive to library versions, so prefer the lock file when
+re-running anything.
+
 Create `.env` from the template and add your own key:
 
 ```bash
