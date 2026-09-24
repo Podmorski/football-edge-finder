@@ -69,6 +69,9 @@ A Windows-friendly runner; no make required.
 ./venv/Scripts/python.exe run.py snapshot-fd
 ./venv/Scripts/python.exe run.py fair-sheet --date 2026-09-25 --days 3
 ./venv/Scripts/python.exe run.py log-close
+./venv/Scripts/python.exe run.py paper-close           # <= 30 min before kickoff
+./venv/Scripts/python.exe run.py paper-settle          # next morning
+./venv/Scripts/python.exe run.py paper-report
 ```
 
 ## Scripts
@@ -83,7 +86,11 @@ A Windows-friendly runner; no make required.
 | `refresh_historical.py` | Re-pulls the **current season only** and merges | updates `data/historical/<slug>.parquet` |
 | `get_fixtures.py` | Fixtures for a date via API-Football | `data/fixtures/raw/<date>.json`, `data/fixtures/<date>.csv` |
 | `team_audit.py` | Team-name audit per league (local only) | `reports/team_audit_<slug>.md` |
-| `fair_sheet.py` | Daily Pinnacle-anchored fair odds + minimum acceptable odds | `reports/fair_sheets/<date>.md` / `.csv` |
+| `fair_sheet.py` | Daily Pinnacle-anchored fair odds + minimum acceptable odds, with a **FLAGS** block joining Mozzart prices | `reports/fair_sheets/<date>.md` / `.csv`, `reports/fair_sheets/summary.csv` |
+| `mozzart_odds.py` | Mozzart (PulseScore) pre-match odds, mapped to the catalogue | `data/mozzart/raw/` |
+| `paper_trade.py` | Automatic paper trading: record flags, save the Pinnacle close, settle, report | `data/paper/paper_bets.csv` |
+| `pulsescore_log.py` | Local PulseScore request log + monthly budget (cap 400, stop at 50) | `logs/pulsescore_requests.csv` |
+| `team_audit_mozzart.py` | Cross-source team-name audit (Mozzart / Odds API / historical) | stdout |
 | `bet_log.py` | Closing price + result per logged bet; CLV and P&L | fills `data/bet_log.csv` |
 | `step6_mainline_hist.py` | MAINLINE-HIST-1: the pre-registered soft-book backtest | `reports/figures/mainline_hist_*.csv` |
 | `mainline_data_check.py` | Coverage + price-comparability check for that backtest | `reports/figures/mainline_hist_data_check.csv` |
@@ -169,6 +176,24 @@ Markets read straight off the sharp price (**RESULT, DOUBLE_CHANCE, full-time
 No-Bet, and the goal totals from the sharp 1X2 + totals line**) are marked
 `SHARP`; everything else shown is a family whose calibration **PASSED** on unseen
 seasons. UNTESTABLE / UNCONFIRMED markets are hidden.
+
+### Mozzart flags and paper trading
+
+The sheet joins **Mozzart**'s pre-match prices (PulseScore) to our fair odds and
+prints a **FLAGS** block at the top: match, kickoff, Serbian section, code,
+plain-English meaning, Mozzart odds, minimum acceptable odds (`fair x 1.035`) and
+**EV after a 20% haircut**. A market is flagged only when the family PASSed (or is
+a SHARP main-line market), the Mozzart price is at or above `fair x 1.035`, and
+the Pinnacle and Mozzart snapshots are within 60 minutes (else `STALE`). If
+nothing qualifies the sheet prints **“No value today.”**
+
+Every flag becomes one **paper** bet (1 unit at the Mozzart price) in
+`data/paper/paper_bets.csv`. `run.py paper-close` saves the de-margined Pinnacle
+close for matches with paper bets within 30 minutes of kickoff; `run.py
+paper-settle` settles finished bets; `run.py paper-report` prints n, mean CLV with
+a 95% CI, virtual P&L, and the same split by family and league. **No bet is ever
+placed automatically.** The proposed Task Scheduler setup is in
+[`reports/schedule_proposal.md`](reports/schedule_proposal.md).
 
 The anchor is only as fresh as the snapshot printed at the top of the sheet:
 **odds move — re-run within ~1h of betting.**

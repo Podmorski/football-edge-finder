@@ -1,0 +1,20 @@
+# Paper-trading configuration.
+#
+# Payout: the user confirmed payout = stake x odds, with **no tax and no fees**.
+bookmaker_payout_factor: 1.00
+stake_fee: 0.00
+
+# A flag needs the Mozzart price at or above fair x this cushion.
+edge_cushion: 1.035
+
+# The EV shown on the sheet is computed after this haircut on the fair probability.
+ev_haircut: 0.20
+
+# Pinnacle and Mozzart snapshots must be within this many minutes, else STALE.
+max_snapshot_gap_minutes: 60
+
+# Paper stake per flag, in units.
+stake: 1.0
+
+# Real money only after this many paper bets with mean CLV > 0 and CI low > 0.
+min_paper_bets: 50

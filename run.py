@@ -28,6 +28,9 @@ COMMANDS = {
     "compare-mainline": "Compare Soccer Bet's main line against sharp prices (MAINLINE-1).",
     "fair-sheet": "Daily fair-odds sheet anchored on Pinnacle (fair odds + minimum acceptable odds).",
     "log-close": "Fill closing prices + results in the bet log; report CLV and P&L.",
+    "paper-close": "Save the de-margined Pinnacle close for paper bets near kickoff.",
+    "paper-settle": "Settle finished paper bets from the result.",
+    "paper-report": "Paper-trading report: n, mean CLV + 95% CI, virtual P&L, by family and league.",
 }
 
 
@@ -104,6 +107,10 @@ def build_parser() -> argparse.ArgumentParser:
     log_close.add_argument("--file", default=None,
                            help="Bet log CSV (default: data/bet_log.csv).")
 
+    sub.add_parser("paper-close", help=COMMANDS["paper-close"])
+    sub.add_parser("paper-settle", help=COMMANDS["paper-settle"])
+    sub.add_parser("paper-report", help=COMMANDS["paper-report"])
+
     fixtures = sub.add_parser("fixtures", help=COMMANDS["fixtures"])
     fixtures.add_argument(
         "--date",
@@ -161,6 +168,11 @@ def main(argv: list[str] | None = None) -> int:
         import bet_log
 
         return bet_log.main(args.file)
+
+    if args.command in ("paper-close", "paper-settle", "paper-report"):
+        import paper_trade
+
+        return paper_trade.main(args.command.removeprefix("paper-"))
 
     if args.command == "ingest-historical":
         import ingest_historical

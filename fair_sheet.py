@@ -42,6 +42,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import requests
+import yaml
 
 import odds_api_log
 import step4_pricing
@@ -55,6 +56,7 @@ from core.half_model import (
     market_masks,
     solve_anchor,
 )
+from core.team_names import MATCH_SIMILARITY, similarity
 
 from step1_catalogue import settlement_signature
 
@@ -76,6 +78,17 @@ MAX_HALF = MAX_HALF_GOALS
 
 CACHE_DIR = Path("data/odds_snapshots/oddsapi/fair_sheet")
 SHEET_DIR = Path("reports/fair_sheets")
+SUMMARY_CSV = SHEET_DIR / "summary.csv"
+PAPER_CONFIG = Path("config/paper.yaml")
+
+# Families whose price is a SHARP main-line market, eligible for a Mozzart flag
+# even without a calibration verdict. NO_BET counts only for the full-time pair.
+FLAG_SHARP_FAMILIES = {"RESULT", "DOUBLE_CHANCE", "GOAL_RANGE_FT"}
+FLAG_SHARP_CODES = {("NO_BET", "XNB FT 1"), ("NO_BET", "XNB FT 2")}
+
+# How far apart a Mozzart event and a fair-sheet match may kick off and still be
+# treated as the same fixture.
+KICKOFF_TOLERANCE_HOURS = 6
 
 # Rows read straight off the sharp price rather than off a model:
 # RESULT, DOUBLE_CHANCE and the full-time No-Bet pair are exact functions of the
@@ -106,11 +119,10 @@ FAMILY_MARGIN = {
 }
 MARGIN_UNKNOWN = 1.0            # no exhaustive partition in the sample: sorts last
 
-# Presentation: a short, phone-readable shortlist per match. At most
-# MAX_ROWS_PER_FAMILY from any one family, so the cheap families all get a look in
-# instead of the 40 goal-range prices filling the sheet on their own.
+# Presentation: a short, phone-readable shortlist per match. The 15 rows are
+# spread **evenly across families** (round-robin, cheapest family first), so a
+# family with many prices cannot crowd the others out.
 MAX_ROWS = 15
-MAX_ROWS_PER_FAMILY = 3
 
 _MARKETS_CACHE: list | None = None
 _MASKS_CACHE: dict | None = None
@@ -144,6 +156,20 @@ def masks() -> dict:
 
 def family_status() -> dict[str, str]:
     return step4_pricing.family_status()
+
+
+def load_paper_config() -> dict:
+    """Paper-trading knobs (payout factor, cushion, haircut, snapshot gap)."""
+    doc = yaml.safe_load(PAPER_CONFIG.read_text(encoding="utf-8"))
+    return {
+        "payout_factor": float(doc.get("bookmaker_payout_factor", 1.0)),
+        "stake_fee": float(doc.get("stake_fee", 0.0)),
+        "edge_cushion": float(doc.get("edge_cushion", EDGE_CUSHION)),
+        "ev_haircut": float(doc.get("ev_haircut", 0.20)),
+        "max_gap_minutes": float(doc.get("max_snapshot_gap_minutes", 60)),
+        "stake": float(doc.get("stake", 1.0)),
+        "min_paper_bets": int(doc.get("min_paper_bets", 50)),
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -386,6 +412,7 @@ def price_match(slug: str, prices: dict) -> tuple[list[dict], float]:
             continue
         rows.append({
             "market": key,
+            "code": key.split(":", 1)[1] if ":" in key else key,
             "family": market.family,
             "section": market.section,
             "meaning": meaning_of(market),
@@ -427,8 +454,9 @@ def select(rows: list[dict]) -> tuple[list[dict], int, int]:
     Kept: rows whose price is SHARP (read off the sharp price) or whose family
     PASSed calibration, minus the codes flagged DO_NOT_BET. Ordered by the family's
     typical Serbian-book margin, lowest first, then by how close the fair price is
-    to even money. De-duplicated by settlement identity, then capped at
-    :data:`MAX_ROWS_PER_FAMILY` per family and :data:`MAX_ROWS` in total.
+    to even money. De-duplicated by settlement identity, then the :data:`MAX_ROWS`
+    rows are **spread evenly across families** (round-robin, cheapest family
+    first) so no single family fills the sheet.
     """
     candidates = [row for row in rows
                   if row["status"] in ("SHARP", "PASS") and not row["do_not_bet"]]
@@ -447,17 +475,143 @@ def select(rows: list[dict]) -> tuple[list[dict], int, int]:
         seen.add(row["signature"])
         unique.append(row)
 
-    per_family: dict[str, int] = {}
-    kept: list[dict] = []
+    # Group by family, preserving the margin order of first appearance, then take
+    # one row from each family in turn until MAX_ROWS is reached.
+    order: list[str] = []
+    by_family: dict[str, list[dict]] = {}
     for row in unique:
         family = row["family"]
-        if per_family.get(family, 0) >= MAX_ROWS_PER_FAMILY:
-            continue
-        if len(kept) >= MAX_ROWS:
+        if family not in by_family:
+            by_family[family] = []
+            order.append(family)
+        by_family[family].append(row)
+
+    kept: list[dict] = []
+    cursor = {family: 0 for family in order}
+    while len(kept) < MAX_ROWS:
+        progressed = False
+        for family in order:
+            if len(kept) >= MAX_ROWS:
+                break
+            index = cursor[family]
+            if index < len(by_family[family]):
+                kept.append(by_family[family][index])
+                cursor[family] = index + 1
+                progressed = True
+        if not progressed:
             break
-        per_family[family] = per_family.get(family, 0) + 1
-        kept.append(row)
     return kept, hidden, len(candidates) - len(kept)
+
+
+# --------------------------------------------------------------------------- #
+# Mozzart join and flags
+# --------------------------------------------------------------------------- #
+def mozzart_index(events: list[dict]) -> list[dict]:
+    """Mozzart events with their mapped odds, ready to match to fair-sheet matches."""
+    import mozzart_odds
+
+    out = []
+    for event in events:
+        out.append({
+            "slug": event.get("_slug"),
+            "home": event.get("home"),
+            "away": event.get("away"),
+            "kickoff": mozzart_odds.event_kickoff(event),
+            "fetched_at": event.get("_fetched_at"),
+            "odds": mozzart_odds.market_odds(event),
+        })
+    return out
+
+
+def find_mozzart(match: dict, index: list[dict]) -> dict | None:
+    """The Mozzart event for a fair-sheet match, by league, names and kickoff."""
+    if not match.get("kickoff"):
+        return None
+    kickoff = kickoff_utc(match["kickoff"])
+    best, score = None, 0.0
+    for entry in index:
+        if entry["slug"] != match["league"] or entry["kickoff"] is None:
+            continue
+        if abs((entry["kickoff"] - kickoff).total_seconds()) > KICKOFF_TOLERANCE_HOURS * 3600:
+            continue
+        value = min(similarity(match["home"], entry["home"]),
+                    similarity(match["away"], entry["away"]))
+        if value >= MATCH_SIMILARITY and value > score:
+            best, score = entry, value
+    return best
+
+
+def snapshot_gap_minutes(pinnacle_iso: str | None, mozzart_iso: str | None) -> float | None:
+    """Minutes between the Pinnacle and Mozzart snapshots, or None if unknown."""
+    if not pinnacle_iso or not mozzart_iso:
+        return None
+    try:
+        left = datetime.fromisoformat(pinnacle_iso.replace("Z", "+00:00"))
+        right = datetime.fromisoformat(mozzart_iso.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if left.tzinfo is None:
+        left = left.replace(tzinfo=timezone.utc)
+    if right.tzinfo is None:
+        right = right.replace(tzinfo=timezone.utc)
+    return abs((left - right).total_seconds()) / 60.0
+
+
+def compute_flags(match: dict, mozzart: dict | None, paper: dict) -> list[dict]:
+    """Rows where Mozzart beats fair x cushion on an eligible family.
+
+    Eligible: the family PASSed calibration, or it is a SHARP main-line market
+    (RESULT, DOUBLE_CHANCE, full-time No-Bet, GOAL_RANGE_FT). A row is flagged
+    only when the Mozzart price is at or above ``fair x cushion``; when the two
+    snapshots are more than ``max_gap_minutes`` apart the flag is marked STALE.
+    """
+    if mozzart is None or not match.get("rows"):
+        return []
+    status = family_status()
+    gap = snapshot_gap_minutes(match.get("snapshot"), mozzart["fetched_at"])
+    stale = gap is None or gap > paper["max_gap_minutes"]
+    flags = []
+    for row in match["rows"]:
+        family = row["family"]
+        eligible = (family in FLAG_SHARP_FAMILIES
+                    or (family, row["code"]) in FLAG_SHARP_CODES
+                    or status.get(family) == "PASS")
+        if not eligible:
+            continue
+        quote = mozzart["odds"].get((family, row["code"]))
+        if quote is None:
+            continue
+        if quote["odds"] < row["fair_odds"] * paper["edge_cushion"]:
+            continue
+        p_fair = 1.0 / row["fair_odds"]
+        ev = (1.0 - paper["ev_haircut"]) * p_fair * quote["odds"] - 1.0
+        flags.append({
+            "home": match["home"], "away": match["away"], "league": match["league"],
+            "kickoff": match["kickoff"], "family": family,
+            "section": quote["section"], "code": quote["code"],
+            "market": row["market"], "meaning": row["meaning"],
+            "mozzart_odds": quote["odds"], "fair_odds": row["fair_odds"],
+            "min_acceptable": row["fair_odds"] * paper["edge_cushion"],
+            "ev": ev, "stale": stale, "gap_minutes": gap,
+            "description": quote["description"],
+            "mozzart_snapshot": mozzart["fetched_at"],
+            "pinnacle_snapshot": match.get("snapshot", ""),
+        })
+    flags.sort(key=lambda flag: -flag["ev"])
+    return flags
+
+
+def append_summary(first: date, matches: list[dict], flags: list[dict], credits: int) -> None:
+    """Append one line per run to reports/fair_sheets/summary.csv."""
+    SUMMARY_CSV.parent.mkdir(parents=True, exist_ok=True)
+    is_new = not SUMMARY_CSV.exists()
+    with SUMMARY_CSV.open("a", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        if is_new:
+            writer.writerow(["date", "matches", "markets_compared", "flags",
+                             "requests_credits"])
+        writer.writerow([first.isoformat(), len(matches),
+                         sum(len(m["rows"]) for m in matches), len(flags), credits])
 
 
 # --------------------------------------------------------------------------- #
@@ -483,8 +637,8 @@ def render(matches: list[dict], meta: dict) -> str:
         "DOUBLE_CHANCE, full-time No-Bet, and the goal totals from the sharp 1X2 + "
         "totals line). `PASS` = the family's price was calibrated on unseen seasons.",
         f"- Rows are ordered by the family's typical Serbian-book margin, **lowest "
-        f"first**, so the cheapest sections come first; at most "
-        f"{MAX_ROWS_PER_FAMILY} prices per family and {MAX_ROWS} rows per match.",
+        f"first**, so the cheapest sections come first; the {MAX_ROWS} rows are "
+        f"spread evenly across families so no one family fills the sheet.",
         f"- {residual}",
         f"- Leagues: {meta['leagues'] or 'n/a'} · matches: {meta['matches']} · "
         f"credits this run: {meta['credits']} · remaining: {meta['remaining']}",
@@ -492,6 +646,24 @@ def render(matches: list[dict], meta: dict) -> str:
     ]
     if meta["notes"]:
         lines += [f"> {note}" for note in meta["notes"]] + [""]
+
+    flags = meta.get("flags", [])
+    lines += ["## FLAGS", ""]
+    if not flags:
+        lines += ["No value today.", ""]
+    else:
+        lines += [
+            "| match | kickoff | section | code | meaning | Mozzart | min | EV (20% haircut) |",
+            "|---|---|---|---|---|---:|---:|---:|",
+        ]
+        for flag in flags:
+            tag = " ⚠ STALE" if flag["stale"] else ""
+            lines.append(
+                f"| {flag['home']} vs {flag['away']} | {flag['kickoff']} "
+                f"| {flag['section']} | `{flag['code']}` | {flag['meaning']} "
+                f"| {flag['mozzart_odds']:.2f} | {flag['min_acceptable']:.2f} "
+                f"| {flag['ev']:+.1%}{tag} |")
+        lines.append("")
 
     for match in matches:
         head = f"## {match['home']} vs {match['away']} — {match['league']}"
@@ -578,13 +750,27 @@ def main(start: str | None = None, days: int = 1) -> int:
     events, headers, started = upcoming_events(session, key, window)
     remaining = _remaining(headers)
     built = datetime.now().astimezone().isoformat(timespec="minutes")
+    notes: list[str] = []
+
+    paper = load_paper_config()
+    mozzart: list[dict] = []
+    try:
+        import mozzart_odds
+
+        mkey = mozzart_odds.load_key()
+        ids = mozzart_odds.league_ids(session, mkey)
+        raw_events = mozzart_odds.fetch_events(session, mkey, ids)
+        mozzart = mozzart_index(raw_events)
+        notes.append(f"Mozzart: {len(raw_events)} event(s) across {len(ids)} league(s) "
+                     f"({', '.join(sorted(ids)) or 'none mapped'}).")
+    except Exception as exc:  # noqa: BLE001
+        notes.append(f"Mozzart feed unavailable ({exc}); no flags this run.")
 
     print(f"fair-sheet {first} (+{max(days, 1) - 1}d): {len(events)} upcoming matches in window"
           + (f", {started} already started (skipped)" if started else ""))
     print(f"credits remaining before pull: {remaining}")
 
     matches: list[dict] = []
-    notes: list[str] = []
     credits = 0
     cached_hits = 0
     pinned: str | None = None
@@ -623,6 +809,7 @@ def main(start: str | None = None, days: int = 1) -> int:
                     "margin_1x2": prices["margin_1x2"], "margin_ou": prices["margin_ou"],
                     "residual": residual,
                 })
+                record["flags"] = compute_flags(record, find_mozzart(record, mozzart), paper)
                 pinned = pinned or prices["snapshot"]
         else:
             record["error"] = f"not fetched: {stopped}"
@@ -642,11 +829,12 @@ def main(start: str | None = None, days: int = 1) -> int:
         notes.append(f"{started} match(es) in the window had already kicked off and were "
                      "skipped (no credits spent).")
 
+    all_flags = [flag for match in matches for flag in match.get("flags", [])]
     meta = {
         "window": sorted(window), "built": built, "snapshot": pinned,
         "leagues": ", ".join(sorted({m["league"] for m in matches})),
         "matches": len(matches), "credits": credits,
-        "remaining": remaining, "notes": notes,
+        "remaining": remaining, "notes": notes, "flags": all_flags,
     }
     text = render(matches, meta)
     stem = first.isoformat() if days <= 1 else f"{first.isoformat()}_{max(days, 1)}d"
@@ -655,9 +843,16 @@ def main(start: str | None = None, days: int = 1) -> int:
     csv_path = SHEET_DIR / f"{stem}.csv"
     md_path.write_text(text, encoding="utf-8")
     n_rows = write_csv(csv_path, matches)
+    append_summary(first, matches, all_flags, credits)
+    if all_flags:
+        import paper_trade
+
+        added = paper_trade.record(all_flags)
+        print(f"paper bets recorded: {added} (of {len(all_flags)} flags)")
 
     shown = sum(1 for m in matches if m["rows"])
-    print(f"matches priced: {shown}/{len(matches)} · rows written: {n_rows}")
+    print(f"matches priced: {shown}/{len(matches)} · rows written: {n_rows} · "
+          f"flags: {len(all_flags)}")
     print(f"credits this run: {credits} (cap {CREDIT_CAP}) · remaining {remaining} "
           f"· cached {cached_hits}")
     print(f"wrote {md_path}")

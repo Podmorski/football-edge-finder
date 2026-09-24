@@ -199,14 +199,16 @@ def test_selection_orders_by_the_family_margin_lowest_first():
                                             "GOAL_RANGE_1H", "RESULT"]
 
 
-def test_selection_caps_rows_per_family_and_in_total():
-    rows = [row(f"T{i}", "GOAL_RANGE_FT", "SHARP", odd=2.0 + i) for i in range(8)]
+def test_selection_spreads_rows_evenly_across_families():
+    rows = [row(f"T{i}", "GOAL_RANGE_FT", "SHARP", odd=2.0 + i) for i in range(20)]
     rows += [row("1", "RESULT", "SHARP")]
     kept, _hidden, suppressed = fs.select(rows)
     families = [r["family"] for r in kept]
-    assert families.count("GOAL_RANGE_FT") == fs.MAX_ROWS_PER_FAMILY
-    assert families[-1] == "RESULT"          # the dearer family comes after
-    assert suppressed == 8 + 1 - len(kept)
+    assert len(kept) == fs.MAX_ROWS
+    # the 20 goal-range rows cannot crowd out the single dearer family
+    assert "RESULT" in families
+    assert families.count("GOAL_RANGE_FT") == fs.MAX_ROWS - 1
+    assert suppressed == 21 - fs.MAX_ROWS
 
     many = [row(f"c{i}", f"F{i}", "PASS") for i in range(40)]
     assert len(fs.select(many)[0]) == fs.MAX_ROWS
@@ -222,6 +224,65 @@ def test_within_a_family_the_price_nearest_even_money_comes_first():
 def test_min_acceptable_odds_is_the_fair_price_plus_the_cushion():
     kept, _, _ = fs.select([row("1", "RESULT", "SHARP", odd=2.0)])
     assert kept[0]["min_acceptable"] == pytest.approx(2.07)
+
+
+# --------------------------------------------------------------------------- #
+# Mozzart flags
+# --------------------------------------------------------------------------- #
+def _flag_match(rows):
+    return {"home": "A", "away": "B", "league": "bundesliga_1",
+            "kickoff": "2026-09-26T13:00:00Z", "snapshot": "2026-09-26T12:00:00Z",
+            "rows": rows}
+
+
+PAPER = {"edge_cushion": 1.035, "ev_haircut": 0.20, "max_gap_minutes": 60}
+
+
+def test_compute_flags_needs_an_eligible_family_and_the_cushion(monkeypatch):
+    monkeypatch.setattr(fs, "family_status",
+                        lambda: {"GOAL_RANGE_1H": "PASS", "MORE_GOALS_HALF": "FAIL"})
+    match = _flag_match([
+        {"family": "GOAL_RANGE_1H", "code": "I0", "market": "I0",
+         "meaning": "1st half: exactly 0 goals", "fair_odds": 2.0, "min_acceptable": 2.07},
+        {"family": "MORE_GOALS_HALF", "code": "I>II", "market": "I>II",
+         "meaning": "more goals in the 1st half", "fair_odds": 2.0, "min_acceptable": 2.07},
+        {"family": "RESULT", "code": "1", "market": "1",
+         "meaning": "home win", "fair_odds": 2.0, "min_acceptable": 2.07},
+    ])
+    mozzart = {"fetched_at": "2026-09-26T12:10:00Z", "odds": {
+        ("GOAL_RANGE_1H", "I0"): {"odds": 2.10, "section": "Ukupno golova prvo poluvreme",
+                                   "code": "0", "description": ""},
+        ("MORE_GOALS_HALF", "I>II"): {"odds": 2.50, "section": "Poluvreme sa više golova",
+                                       "code": "prvo", "description": ""},
+        ("RESULT", "1"): {"odds": 2.05, "section": "Konačan ishod", "code": "1",
+                          "description": ""},
+    }}
+    flags = fs.compute_flags(match, mozzart, PAPER)
+    # PASS family and 2.10 >= 2.07 -> flag; FAIL family -> no; SHARP but 2.05 < 2.07 -> no
+    assert [f["family"] for f in flags] == ["GOAL_RANGE_1H"]
+    assert flags[0]["stale"] is False
+    assert flags[0]["ev"] == pytest.approx(0.8 * 0.5 * 2.10 - 1.0)
+
+
+def test_compute_flags_marks_stale_when_the_snapshots_are_far_apart(monkeypatch):
+    monkeypatch.setattr(fs, "family_status", lambda: {})
+    match = _flag_match([
+        {"family": "RESULT", "code": "1", "market": "1",
+         "meaning": "home win", "fair_odds": 2.0, "min_acceptable": 2.07},
+    ])
+    mozzart = {"fetched_at": "2026-09-26T14:30:00Z", "odds": {
+        ("RESULT", "1"): {"odds": 2.50, "section": "Konačan ishod", "code": "1",
+                          "description": ""},
+    }}
+    flags = fs.compute_flags(match, mozzart, PAPER)
+    assert len(flags) == 1 and flags[0]["stale"] is True
+
+
+def test_compute_flags_is_empty_without_a_mozzart_event(monkeypatch):
+    monkeypatch.setattr(fs, "family_status", lambda: {})
+    match = _flag_match([{"family": "RESULT", "code": "1", "market": "1",
+                          "meaning": "home win", "fair_odds": 2.0, "min_acceptable": 2.07}])
+    assert fs.compute_flags(match, None, PAPER) == []
 
 
 # --------------------------------------------------------------------------- #
