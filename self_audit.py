@@ -261,5 +261,92 @@ def main() -> int:
     return 0 if not failures and worst == 0.0 else 1
 
 
+def recompute_2d() -> dict[str, float]:
+    """Recompute the Prompt-2d headline numbers from their artifacts."""
+    out: dict[str, float] = {}
+
+    totals = pd.read_csv("reports/figures/totals_pooled.csv").set_index("metric")["value"]
+    out["totals M1-M0"] = float(totals["M1_minus_M0"])
+    out["totals M2-M1"] = float(totals["M2_minus_M1"])
+    out["totals probe-M1"] = float(totals["probe_minus_M1"])
+
+    layer = pd.read_csv("reports/figures/pattern_layer_pooled.csv").set_index("metric")["value"]
+    out["pattern layer_model_diff"] = float(layer["layer_model_diff"])
+    out["pattern layer_market_diff"] = float(layer["layer_market_diff"])
+
+    rules = pd.read_csv("reports/figures/pattern_rule_tables.csv")
+    bottom = rules[rules["side"] == "under"].iloc[0]
+    top = rules[rules["side"] == "over"].iloc[0]
+    out["rule bottom-third n"] = float(bottom["n"])
+    out["rule bottom-third hit"] = float(bottom["hit_rate"])
+    out["rule top-third n"] = float(top["n"])
+    out["rule top-third hit"] = float(top["hit_rate"])
+
+    combo = pd.read_csv("reports/figures/combo_calibration.csv").sort_values("ece")
+    out["combo best ECE"] = float(combo.iloc[0]["ece"])
+    out["combo worst ECE"] = float(combo.iloc[-1]["ece"])
+
+    payout = pd.read_csv("reports/figures/payout_check.csv")
+    out["payout bins inspected"] = float(len(payout))
+    out["payout bins above break-even"] = float(payout["ci_above_break_even"].sum())
+
+    detail = pd.read_csv("reports/figures/newcomer_prior_detail.csv")
+    for target, label, key in (
+        ("2019-2020", "promoted_in", "newcomer n 2019-20 promoted"),
+        ("2020-2021", "promoted_in", "newcomer n 2020-21 promoted"),
+        ("2022-2023", "promoted_in", "newcomer n 2022-23 promoted"),
+        ("2022-2023", "relegated_in", "newcomer n 2022-23 relegated"),
+    ):
+        sub = detail[(detail["target_season"] == target) & (detail["label"] == label)]
+        out[key] = float(len(sub))
+    return out
+
+
+CLAIMED_2D = [
+    ("totals M1-M0", -0.0118),
+    ("totals M2-M1", 0.0008),
+    ("totals probe-M1", 0.0005),
+    ("pattern layer_model_diff", 0.0046),
+    ("pattern layer_market_diff", 0.0047),
+    ("rule bottom-third n", 531),
+    ("rule bottom-third hit", 0.4878),
+    ("rule top-third n", 620),
+    ("rule top-third hit", 0.4661),
+    ("combo best ECE", 0.0101),
+    ("combo worst ECE", 0.0648),
+    ("payout bins inspected", 64),
+    ("payout bins above break-even", 0),
+    ("newcomer n 2019-20 promoted", 4),
+    ("newcomer n 2020-21 promoted", 11),
+    ("newcomer n 2022-23 promoted", 15),
+    ("newcomer n 2022-23 relegated", 12),
+]
+
+
+def audit_2d() -> int:
+    print("\n" + "=" * 90)
+    print("Prompt-2d claims, recomputed from artifacts")
+    print("=" * 90)
+    got = recompute_2d()
+    print(f"\n{'claim':<34}{'claimed':>12}{'recomputed':>14}{'|diff|':>11}  status")
+    failures = 0
+    for name, claimed in CLAIMED_2D:
+        if name not in got:
+            print(f"{name:<34}{claimed:>12.4f}{'-':>14}{'-':>11}  NO ARTIFACT")
+            failures += 1
+            continue
+        value = got[name]
+        diff = abs(value - claimed)
+        ok = diff <= max(1e-9, 5e-5)
+        if not ok:
+            failures += 1
+        print(f"{name:<34}{claimed:>12.4f}{value:>14.4f}{diff:>11.2e}  {'OK' if ok else 'MISMATCH'}")
+    print(f"\nmismatches: {failures}")
+    return failures
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    rc = main()
+    rc += audit_2d()
+    print("\nCOMBINED SELF-AUDIT:", "PASS" if rc == 0 else "FAIL")
+    sys.exit(0 if rc == 0 else 1)
