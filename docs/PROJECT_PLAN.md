@@ -232,6 +232,32 @@ WIN_BOTH_HALVES, WIN_TO_NIL, MARGIN, NO_BET, GOAL_RANGE_FT, GOAL_RANGE_1H,
 GOAL_RANGE_2H, MORE_GOALS_HALF, HALF_GOAL_COMBOS, RESULT_AND_GOALS,
 HTFT_AND_GOALS, FIRST_GOAL (untestable from HT/FT data), TO_QUALIFY (out of scope).
 
+### Derived-market structure hypothesis: CLOSED (2026-09-24)
+
+> **CLOSED — the book's structure is correct; margin dominates.**
+
+Soccer Bet prices derived markets with the **correct structure**: their implied
+first-half goal share (~0.42) matches our historical estimate (0.41–0.44), and
+their game-state effects are small. An external analysis of one full Soccer Bet
+match (358 + ~100 markets) found **0 markets with positive EV** when anchored on
+Soccer Bet's own main line, with margins of ~8% on 1X2, 10–15% on singles and
+15–45% on combos.
+
+**Therefore: beating the naive B0 formula is NOT evidence of edge against Soccer
+Bet.** B0 is a *plausible book formula*, not the book. The Phase 3 calibration
+result (7 families beating B0) shows only that our half-split and game-state
+layers are better than a 50/50-split formula — it says nothing about whether
+Soccer Bet's prices are beatable.
+
+### Remaining hypothesis: MAINLINE-1 (2026-09-24)
+
+> Soccer Bet's **MAIN LINE** (1X2 + goal totals) sometimes deviates from the sharp
+> market by **more than its own margin**.
+
+Sharp prices (Pinnacle, via The Odds API, region `eu`) are used **ONLY** as the
+reference for true probability. Bets are placed **ONLY at Soccer Bet**, and only
+in the **lowest-margin market that captures the deviation**. **Never combos.**
+
 ### Auxiliary divisions
 
 **E1 (Championship)** and **E3 (League Two)** are ingested as *auxiliary* data

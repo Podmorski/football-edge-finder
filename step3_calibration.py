@@ -214,18 +214,26 @@ def main() -> int:
             probs_b1 = batch_market_probs(grids_to_flat(grids_b1), masks)
 
             # Record EVERY (market, match) pair: y = 1 if the market wins, 0 if it
-            # loses. Void outcomes are excluded (stake returned, no binary label).
+            # loses. Void outcomes are excluded (stake returned, no binary label),
+            # and the model probability is made CONDITIONAL on not-void:
+            #   p_cond = p_win / (1 - p_void)
+            # Without this, stake-back markets (X No Bet) look badly miscalibrated
+            # because their raw p_win is ~P(void) too low.
             for i, r in enumerate(test.itertuples(index=False)):
                 for market in markets:
                     outcome = market.outcome(int(r.hthg), int(r.htag), int(r.fthg), int(r.ftag))
                     if outcome == VOID:
                         continue
+                    key = (market.family, market.code)
+                    w_m, v_m = probs_model[key][0][i], probs_model[key][1][i]
+                    w_0, v_0 = probs_b0[key][0][i], probs_b0[key][1][i]
+                    w_1, v_1 = probs_b1[key][0][i], probs_b1[key][1][i]
                     records.append({
                         "league": slug, "season": target, "date": r.date,
                         "family": market.family, "code": market.code,
-                        "p_model": float(probs_model[(market.family, market.code)][0][i]),
-                        "p_b0": float(probs_b0[(market.family, market.code)][0][i]),
-                        "p_b1": float(probs_b1[(market.family, market.code)][0][i]),
+                        "p_model": float(w_m / (1 - v_m)) if v_m < 1 - 1e-9 else float(w_m),
+                        "p_b0": float(w_0 / (1 - v_0)) if v_0 < 1 - 1e-9 else float(w_0),
+                        "p_b1": float(w_1 / (1 - v_1)) if v_1 < 1 - 1e-9 else float(w_1),
                         "y": 1 if outcome == WIN else 0,
                     })
         print(f"  records so far: {len(records)}")

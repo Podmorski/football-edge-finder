@@ -222,3 +222,51 @@ mismatches, 0 without an artifact.** Full pytest: **77 passed**.
 ## 8. Commits
 
 See the final summary.
+
+## 9. CORRECTIONS (2026-09-24)
+
+### Beating B0 is NOT evidence of edge against Soccer Bet
+
+The Phase 3 calibration shows that our half-split and game-state layers beat
+**B0** — a *plausible book formula* (50/50 half split, independent halves), not
+the book. Soccer Bet's own implied first-half goal share (~0.42) already matches
+our historical estimate (0.41–0.44), and their game-state effects are small, so
+their structure is correct. An external analysis of one full Soccer Bet match
+(358 + ~100 markets) found **0 markets with positive EV** anchored on Soccer
+Bet's own main line, with margins of ~8% on 1X2, 10–15% on singles and 15–45% on
+combos.
+
+> **Derived-market structure hypothesis: CLOSED — the book's structure is
+> correct; margin dominates.**
+
+The only remaining hypothesis is **MAINLINE-1**: Soccer Bet's main line (1X2 +
+goal totals) sometimes deviates from the sharp market by more than its own
+margin. Sharp prices are used only as the probability reference; bets would be
+placed only at Soccer Bet, only in the lowest-margin market capturing the
+deviation, and **never combos**.
+
+### NO_BET was a void-handling bug, not a finding
+
+`NO_BET` was reported as significantly **worse** than B0 (slope 1.281, gain
+−0.0017, CI [+0.0014, +0.0019]). That was a bug: voids were correctly excluded
+from the binary outcome, but the **raw `p_win`** was used as the model
+probability instead of the probability **conditional on not-void**:
+
+```
+p_cond = p_win / (1 - p_void)
+```
+
+For X No Bet the void mass is large (FT draw 26.2%, 1H draw 41.6%, 2H draw
+36.1%), so the raw `p_win` averaged 0.3322 against an observed non-void win rate
+of 0.5. After the fix:
+
+| | before | after |
+|---|---|---|
+| slope | 1.2813 | **1.0810** |
+| gain vs B0 | −0.0017 | −0.0001 |
+| 95% CI | [+0.0014, +0.0019] | [−0.0001, +0.0003] |
+| verdict | significantly worse than B0 | indistinguishable from B0 |
+
+`NO_BET` is still FAIL (its gain is not positive), but it is no longer
+*anti*-calibrated. The other 17 families are unchanged; 7 still pass Holm.
+Pinned by `tests/test_void_handling.py` (5 tests).
