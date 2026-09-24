@@ -22,11 +22,11 @@ PAPER_LOG = ROOT / "data" / "paper" / "paper_bets.csv"
 OUT = ROOT / "reports" / "health.md"
 
 TASK_MARKERS = {
-    "fair-sheet": "FairSheetDaily / PreKick",
+    "fair-sheet ": "FairSheetDaily",
     "kickoff-run": "FairSheetPreKick",
-    "paper-close": "PaperClose",
-    "results": "ResultsDaily",
-    "weekly": "Weekly",
+    "paper-close:": "PaperClose",
+    "paper-settle:": "ResultsDaily",
+    "weekly:": "Weekly",
 }
 
 
@@ -38,10 +38,11 @@ def _tail(path: Path, limit: int = 40) -> list[str]:
 
 
 def _last_runs(lines: list[str]) -> dict[str, str]:
+    """The most recent matching line per task (logs are append-only)."""
     out: dict[str, str] = {}
     for line in lines:
         for marker, task in TASK_MARKERS.items():
-            if marker in line and task not in out:
+            if marker in line:
                 out[task] = line.strip()[:160]
     return out
 
