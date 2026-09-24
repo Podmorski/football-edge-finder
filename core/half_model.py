@@ -245,7 +245,11 @@ def baselines(anchor: Anchor, max_half: int = MAX_HALF_GOALS) -> dict[str, np.nd
 # vectorised batch helpers (needed: ~12k matches x 207 markets)
 # --------------------------------------------------------------------------- #
 def market_masks(markets: list[Market], max_half: int = MAX_HALF_GOALS) -> dict:
-    """Flattened (win, void) boolean masks per market code, computed once."""
+    """Flattened (win, void) boolean masks per market, keyed by (family, code).
+
+    Keying by code alone is WRONG: codes collide across families (``1`` is both
+    RESULT "home wins" and GOAL_RANGE_FT "exactly 1 goal").
+    """
     idx = np.indices((max_half + 1,) * 4).reshape(4, -1)
     h1, a1, h2, a2 = idx
     fth, fta = h1 + h2, a1 + a2
@@ -259,15 +263,15 @@ def market_masks(markets: list[Market], max_half: int = MAX_HALF_GOALS) -> dict:
                 win[i] = 1.0
             elif outcome == VOID:
                 void[i] = 1.0
-        out[market.code] = (win, void)
+        out[(market.family, market.code)] = (win, void)
     return out
 
 
 def batch_market_probs(grids_flat: np.ndarray, masks: dict) -> dict:
-    """grids_flat: (n_matches, cells). Returns {code: (p_win, p_void)} arrays."""
+    """grids_flat: (n_matches, cells). Returns {(family, code): (p_win, p_void)}."""
     out = {}
-    for code, (win, void) in masks.items():
-        out[code] = (grids_flat @ win, grids_flat @ void)
+    for key, (win, void) in masks.items():
+        out[key] = (grids_flat @ win, grids_flat @ void)
     return out
 
 

@@ -109,8 +109,8 @@ def price_match(slug: str, home: str, away: str, odds_1x2: tuple, odds_ou25: tup
 
     rows = []
     for market in markets:
-        p_win = float(probs[market.code][0][0])
-        p_void = float(probs[market.code][1][0])
+        p_win = float(probs[(market.family, market.code)][0][0])
+        p_void = float(probs[(market.family, market.code)][1][0])
         rows.append({
             "code": market.code,
             "family": market.family,

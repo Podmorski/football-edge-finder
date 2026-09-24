@@ -95,18 +95,18 @@ computing: per family, success = pooled 2017-18..2022-23 calibration slope in
 |---|---|---|---|---|---|---|---|---|
 | **MORE_GOALS_HALF** | 22,392 | 0.863 | 0.6223 | 0.6310 | **+0.0087** | [−0.0112, −0.0062] | ✅ | ✅ |
 | **GOAL_RANGE_2H** | 119,424 | 1.030 | 0.5616 | 0.5659 | **+0.0043** | [−0.0056, −0.0031] | ✅ | ✅ |
-| **GOAL_RANGE_1H** | 111,960 | 1.000 | 0.5248 | 0.5269 | **+0.0020** | [−0.0034, −0.0007] | ✅ | ✅ |
-| **HALF_DC** | 44,784 | 1.025 | 0.6147 | 0.6158 | **+0.0010** | [−0.0016, −0.0004] | ✅ | ✅ |
+| **GOAL_RANGE_1H** | 111,960 | 0.980 | 0.5244 | 0.5269 | **+0.0024** | [−0.0038, −0.0010] | ✅ | ✅ |
 | **HALF_RESULT** | 44,784 | 1.025 | 0.6147 | 0.6158 | **+0.0010** | [−0.0016, −0.0004] | ✅ | ✅ |
+| **HALF_DC** | 44,784 | 1.025 | 0.6147 | 0.6158 | **+0.0010** | [−0.0016, −0.0004] | ✅ | ✅ |
 | **HTFT_NE** | 37,320 | 1.089 | 0.4339 | 0.4346 | **+0.0008** | [−0.0014, −0.0002] | ✅ | ✅ |
-| **GOAL_RANGE_FT** | 306,024 | 1.000 | 0.5460 | 0.5462 | **+0.0002** | [−0.0003, −0.0002] | ✅ | ✅ |
-| HTFT | 67,176 | **0.442** | 0.3624 | 0.3635 | +0.0011 | [−0.0015, −0.0008] | ❌ slope | ✅ |
+| **HTFT** | 67,176 | 1.006 | 0.3630 | 0.3635 | **+0.0005** | [−0.0008, −0.0002] | ✅ | ✅ |
 | HTFT_DC | 201,528 | 1.008 | 0.5454 | 0.5459 | +0.0006 | [−0.0011, −0.0001] | ✅ | ❌ |
 | HALF_GOAL_COMBOS | 216,456 | 0.978 | 0.5589 | 0.5595 | +0.0006 | [−0.0011, −0.0001] | ✅ | ❌ |
 | MARGIN | 59,712 | 1.031 | 0.3660 | 0.3661 | +0.0001 | [−0.0002, −0.0000] | ✅ | ❌ |
+| HTFT_AND_GOALS | 29,856 | 1.039 | 0.4129 | 0.4131 | +0.0003 | [−0.0008, +0.0002] | ❌ | ❌ |
 | DOUBLE_CHANCE / RESULT | 22,392 | 1.023 | 0.5977 | 0.5978 | +0.0001 | [−0.0002, +0.0000] | ❌ | ❌ |
 | RESULT_AND_GOALS | 74,640 | 1.069 | 0.4424 | 0.4424 | +0.0000 | [−0.0001, +0.0000] | ❌ | ❌ |
-| HTFT_AND_GOALS | 29,856 | 1.039 | 0.4129 | 0.4131 | +0.0003 | [−0.0008, +0.0002] | ❌ | ❌ |
+| GOAL_RANGE_FT | 306,024 | 1.005 | 0.5461 | 0.5462 | +0.0000 | [−0.0001, +0.0001] | ❌ | ❌ |
 | WIN_TO_NIL | 14,928 | 1.150 | 0.4712 | 0.4713 | +0.0000 | [−0.0002, +0.0002] | ❌ | ❌ |
 | WIN_BOTH_HALVES | 44,784 | 1.038 | 0.2460 | 0.2460 | −0.0001 | [−0.0001, +0.0003] | ❌ | ❌ |
 | NO_BET | 29,306 | **1.281** | 0.7023 | 0.7006 | **−0.0017** | [+0.0014, +0.0019] | ❌ | ❌ |
@@ -144,16 +144,16 @@ model corrects B0 by 0.6–1.9 percentage points in the right direction.
 
 ### Long-shot check (model p < 0.10)
 
-n = 190,811; **model mean 0.0586 vs observed 0.0588** — well calibrated overall.
+n = 190,811; **model mean 0.0572 vs observed 0.0574** — well calibrated overall.
 Per family the largest gap is `HALF_RESULT` (0.0830 vs 0.1292, n=178) and
 `NO_BET` (0.0777 vs 0.1272, n=283), both small samples.
 
 ## 4. Market matrix
 
 `reports/market_matrix.md`. **7 families are MODEL-READY-AWAITING-PRICES**:
-MORE_GOALS_HALF, GOAL_RANGE_1H, GOAL_RANGE_2H, GOAL_RANGE_FT, HALF_RESULT,
-HALF_DC, HTFT_NE. Everything else is FAIL or UNTESTED. **No ROI is claimed
-without Soccer Bet prices.**
+MORE_GOALS_HALF, GOAL_RANGE_1H, GOAL_RANGE_2H, HALF_RESULT, HALF_DC, HTFT_NE,
+HTFT. Everything else is FAIL or UNTESTED. **No ROI is claimed without Soccer
+Bet prices.**
 
 ## 5. Tools
 
@@ -211,6 +211,13 @@ mismatches, 0 without an artifact.** Full pytest: **77 passed**.
    cast to string, and added the required `family` column.
 9. **Anchor solving was far too slow** with Nelder-Mead restarts — switched to
    L-BFGS-B on log-rates (8.4 ms per match).
+10. **Codes collide across families** — `1`, `2`, `I1`, `I2`, `II1`, `II2`,
+    `1-2`, `NE 1`, `NE 2` (207 markets, only 196 distinct codes). The probability
+    dict was keyed by code alone, so colliding markets shared a value; this
+    contaminated the RESULT, GOAL_RANGE_* and HTFT calibrations. Caught by
+    noticing that `1` printed the same `p_fair` in two families. Fixed by keying
+    on `(family, code)`; HTFT's slope moved from 0.44 to 1.01 and GOAL_RANGE_FT
+    dropped out of the passing set as a result.
 
 ## 8. Commits
 

@@ -9,13 +9,13 @@ bootstrap CI excluding 0, Holm-corrected across families).
 | family | calibrated? | gain vs B0 (pooled) | 95% CI | testable? | status |
 |---|---|---|---|---|---|
 | DOUBLE_CHANCE | no | +0.0001 | [-0.0002, +0.0000] | yes | FAIL |
-| GOAL_RANGE_1H | yes | +0.0020 | [-0.0034, -0.0007] | yes | MODEL-READY-AWAITING-PRICES |
+| GOAL_RANGE_1H | yes | +0.0024 | [-0.0038, -0.0010] | yes | MODEL-READY-AWAITING-PRICES |
 | GOAL_RANGE_2H | yes | +0.0043 | [-0.0056, -0.0031] | yes | MODEL-READY-AWAITING-PRICES |
-| GOAL_RANGE_FT | yes | +0.0002 | [-0.0003, -0.0002] | yes | MODEL-READY-AWAITING-PRICES |
+| GOAL_RANGE_FT | no | +0.0000 | [-0.0001, +0.0001] | yes | FAIL |
 | HALF_DC | yes | +0.0010 | [-0.0016, -0.0004] | yes | MODEL-READY-AWAITING-PRICES |
 | HALF_GOAL_COMBOS | no | +0.0006 | [-0.0011, -0.0001] | yes | FAIL |
 | HALF_RESULT | yes | +0.0010 | [-0.0016, -0.0004] | yes | MODEL-READY-AWAITING-PRICES |
-| HTFT | no | +0.0011 | [-0.0015, -0.0008] | yes | FAIL |
+| HTFT | yes | +0.0005 | [-0.0008, -0.0002] | yes | MODEL-READY-AWAITING-PRICES |
 | HTFT_AND_GOALS | no | +0.0003 | [-0.0008, +0.0002] | yes | FAIL |
 | HTFT_DC | no | +0.0006 | [-0.0011, -0.0001] | yes | FAIL |
 | HTFT_NE | yes | +0.0008 | [-0.0014, -0.0002] | yes | MODEL-READY-AWAITING-PRICES |
@@ -32,13 +32,13 @@ bootstrap CI excluding 0, Holm-corrected across families).
 | family | league_one_t3 | ligue_2_t2 | bundesliga_2 | bundesliga_1 |
 |---|---|---|---|---|
 | DOUBLE_CHANCE | +0.0001 | +0.0001 | +0.0000 | +0.0001 |
-| GOAL_RANGE_1H | +0.0010 | +0.0044 | +0.0012 | +0.0019 |
+| GOAL_RANGE_1H | +0.0010 | +0.0050 | +0.0017 | +0.0022 |
 | GOAL_RANGE_2H | +0.0024 | +0.0021 | +0.0084 | +0.0060 |
-| GOAL_RANGE_FT | +0.0002 | +0.0002 | +0.0003 | +0.0003 |
+| GOAL_RANGE_FT | +0.0000 | -0.0000 | +0.0001 | +0.0000 |
 | HALF_DC | +0.0006 | +0.0014 | +0.0014 | +0.0009 |
 | HALF_GOAL_COMBOS | +0.0002 | +0.0011 | +0.0002 | +0.0010 |
 | HALF_RESULT | +0.0006 | +0.0014 | +0.0014 | +0.0009 |
-| HTFT | +0.0004 | +0.0022 | +0.0012 | +0.0012 |
+| HTFT | +0.0002 | +0.0010 | +0.0005 | +0.0003 |
 | HTFT_AND_GOALS | +0.0000 | +0.0013 | +0.0000 | -0.0003 |
 | HTFT_DC | +0.0001 | +0.0012 | +0.0008 | +0.0005 |
 | HTFT_NE | +0.0003 | +0.0014 | +0.0010 | +0.0005 |

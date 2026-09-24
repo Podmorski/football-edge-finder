@@ -223,9 +223,9 @@ def main() -> int:
                     records.append({
                         "league": slug, "season": target, "date": r.date,
                         "family": market.family, "code": market.code,
-                        "p_model": float(probs_model[market.code][0][i]),
-                        "p_b0": float(probs_b0[market.code][0][i]),
-                        "p_b1": float(probs_b1[market.code][0][i]),
+                        "p_model": float(probs_model[(market.family, market.code)][0][i]),
+                        "p_b0": float(probs_b0[(market.family, market.code)][0][i]),
+                        "p_b1": float(probs_b1[(market.family, market.code)][0][i]),
                         "y": 1 if outcome == WIN else 0,
                     })
         print(f"  records so far: {len(records)}")

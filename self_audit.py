@@ -419,6 +419,7 @@ def recompute_4() -> dict[str, float]:
     out["MORE_GOALS_HALF gain"] = float(row["gain_vs_B0"])
     out["MORE_GOALS_HALF slope"] = float(row["slope"])
     out["GOAL_RANGE_2H gain"] = float(fam[fam["family"] == "GOAL_RANGE_2H"].iloc[0]["gain_vs_B0"])
+    out["GOAL_RANGE_1H gain"] = float(fam[fam["family"] == "GOAL_RANGE_1H"].iloc[0]["gain_vs_B0"])
     out["HTFT slope"] = float(fam[fam["family"] == "HTFT"].iloc[0]["slope"])
 
     df = pd.read_parquet("data/predictions/derived_markets_calibration.parquet")
@@ -442,14 +443,15 @@ CLAIMED_4 = [
     ("MORE_GOALS_HALF gain", 0.0087),
     ("MORE_GOALS_HALF slope", 0.8633),
     ("GOAL_RANGE_2H gain", 0.0043),
-    ("HTFT slope", 0.4421),
+    ("GOAL_RANGE_1H gain", 0.0024),
+    ("HTFT slope", 1.0064),
     ("I>II model", 0.2819),
     ("I>II B0", 0.3693),
     ("I>II observed", 0.2870),
     ("I<II model", 0.4613),
     ("I<II observed", 0.4460),
-    ("longshot model", 0.0586),
-    ("longshot observed", 0.0588),
+    ("longshot model", 0.0572),
+    ("longshot observed", 0.0574),
 ]
 
 
