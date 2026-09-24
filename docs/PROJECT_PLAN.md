@@ -647,3 +647,42 @@ the **section-aware** settlement; `run.py paper-report` prints n, mean CLV with 
 > bound > 0, and no contradicting historical evidence.** The B365/1X2 lead is
 > positive but one gate short and partly driven by a few large-move bets, so it is
 > **not** a licence to bet. **No bet is ever placed automatically.**
+
+### Widening + PS3838 as the primary sharp source (2026-09-24)
+
+**Decision — pre-registered before the first widened run.** The sharp main-line
+rule is widened to every league where **both** Mozzart and PS3838 publish a
+pre-match price. The widening is **for sample size only**; the **success rule is
+unchanged**: **>= 50 paper bets PER TRACK, mean CLV > 0 and the 95% CI lower
+bound > 0** (and no contradicting historical evidence).
+
+* **Primary sharp source = PS3838 (Pinnacle) via PulseScore**, read under
+  ``/api/ps3838`` in the **same run** as the Mozzart feed, so the two snapshots are
+  minutes apart (the join still rejects a pair more than 60 min apart as STALE).
+  The Odds API becomes a **fallback only** — the **league-wide** odds endpoint
+  (2 credits per league, never per event) — plus **scores** for the widened
+  leagues' settlement.
+* `data/paper/paper_bets.csv` gains a **`track`** column: **SHARP_WIDE** (a sharp
+  main-line market, in any league) vs **MODEL_4L** (a model family, in the four
+  modelled leagues only). `paper-report` splits by **track, league and family**
+  and gates each track separately.
+* **Widened set (live):** England Premier League & League Two, Germany 3. Liga,
+  France Ligue 1, Spain La Liga & Segunda División, Italy Serie A, USA MLS and
+  Brazil Série B — alongside the four modelled leagues. **2. Bundesliga and Ligue
+  2 are pending**: Mozzart does not list them yet, so they are re-checked weekly
+  from **2026-10-08** and added automatically when they appear.
+* **Flag audit.** The first 10 flags of each track are dumped to
+  `reports/flag_audit.md` with the raw Mozzart price, the de-margined PS3838 fair
+  price, the Serbian section, the code, the settlement meaning and both snapshot
+  timestamps. A track whose flag rate exceeds **3x the historical B365 1X2 rate
+  (~1 per 30 matches)** is marked **SUSPECT**.
+* **Budget (recomputed).** PulseScore ≈ **266 / 400 per month (34% margin)**;
+  Odds API ≈ **40 / 500 (92% margin)** — both >= 20%. The fixture gate uses the
+  **free** Odds API events endpoint, so a league off-duty costs zero requests.
+* **Schedule — activated.** 09:00 daily flag run, a pre-kickoff dispatcher (every
+  20 min through the playing hours), a 15-min close run, an 08:00 results run and
+  a Monday weekly job, registered with Task Scheduler with *start-when-available*
+  and *wake-to-run*, each logging to `logs/scheduler.log`; `reports/health.md` is
+  written daily. `scheduler.py delete` removes them all.
+
+**No confirmation season was read and no bet is ever placed automatically.**

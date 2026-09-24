@@ -51,7 +51,14 @@ FIT_COLUMNS = [
     "avg>2.5", "avg<2.5", "bb_av>2.5", "bb_av<2.5",
 ]
 
-_PARAMS_CACHE: dict[str, object] = {}
+_PARAMS_CACHE: dict[str, HalfParams] = {}
+
+# The modelled leagues whose history a widened league borrows its (neutral) half
+# params shape from. The widened leagues have no local history, so their sharp
+# main-line price is anchored on the same sharp 1X2 + totals but with a pooled
+# L2/L3 structure.
+MODELLED_FALLBACK = ("bundesliga_1", "bundesliga_2", "league_one_t3", "ligue_2_t2")
+_DEFAULT_PARAMS: HalfParams | None = None
 
 
 def load_markets() -> list:
@@ -129,25 +136,16 @@ def _write_cached_params(slug: str, fingerprint: str, params: HalfParams) -> Non
     )
 
 
-def league_params(slug: str):
-    """Fit L2/L3 on the league's training seasons (in-memory + on-disk cached).
-
-    The fit is deterministic in :data:`FIT_COLUMNS`, so it is cached on disk under
-    ``data/cache/half_params/<slug>__<content hash>.json``. Without the cache the
-    per-match anchor solve costs ~40 s per league on every run.
-    """
-    if slug in _PARAMS_CACHE:
-        return _PARAMS_CACHE[slug]
-    pool = wf.load_pool(slug)
+def _params_from_pool(pool: pd.DataFrame, cache_slug: str):
+    """Fit L2/L3 on a training pool, cached on disk under ``cache_slug``."""
     raw = pool.reset_index().rename(columns={"index": "row", "id": "match_key"})
     frame = raw[["match_key", "date", "season", "fthg", "ftag", "hthg", "htag",
                  "avg_h", "avg_d", "avg_a", "bb_av_h", "bb_av_d", "bb_av_a",
                  "avg>2.5", "avg<2.5", "bb_av>2.5", "bb_av<2.5"]].dropna(
         subset=["hthg", "htag"])
     fingerprint = _fit_fingerprint(frame)
-    cached = _read_cached_params(slug, fingerprint)
+    cached = _read_cached_params(cache_slug, fingerprint)
     if cached is not None:
-        _PARAMS_CACHE[slug] = cached
         return cached
 
     prem = odds.prematch_1x2(frame)
@@ -163,8 +161,53 @@ def league_params(slug: str):
         rows.append({"lam": a.lam, "mu": a.mu, "hth": r.hthg, "hta": r.htag,
                      "fth": r.fthg, "fta": r.ftag})
     params = fit_half_params(rows)
+    _write_cached_params(cache_slug, fingerprint, params)
+    return params
+
+
+def default_params():
+    """A pooled half-params fit across the modelled leagues.
+
+    A widened league has no local history, so its GOAL_RANGE_FT price uses this
+    neutral anchor shape: the *level* is still the sharp 1X2 + totals, and only
+    the L2/L3 split structure is pooled from the leagues we did model.
+    """
+    global _DEFAULT_PARAMS
+    if _DEFAULT_PARAMS is None:
+        pools = []
+        for slug in MODELLED_FALLBACK:
+            try:
+                pool = wf.load_pool(slug)
+            except Exception:  # noqa: BLE001
+                continue
+            if pool is not None and not pool.empty:
+                pools.append(pool)
+        if not pools:
+            raise RuntimeError("no modelled league history for a default half-params fit")
+        _DEFAULT_PARAMS = _params_from_pool(pd.concat(pools, ignore_index=True), "__default__")
+    return _DEFAULT_PARAMS
+
+
+def league_params(slug: str):
+    """Fit L2/L3 on the league's training seasons (in-memory + on-disk cached).
+
+    The fit is deterministic in :data:`FIT_COLUMNS`, so it is cached on disk under
+    ``data/cache/half_params/<slug>__<content hash>.json``. Without the cache the
+    per-match anchor solve costs ~40 s per league on every run. A league outside
+    the modelled four (the widened set) falls back to :func:`default_params`.
+    """
+    if slug in _PARAMS_CACHE:
+        return _PARAMS_CACHE[slug]
+    try:
+        pool = wf.load_pool(slug)
+    except Exception:  # noqa: BLE001
+        pool = None
+    if pool is None or getattr(pool, "empty", True):
+        params = default_params()
+        _PARAMS_CACHE[slug] = params
+        return params
+    params = _params_from_pool(pool, slug)
     _PARAMS_CACHE[slug] = params
-    _write_cached_params(slug, fingerprint, params)
     return params
 
 

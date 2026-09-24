@@ -27,12 +27,13 @@ import yaml
 
 import bet_log
 import fair_sheet as fs
+import ps3838_odds
 
 LOG = Path("data/paper/paper_bets.csv")
 PAPER_CONFIG = Path("config/paper.yaml")
 
 FIELDS = [
-    "date", "kickoff", "league", "home", "away", "family", "section", "code",
+    "date", "kickoff", "league", "track", "home", "away", "family", "section", "code",
     "meaning", "mozzart_odds", "fair_odds", "min_acceptable", "ev", "stake",
     "mozzart_snapshot", "pinnacle_snapshot", "pinnacle_close", "clv", "result", "pnl",
 ]
@@ -76,6 +77,7 @@ def record(flags: list[dict]) -> int:
         row = {
             "date": fs.local_date(flag["kickoff"]).isoformat(),
             "kickoff": flag["kickoff"], "league": flag["league"],
+            "track": flag.get("track", fs.TRACK_SHARP),
             "home": flag["home"], "away": flag["away"], "family": flag["family"],
             "section": flag["section"], "code": flag["code"], "meaning": flag["meaning"],
             "mozzart_odds": f"{flag['mozzart_odds']:.4f}",
@@ -123,12 +125,32 @@ def _find_event(events: list[tuple[str, dict]], row: dict):
     return None
 
 
-def close(now: datetime | None = None, session=None, key: str | None = None) -> int:
-    """Save the de-margined Pinnacle close for bets within the close window.
+def _odds_api_close(row: dict, session, key: str):
+    """Fallback close from The Odds API (per-event endpoint). (fair_close, snapshot)."""
+    window = {date.fromisoformat(row["date"])}
+    events, _headers, _started = fs.upcoming_events(session, key, window)
+    match = _find_event(events, row)
+    if match is None:
+        return None, ""
+    sport_key, event = match
+    snapshot, _cost, _source, _balance = fs.fetch_snapshot(session, key, sport_key, event)
+    prices = fs.pinnacle_prices(event, snapshot) if snapshot else None
+    if prices is None:
+        return None, ""
+    key_pair = bet_log.resolve_key(bet_log.market_index(), row["family"], row["code"])
+    fresh, _residual = fs.price_match(fs.SPORTS[sport_key], prices)
+    fair_close = {(r["family"], r["market"]): r["fair_odds"] for r in fresh}.get(key_pair)
+    return fair_close, (prices.get("snapshot") or "")
 
-    A **fresh** Pinnacle snapshot is fetched for each match that has a paper bet
-    (2 credits per match, cached 6h), so the closing price is genuinely close to
-    kickoff. Matches without paper bets are never fetched.
+
+def close(now: datetime | None = None, session=None, key: str | None = None,
+          ps_key: str | None = None) -> int:
+    """Save the de-margined **PS3838** close for bets within the close window.
+
+    PS3838 — the primary sharp source — is refreshed for each league that has a
+    paper bet near kickoff: **one league-wide PulseScore request per league**, not
+    one per match. The Odds API per-event call is kept only as a fallback for a
+    match PS3838 does not price. Matches without paper bets are never fetched.
     """
     now = now or datetime.now(timezone.utc)
     rows = read_rows()
@@ -140,31 +162,39 @@ def close(now: datetime | None = None, session=None, key: str | None = None) -> 
         session = requests.Session()
     if key is None:
         key = fs.load_key()
+    if ps_key is None:
+        try:
+            ps_key = ps3838_odds.load_key()
+        except SystemExit:
+            ps_key = None
 
-    window = {date.fromisoformat(row["date"]) for row in pending}
-    events, _headers, _started = fs.upcoming_events(session, key, window)
+    if ps_key:
+        for slug in sorted({row["league"] for row in pending}):
+            try:
+                ps3838_odds.fetch_league(session, ps_key, slug)
+            except Exception:  # noqa: BLE001
+                continue
+
     markets = bet_log.market_index()
-    snapshots: dict[str, object] = {}
     filled = 0
     for row in pending:
-        match = _find_event(events, row)
-        if match is None:
-            continue
-        sport_key, event = match
-        if event["id"] not in snapshots:
-            snapshot, _cost, _source, _balance = fs.fetch_snapshot(session, key, sport_key, event)
-            snapshots[event["id"]] = snapshot
-        snapshot = snapshots[event["id"]]
-        prices = fs.pinnacle_prices(event, snapshot) if snapshot else None
-        if prices is None:
-            continue
-        key_pair = bet_log.resolve_key(markets, row["family"], row["code"])
-        fresh, _residual = fs.price_match(fs.SPORTS[sport_key], prices)
-        fair_close = {(r["family"], r["market"]): r["fair_odds"] for r in fresh}.get(key_pair)
+        fair_close, snapshot = None, ""
+        try:
+            prices = ps3838_odds.closing_prices(
+                row["home"], row["away"], date.fromisoformat(row["date"]))
+        except Exception:  # noqa: BLE001
+            prices = None
+        if prices is not None:
+            snapshot = prices.get("snapshot") or ""
+            key_pair = bet_log.resolve_key(markets, row["family"], row["code"])
+            fresh, _residual = fs.price_match(row["league"], prices)
+            fair_close = {(r["family"], r["market"]): r["fair_odds"] for r in fresh}.get(key_pair)
+        if fair_close is None:
+            fair_close, snapshot = _odds_api_close(row, session, key)
         if fair_close is None:
             continue
         row["pinnacle_close"] = f"{fair_close:.4f}"
-        row["pinnacle_snapshot"] = prices.get("snapshot") or ""
+        row["pinnacle_snapshot"] = snapshot or row.get("pinnacle_snapshot", "")
         try:
             row["clv"] = f"{float(row['mozzart_odds']) / fair_close - 1.0:.6f}"
         except (TypeError, ValueError):
@@ -175,8 +205,17 @@ def close(now: datetime | None = None, session=None, key: str | None = None) -> 
     return filled
 
 
+def _sharp_ft_family(family: str, code: str) -> bool:
+    """True for the sharp families whose settlement needs only the full-time score.
+
+    These are the families that run in the widened leagues, where there is no
+    local half-time history — the scores fallback is valid for them alone.
+    """
+    return family in fs.FLAG_SHARP_FAMILIES or (family, code) in fs.FLAG_SHARP_CODES
+
+
 def settle(now: datetime | None = None) -> int:
-    """Settle finished bets from the result, via the section-aware settlement."""
+    """Settle finished bets, via local history or (widened leagues) scores."""
     now = now or datetime.now(timezone.utc)
     rows = read_rows()
     markets = bet_log.market_index()
@@ -188,13 +227,18 @@ def settle(now: datetime | None = None) -> int:
         if kickoff is None or now < kickoff + timedelta(hours=SETTLE_AFTER_HOURS):
             continue
         when = date.fromisoformat(row["date"])
-        matched = bet_log.find_result(when, row["home"], row["away"])
-        if matched is None:
-            continue
-        _slug, result_row, _hs, _as = matched
         key = bet_log.resolve_key(markets, row["family"], row["code"])
         market = markets.get(key) if key else None
         if market is None:
+            continue
+        matched = bet_log.find_result(when, row["home"], row["away"])
+        result_row = matched[1] if matched else None
+        if result_row is None and _sharp_ft_family(row["family"], row["code"]):
+            import scores
+
+            result_row = scores.find_result(row["league"], when, row["home"], row["away"],
+                                            session=None, key=None)
+        if result_row is None:
             continue
         outcome = bet_log._outcome(market, result_row)
         if outcome not in "WLV":
@@ -249,7 +293,8 @@ def report() -> int:
     print(f"virtual P&L {sum(pnls):+.2f} on {len(pnls)} units "
           f"(ROI {sum(pnls) / len(pnls):+.2%})" if pnls else "virtual P&L: n/a")
 
-    for field, title in (("family", "by family"), ("league", "by league")):
+    for field, title in (("track", "by track"), ("league", "by league"),
+                         ("family", "by family")):
         print(f"\n{title}:")
         for name, group in sorted(_group(rows, field).items()):
             group_clv = [float(r["clv"]) for r in group if r.get("clv")]
@@ -258,14 +303,24 @@ def report() -> int:
             clv_text = (f"CLV {gmean:+.2%} [{glow:+.2%}, {ghigh:+.2%}]"
                         if group_clv and not np.isnan(glow) else
                         f"CLV {gmean:+.2%}" if group_clv else "CLV n/a")
-            print(f"  {name:<22} n={len(group):<4} {clv_text}  P&L {sum(group_pnl):+.2f}")
+            print(f"  {str(name):<22} n={len(group):<4} {clv_text}  P&L {sum(group_pnl):+.2f}")
 
     print()
     print(f"DECISION RULE: real money only after >= {config['min_paper_bets']} paper bets "
-          "with mean CLV > 0 and the 95% CI lower bound > 0, and no contradicting "
-          "historical evidence. NEVER place bets automatically.")
+          "PER TRACK, with mean CLV > 0 and the 95% CI lower bound > 0, and no "
+          "contradicting historical evidence. NEVER place bets automatically.")
+    print("per-track gate:")
+    for track, group in sorted(_group(rows, "track").items()):
+        group_clv = [float(r["clv"]) for r in group if r.get("clv")]
+        gmean, glow, _ghigh = _mean_ci(group_clv)
+        passes = (len(group) >= config["min_paper_bets"] and group_clv
+                  and gmean > 0 and not np.isnan(glow) and glow > 0)
+        clv_text = f"CLV {gmean:+.2%}" if group_clv else "CLV n/a"
+        need = max(config["min_paper_bets"] - len(group), 0)
+        print(f"  {track:<12} n={len(group):<4} {clv_text:<12} "
+              f"-> {'PASS' if passes else f'NOT YET ({need} more)'}")
     if len(rows) < config["min_paper_bets"]:
-        print(f"  {config['min_paper_bets'] - len(rows)} more paper bet(s) needed.")
+        print(f"  {config['min_paper_bets'] - len(rows)} more paper bet(s) needed overall.")
     return 0
 
 

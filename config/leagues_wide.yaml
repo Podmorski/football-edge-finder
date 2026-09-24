@@ -1,0 +1,133 @@
+# Wide league registry — which divisions the sharp main-line rule runs on.
+#
+# PART A of the widening session: the **primary sharp source is PS3838
+# (Pinnacle) read through the PulseScore feed**, fetched in the *same run* as
+# Mozzart, so the two snapshots are minutes apart. The Odds API is a **fallback
+# only** (league-wide odds endpoint, never per event) and supplies **scores** for
+# settlement.
+#
+# A league appears here only when **both** Mozzart and PS3838 publish a
+# pre-match price for it (``mozzart`` is null until the book lists the division —
+# see ``mozzart_pending``). ``track`` decides which rule may bet there:
+#
+#   MODEL_4L      our four modelled leagues  — model families AND sharp main line
+#   SHARP_WIDE    widened set                — the SHARP main-line rule only
+#
+# SCORE: deployed only from the overlap of the two feeds after 2026-10-08.
+# The full Mozzart↔PS3838 overlap is larger; the live set is capped by the
+# PulseScore budget (see ``budget_plan.py``).
+
+leagues:
+  # ---- our four modelled leagues -------------------------------------------
+  - slug: bundesliga_1
+    name: Bundesliga
+    tier: 1
+    track: MODEL_4L
+    modelled: true
+    ps3838: "Germany - Bundesliga"
+    mozzart: "Nemačka 1"
+    odds_api: soccer_germany_bundesliga
+
+  - slug: league_one_t3
+    name: League One
+    tier: 3
+    track: MODEL_4L
+    modelled: true
+    ps3838: "England - League 1"
+    mozzart: "Engleska 3"
+    odds_api: soccer_england_league1
+
+  - slug: bundesliga_2
+    name: 2. Bundesliga
+    tier: 2
+    track: MODEL_4L
+    modelled: true
+    ps3838: "Germany - Bundesliga 2"
+    mozzart: null
+    mozzart_pending: "Nemačka 2"
+    resume_after: 2026-10-08
+    odds_api: soccer_germany_bundesliga2
+
+  - slug: ligue_2_t2
+    name: Ligue 2
+    tier: 2
+    track: MODEL_4L
+    modelled: true
+    ps3838: "France - Ligue 2"
+    mozzart: null
+    mozzart_pending: "Francuska 2"
+    resume_after: 2026-10-08
+    odds_api: soccer_france_ligue_two
+
+  # ---- widened set: sharp main-line rule only -------------------------------
+  - slug: eng_premier
+    name: Premier League
+    tier: 1
+    track: SHARP_WIDE
+    ps3838: "England - Premier League"
+    mozzart: "Engleska 1"
+    odds_api: soccer_epl
+
+  - slug: eng_league_two
+    name: League Two
+    tier: 4
+    track: SHARP_WIDE
+    ps3838: "England - League 2"
+    mozzart: "Engleska 4"
+    odds_api: soccer_england_league2
+
+  - slug: ger_liga3
+    name: 3. Liga
+    tier: 3
+    track: SHARP_WIDE
+    ps3838: "Germany - 3. Liga"
+    mozzart: "Nemačka 3"
+    odds_api: soccer_germany_liga3
+
+  - slug: fra_ligue_one
+    name: Ligue 1
+    tier: 1
+    track: SHARP_WIDE
+    ps3838: "France - Ligue 1"
+    mozzart: "Francuska 1"
+    odds_api: soccer_france_ligue_one
+
+  - slug: esp_la_liga
+    name: La Liga
+    tier: 1
+    track: SHARP_WIDE
+    ps3838: "Spain - La Liga"
+    mozzart: "Španija 1"
+    odds_api: soccer_spain_la_liga
+
+  - slug: esp_segunda
+    name: Segunda División
+    tier: 2
+    track: SHARP_WIDE
+    ps3838: "Spain - Segunda Division"
+    mozzart: "Španija 2"
+    odds_api: soccer_spain_segunda_division
+
+  - slug: ita_serie_a
+    name: Serie A
+    tier: 1
+    track: SHARP_WIDE
+    ps3838: "Italy - Serie A"
+    mozzart: "Italija 1"
+    odds_api: soccer_italy_serie_a
+
+  - slug: usa_mls
+    name: Major League Soccer
+    tier: 1
+    track: SHARP_WIDE
+    ps3838: "USA - Major League Soccer"
+    mozzart: "SAD - MLS"
+    odds_api: soccer_usa_mls
+
+  - slug: bra_serie_b
+    name: Série B
+    tier: 2
+    track: SHARP_WIDE
+    ps3838: "Brazil - Serie B"
+    mozzart: "Brazil 2"
+    odds_api: soccer_brazil_serie_b

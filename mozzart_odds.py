@@ -2,8 +2,9 @@
 
 Fetches the upcoming-events feed (throttled to the BASIC plan's 1 request per
 second) and maps each selection to a catalogue market through
-:mod:`core.mozzart_map`. Only the four in-scope leagues are kept. Every call is
-logged to ``logs/pulsescore_requests.csv`` and counted against the monthly budget.
+:mod:`core.mozzart_map`. Only the leagues the wide registry lists (and that
+Mozzart currently names) are kept. Every call is logged to
+``logs/pulsescore_requests.csv`` and counted against the monthly budget.
 
 The feed returns **pre-match** events (``live: false``) with their full market
 list, so no live WebSocket is needed.
@@ -19,6 +20,7 @@ from pathlib import Path
 import requests
 
 import pulsescore_log
+from core import league_registry
 
 BASE = "https://api.pulsescore.net/api/mozzart"
 TIMEOUT = 30
@@ -26,13 +28,9 @@ THROTTLE_SECONDS = 1.2          # BASIC plan: 1 request/second per bookmaker
 LEAGUE_CACHE = Path("data/mozzart/league_ids.json")
 LEAGUE_CACHE_DAYS = 7
 
-# Mozzart Serbian league name -> our slug.
-MOZZART_LEAGUES = {
-    "Nemačka 1": "bundesliga_1",
-    "Nemačka 2": "bundesliga_2",
-    "Engleska 3": "league_one_t3",
-    "Francuska 2": "ligue_2_t2",
-}
+# Mozzart Serbian league name -> our slug, from the wide registry. A league with
+# no Mozzart listing (e.g. 2. Bundesliga / Ligue 2 pending listing) is absent.
+MOZZART_LEAGUES = league_registry.mozzart_names()
 # The league ids seen in the discovery run (2026-09-24). Nemačka 2 / Francuska 2
 # were absent from the feed then; they are re-resolved from the league list.
 KNOWN_LEAGUE_IDS = {

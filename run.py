@@ -31,6 +31,11 @@ COMMANDS = {
     "paper-close": "Save the de-margined Pinnacle close for paper bets near kickoff.",
     "paper-settle": "Settle finished paper bets from the result.",
     "paper-report": "Paper-trading report: n, mean CLV + 95% CI, virtual P&L, by family and league.",
+    "results": "Settle finished paper bets, then write reports/health.md.",
+    "health": "Write reports/health.md: last runs, failures, API usage, flags today.",
+    "weekly": "Weekly: current-season refresh + Mozzart top-up check + paper-report.",
+    "kickoff-run": "Pre-kickoff dispatcher: run the fair sheet ~2h before a kickoff window.",
+    "budget-plan": "Recomputed monthly API budget for the widened two-source schedule.",
 }
 
 
@@ -102,6 +107,10 @@ def build_parser() -> argparse.ArgumentParser:
                        help="First day of the window, YYYY-MM-DD. Defaults to today.")
     sheet.add_argument("--days", type=int, default=1,
                        help="Length of the window in days (default 1).")
+    sheet.add_argument("--within-minutes", type=int, default=None,
+                       help="Further restrict to matches kicking off within this many minutes.")
+    sheet.add_argument("--league", action="append", default=None,
+                       help="Restrict to one or more league slugs (repeatable).")
 
     log_close = sub.add_parser("log-close", help=COMMANDS["log-close"])
     log_close.add_argument("--file", default=None,
@@ -110,6 +119,13 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("paper-close", help=COMMANDS["paper-close"])
     sub.add_parser("paper-settle", help=COMMANDS["paper-settle"])
     sub.add_parser("paper-report", help=COMMANDS["paper-report"])
+    sub.add_parser("results", help=COMMANDS["results"])
+    sub.add_parser("health", help=COMMANDS["health"])
+    sub.add_parser("weekly", help=COMMANDS["weekly"])
+    sub.add_parser("budget-plan", help=COMMANDS["budget-plan"])
+    kickoff = sub.add_parser("kickoff-run", help=COMMANDS["kickoff-run"])
+    kickoff.add_argument("--force", action="store_true",
+                         help="Run the fair sheet even if no window is due now.")
 
     fixtures = sub.add_parser("fixtures", help=COMMANDS["fixtures"])
     fixtures.add_argument(
@@ -162,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "fair-sheet":
         import fair_sheet
 
-        return fair_sheet.main(args.date, args.days)
+        return fair_sheet.main(args.date, args.days, args.within_minutes, args.league)
 
     if args.command == "log-close":
         import bet_log
@@ -173,6 +189,33 @@ def main(argv: list[str] | None = None) -> int:
         import paper_trade
 
         return paper_trade.main(args.command.removeprefix("paper-"))
+
+    if args.command == "results":
+        import health
+        import paper_trade
+
+        print(f"paper-settle: settled {paper_trade.settle()} bet(s)")
+        return health.write()
+
+    if args.command == "health":
+        import health
+
+        return health.write()
+
+    if args.command == "weekly":
+        import weekly
+
+        return weekly.main()
+
+    if args.command == "kickoff-run":
+        import kickoff_run
+
+        return kickoff_run.main(["--force"] if args.force else [])
+
+    if args.command == "budget-plan":
+        import budget_plan
+
+        return budget_plan.main()
 
     if args.command == "ingest-historical":
         import ingest_historical

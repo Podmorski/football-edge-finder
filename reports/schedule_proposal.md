@@ -1,7 +1,15 @@
-# Schedule proposal — daily fair sheet + paper trading
+# Schedule — daily fair sheet + paper trading
 
-**Status: PROPOSED, NOT ACTIVATED.** No Task Scheduler task has been created.
-This file records the budget and the exact task definitions for approval.
+**Status: ACTIVATED (2026-09-24).** The five tasks are registered with Windows
+Task Scheduler by [`scheduler.py`](../scheduler.py). Every run appends to
+`logs/scheduler.log`; `reports/health.md` is written daily.
+
+```bash
+./venv/Scripts/python.exe scheduler.py create     # register the five tasks
+./venv/Scripts/python.exe scheduler.py dry-run    # print the schtasks commands
+./venv/Scripts/python.exe scheduler.py disable    # keep them, stop them
+./venv/Scripts/python.exe scheduler.py delete     # remove them all
+```
 
 ## What runs, and what it costs
 
@@ -38,35 +46,26 @@ A normal weekend spread over Fri–Sun plus a midweek League One round:
 > to ~8 credits and the monthly Odds API use to ~**140** (72% margin). It is a
 > behaviour change, so it is **not** made here.
 
-## Proposed tasks (Windows Task Scheduler)
+## Activated tasks (Windows Task Scheduler)
+
+Each task is registered from XML so it gets **start-when-available** (run as soon
+as possible after a missed start) and **wake-to-run**, runs with the project root
+as its working directory, and appends to `logs/scheduler.log`.
+
+| Task | Trigger | Command |
+|---|---|---|
+| `Betting\FairSheetDaily` | daily 09:00 | `run.py fair-sheet --days 1` |
+| `Betting\FairSheetPreKick` | every 20 min, 10:00–23:00 | `run.py kickoff-run` (~2h before each window) |
+| `Betting\PaperClose` | every 15 min, 12:00–22:00 | `run.py paper-close` |
+| `Betting\ResultsDaily` | daily 08:00 | `run.py results` (settle + `health.md`) |
+| `Betting\Weekly` | Mondays 07:30 | `run.py weekly` |
 
 Replace `<ROOT>` with `C:\Users\t14s\Desktop\Work\Betting` and `<PY>` with
-`<ROOT>\venv\Scripts\python.exe`.
+`<ROOT>\venv\Scripts\python.exe`. The exact `schtasks /Create ... /XML` commands
+are printed by `scheduler.py dry-run`.
 
-```bat
-:: 1. Pre-match flag run — every day at 09:00 local
-schtasks /Create /TN "Betting\FairSheet" /SC DAILY /ST 09:00 ^
-  /TR "\"<PY>\" \"<ROOT>\run.py\" fair-sheet --days 1" /F
-
-:: 2. Pre-kickoff close run — every 30 min from 12:00 to 21:30 local
-schtasks /Create /TN "Betting\PaperClose" /SC DAILY /ST 12:00 /RI 30 /DU 09:30 ^
-  /TR "\"<PY>\" \"<ROOT>\run.py\" paper-close" /F
-
-:: 3. Next-morning results run — every day at 08:00 local
-schtasks /Create /TN "Betting\PaperSettle" /SC DAILY /ST 08:00 ^
-  /TR "\"<PY>\" \"<ROOT>\run.py\" paper-settle" /F
-
-:: 4. Weekly results refresh — Mondays at 07:30 local
-schtasks /Create /TN "Betting\Refresh" /SC WEEKLY /D MON /ST 07:30 ^
-  /TR "\"<PY>\" \"<ROOT>\run.py\" refresh" /F
-```
-
-* Task 2 runs often but is **free** unless a match with a paper bet is within 30
-  minutes of kickoff, and the 6h cache means each such match is fetched once.
-* Task 3 is free (football-data.co.uk).
-* Every task logs to `logs/`; `run.py paper-report` prints the running CLV.
-
-## Approval
-
-**Waiting for the user's OK before creating any task.** Nothing above has been
-registered with Task Scheduler.
+* `FairSheetPreKick` runs often but does nothing unless a kickoff window opens in
+  ~2h; `PaperClose` is free unless a match with a paper bet is within 30 minutes
+  of kickoff.
+* The fixture gate uses the **free** Odds API events endpoint, so a league with no
+  match in the window costs zero PulseScore requests.

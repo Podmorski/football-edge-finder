@@ -68,10 +68,15 @@ A Windows-friendly runner; no make required.
 ./venv/Scripts/python.exe run.py requests-today
 ./venv/Scripts/python.exe run.py snapshot-fd
 ./venv/Scripts/python.exe run.py fair-sheet --date 2026-09-25 --days 3
+./venv/Scripts/python.exe run.py kickoff-run           # pre-kickoff dispatcher
 ./venv/Scripts/python.exe run.py log-close
 ./venv/Scripts/python.exe run.py paper-close           # <= 30 min before kickoff
 ./venv/Scripts/python.exe run.py paper-settle          # next morning
 ./venv/Scripts/python.exe run.py paper-report
+./venv/Scripts/python.exe run.py results               # settle + write reports/health.md
+./venv/Scripts/python.exe run.py weekly                # refresh + top-up + report
+./venv/Scripts/python.exe run.py budget-plan           # monthly API budget + margin
+./venv/Scripts/python.exe scheduler.py create          # register the 5 Windows tasks
 ```
 
 ## Scripts
@@ -87,8 +92,16 @@ A Windows-friendly runner; no make required.
 | `get_fixtures.py` | Fixtures for a date via API-Football | `data/fixtures/raw/<date>.json`, `data/fixtures/<date>.csv` |
 | `team_audit.py` | Team-name audit per league (local only) | `reports/team_audit_<slug>.md` |
 | `fair_sheet.py` | Daily Pinnacle-anchored fair odds + minimum acceptable odds, with a **FLAGS** block joining Mozzart prices | `reports/fair_sheets/<date>.md` / `.csv`, `reports/fair_sheets/summary.csv` |
+| `ps3838_odds.py` | **Primary sharp source**: PS3838 (Pinnacle) via PulseScore, fetched in the same run as Mozzart | `data/ps3838/leagues/<slug>.json` |
 | `mozzart_odds.py` | Mozzart (PulseScore) pre-match odds, mapped to the catalogue | `data/mozzart/raw/` |
-| `paper_trade.py` | Automatic paper trading: record flags, save the Pinnacle close, settle, report | `data/paper/paper_bets.csv` |
+| `paper_trade.py` | Automatic paper trading by **track**: record flags, save the PS3838 close, settle, report | `data/paper/paper_bets.csv` |
+| `flag_audit.py` | First 10 flags per track with raw prices + a SUSPECT flag-rate check | `reports/flag_audit.md` |
+| `scores.py` | Results for the widened leagues via The Odds API **scores** (fallback) | — |
+| `kickoff_run.py` | Derives the day's kickoff windows and runs the sheet ~2h before one | — |
+| `weekly.py` | Weekly refresh + Mozzart top-up check + paper report | `reports/paper_report.md` |
+| `health.py` | Daily health summary | `reports/health.md` |
+| `budget_plan.py` | Recomputed monthly budget + margin for both APIs | stdout |
+| `scheduler.py` | Windows Task Scheduler tasks (create/delete/dry-run) | `logs/scheduler.log` |
 | `pulsescore_log.py` | Local PulseScore request log + monthly budget (cap 400, stop at 50) | `logs/pulsescore_requests.csv` |
 | `team_audit_mozzart.py` | Cross-source team-name audit (Mozzart / Odds API / historical) | stdout |
 | `bet_log.py` | Closing price + result per logged bet; CLV and P&L | fills `data/bet_log.csv` |
@@ -177,23 +190,39 @@ No-Bet, and the goal totals from the sharp 1X2 + totals line**) are marked
 `SHARP`; everything else shown is a family whose calibration **PASSED** on unseen
 seasons. UNTESTABLE / UNCONFIRMED markets are hidden.
 
-### Mozzart flags and paper trading
+### PS3838 sharp source, Mozzart flags and paper trading
 
-The sheet joins **Mozzart**'s pre-match prices (PulseScore) to our fair odds and
-prints a **FLAGS** block at the top: match, kickoff, Serbian section, code,
-plain-English meaning, Mozzart odds, minimum acceptable odds (`fair x 1.035`) and
-**EV after a 20% haircut**. A market is flagged only when the family PASSed (or is
-a SHARP main-line market), the Mozzart price is at or above `fair x 1.035`, and
-the Pinnacle and Mozzart snapshots are within 60 minutes (else `STALE`). If
-nothing qualifies the sheet prints **“No value today.”**
+The sheet anchors on **PS3838 (Pinnacle) via PulseScore** — the **primary sharp
+source**, read in the **same run** as the Mozzart feed so the two snapshots are
+minutes apart. The Odds API is a **fallback only** (the league-wide odds
+endpoint, never per event) and supplies **scores** for the widened leagues. The
+sheet joins **Mozzart**'s pre-match prices to our fair odds and prints a **FLAGS**
+block at the top: match, kickoff, **track**, Serbian section, code, plain-English
+meaning, Mozzart odds, minimum acceptable odds (`fair x 1.035`) and **EV after a
+20% haircut**. A market is flagged only when the family PASSed (or is a SHARP
+main-line market), the Mozzart price is at or above `fair x 1.035`, and the two
+snapshots are within 60 minutes (else `STALE`). If nothing qualifies the sheet
+prints **“No value today.”**
 
 Every flag becomes one **paper** bet (1 unit at the Mozzart price) in
-`data/paper/paper_bets.csv`. `run.py paper-close` saves the de-margined Pinnacle
-close for matches with paper bets within 30 minutes of kickoff; `run.py
-paper-settle` settles finished bets; `run.py paper-report` prints n, mean CLV with
-a 95% CI, virtual P&L, and the same split by family and league. **No bet is ever
-placed automatically.** The proposed Task Scheduler setup is in
-[`reports/schedule_proposal.md`](reports/schedule_proposal.md).
+`data/paper/paper_bets.csv`, tagged with its **track**:
+
+* **SHARP_WIDE** — a sharp main-line market (RESULT, DOUBLE_CHANCE, full-time
+  No-Bet, the FT goal totals), run in **every league where both books price it**;
+* **MODEL_4L** — a model family, limited to our four modelled leagues.
+
+`run.py paper-close` saves the de-margined **PS3838** close for matches with paper
+bets within 30 minutes of kickoff; `run.py paper-settle` settles finished bets
+(local history for the modelled leagues, The Odds API **scores** for the widened
+ones); `run.py paper-report` prints n, mean CLV with a 95% CI, virtual P&L, and
+the same split **by track, league and family**, gating each track separately.
+**No bet is ever placed automatically.**
+
+The widened set and the budget are in [`config/leagues_wide.yaml`](config/leagues_wide.yaml)
+and `run.py budget-plan`. The **activated** Task Scheduler setup is
+[`reports/schedule_proposal.md`](reports/schedule_proposal.md) and
+`scheduler.py`; `reports/flag_audit.md` audits the first flags of each track and
+`reports/health.md` records the daily loop.
 
 The anchor is only as fresh as the snapshot printed at the top of the sheet:
 **odds move — re-run within ~1h of betting.**

@@ -7,12 +7,16 @@ clears the cushion.
 
 Pipeline
 --------
-1. ``GET /sports/{key}/events`` (free) for the four sport keys, filtered to a
-   local-date window.
-2. ``GET /sports/{key}/odds`` with ``regions=eu, markets=h2h,totals,
-   bookmakers=pinnacle`` — 2 credits per match, **cached per match for 6 hours**.
-   Hard cap 60 credits per run; stop early when the account drops below 100.
-3. De-margin Pinnacle's h2h and totals with the **power** method and solve the
+1. **Primary sharp source — PS3838 (Pinnacle) via PulseScore**, fetched in the
+   *same run* as Mozzart so the two snapshots are minutes apart. One
+   ``GET /soccer/leagues/{name}/events`` per league *that has a fixture in the
+   window*; a league with no fixture costs zero requests (a per-league snapshot
+   is cached on disk and its schedule is the gate).
+2. **Fallback — The Odds API**, used for a league the PS3838 feed did not cover:
+   the **league-wide** ``GET /sports/{key}/odds`` (2 credits per league per run,
+   never per event), also cached 6 hours. Hard cap 60 credits per run; stop early
+   when the account drops below 100.
+3. De-margin the sharp h2h and totals with the **power** method and solve the
    ``(lambda, mu)`` anchor so the L1 grid reproduces them exactly (the totals
    line, whatever it is, is passed through to the anchor).
 4. Price every market in the catalogue and every market in the catalogue's
@@ -45,8 +49,9 @@ import requests
 import yaml
 
 import odds_api_log
+import ps3838_odds
 import step4_pricing
-from core import odds
+from core import league_registry, odds
 from core.half_model import (
     MAX_HALF_GOALS,
     batch_market_probs,
@@ -64,12 +69,15 @@ BASE = "https://api.the-odds-api.com/v4"
 REGION = "eu"
 BOOKMAKER = "pinnacle"
 ODDS_MARKETS = "h2h,totals"
-SPORTS = {
-    "soccer_germany_bundesliga": "bundesliga_1",
-    "soccer_germany_bundesliga2": "bundesliga_2",
-    "soccer_england_league1": "league_one_t3",
-    "soccer_france_ligue_two": "ligue_2_t2",
-}
+# {odds_api sport_key: slug} for the **fallback** source and for scores. Built from
+# the wide registry, so the widened leagues are covered automatically.
+SPORTS = dict(league_registry.odds_api_sports())
+
+# The two paper-trading tracks. A bet's track follows the *rule* that produced it:
+# the sharp main line is SHARP_WIDE in every league; a model family is MODEL_4L and
+# is only allowed in one of our four modelled leagues.
+TRACK_SHARP = "SHARP_WIDE"
+TRACK_MODEL = "MODEL_4L"
 CREDIT_CAP = 60
 MIN_REMAINING = 100
 CACHE_HOURS = 6
@@ -568,15 +576,20 @@ def compute_flags(match: dict, mozzart: dict | None, paper: dict) -> list[dict]:
     if mozzart is None or not match.get("rows"):
         return []
     status = family_status()
+    modelled = league_registry.is_modelled(match.get("league", ""))
     gap = snapshot_gap_minutes(match.get("snapshot"), mozzart["fetched_at"])
     stale = gap is None or gap > paper["max_gap_minutes"]
     flags = []
     for row in match["rows"]:
         family = row["family"]
-        eligible = (family in FLAG_SHARP_FAMILIES
-                    or (family, row["code"]) in FLAG_SHARP_CODES
-                    or status.get(family) == "PASS")
+        sharp_family = (family in FLAG_SHARP_FAMILIES
+                        or (family, row["code"]) in FLAG_SHARP_CODES)
+        eligible = sharp_family or status.get(family) == "PASS"
         if not eligible:
+            continue
+        # Tracks (B1/B2): the sharp main line runs in every league both books
+        # price; a model family is limited to our four modelled leagues.
+        if not sharp_family and not modelled:
             continue
         quote = mozzart["odds"].get((family, row["code"]))
         if quote is None:
@@ -588,6 +601,7 @@ def compute_flags(match: dict, mozzart: dict | None, paper: dict) -> list[dict]:
         flags.append({
             "home": match["home"], "away": match["away"], "league": match["league"],
             "kickoff": match["kickoff"], "family": family,
+            "track": TRACK_SHARP if sharp_family else TRACK_MODEL,
             "section": quote["section"], "code": quote["code"],
             "market": row["market"], "meaning": row["meaning"],
             "mozzart_odds": quote["odds"], "fair_odds": row["fair_odds"],
@@ -653,13 +667,14 @@ def render(matches: list[dict], meta: dict) -> str:
         lines += ["No value today.", ""]
     else:
         lines += [
-            "| match | kickoff | section | code | meaning | Mozzart | min | EV (20% haircut) |",
-            "|---|---|---|---|---|---:|---:|---:|",
+            "| match | kickoff | track | section | code | meaning | Mozzart | min | EV (20% haircut) |",
+            "|---|---|---|---|---|---|---:|---:|---:|",
         ]
         for flag in flags:
             tag = " ⚠ STALE" if flag["stale"] else ""
             lines.append(
                 f"| {flag['home']} vs {flag['away']} | {flag['kickoff']} "
+                f"| {flag.get('track', '')} "
                 f"| {flag['section']} | `{flag['code']}` | {flag['meaning']} "
                 f"| {flag['mozzart_odds']:.2f} | {flag['min_acceptable']:.2f} "
                 f"| {flag['ev']:+.1%}{tag} |")
@@ -739,97 +754,297 @@ def write_csv(path: Path, matches: list[dict]) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# sharp events: PS3838 primary (same run as Mozzart), Odds API fallback
+# --------------------------------------------------------------------------- #
+def in_window(kickoff: datetime, window: set[date], now: datetime,
+              horizon: datetime | None) -> bool:
+    """Pre-match, local date in the window, and inside the pre-kickoff horizon."""
+    if kickoff <= now:
+        return False
+    if local_date(kickoff.isoformat()) not in window:
+        return False
+    return horizon is None or kickoff <= horizon
+
+
+def fixture_gate(session, key, slugs, window, now, horizon):
+    """{slug: has a fixture in the window}, from the **free** events endpoint.
+
+    The fixture calendar costs no credits, so it decides which leagues get a
+    PulseScore request. Returns ``(gate, ok)``; ``ok`` is False when a call failed
+    and the gate cannot be trusted (the league is then fetched anyway).
+    """
+    gate: dict[str, bool] = {}
+    ok = True
+    for slug in slugs:
+        sport_key = league_registry.odds_api_key(slug)
+        if sport_key is None:
+            gate[slug] = False
+            continue
+        try:
+            data, _headers = _call(session, key, f"/sports/{sport_key}/events",
+                                   note="fair-sheet fixture gate (free)")
+        except Exception:  # noqa: BLE001
+            ok = False
+            gate[slug] = True
+            continue
+        has = False
+        for event in data if isinstance(data, list) else []:
+            try:
+                kickoff = kickoff_utc(event["commence_time"])
+            except (KeyError, ValueError):
+                continue
+            if in_window(kickoff, window, now, horizon):
+                has = True
+                break
+        gate[slug] = has
+    return gate, ok
+
+
+def ps3838_events(session, key, slugs, window, now, horizon):
+    """Normalized PS3838 events with a sharp price, for the given leagues.
+
+    ``slugs`` is already gated by the caller, so every league here is one we
+    expect to have a fixture. Returns ``(events, fetched, errors, started)``.
+    """
+    out: list[dict] = []
+    fetched: list[str] = []
+    errors: list[str] = []
+    started = 0
+    for slug in slugs:
+        try:
+            events, _when = ps3838_odds.fetch_league(session, key, slug)
+            fetched.append(slug)
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"{slug}: {exc}")
+            continue
+        for event in events or []:
+            kickoff = ps3838_odds.event_kickoff(event)
+            if kickoff is None:
+                continue
+            if kickoff <= now and local_date(kickoff.isoformat()) in window:
+                started += 1
+                continue
+            if not in_window(kickoff, window, now, horizon):
+                continue
+            norm = ps3838_odds.normalize(event, slug)
+            if norm is not None:
+                out.append(norm)
+    out.sort(key=lambda event: event["kickoff"])
+    return out, fetched, errors, started
+
+
+def league_snapshot(session, key, sport_key: str):
+    """League-wide Pinnacle h2h + totals (2 credits), cached 6h. Fallback only.
+
+    The league-wide endpoint returns every event in the division for the same 2
+    credits the per-event endpoint charged for one match.
+    """
+    cache_id = f"league_{sport_key}"
+    data = cached(cache_id)
+    if data is not None:
+        return data, 0, "cache", None
+    data, headers = _call(
+        session, key, f"/sports/{sport_key}/odds",
+        params={"regions": REGION, "markets": ODDS_MARKETS,
+                "bookmakers": BOOKMAKER, "oddsFormat": "decimal"},
+        note=f"fair-sheet fallback (league-wide) {sport_key}",
+    )
+    cost = int(float(headers.get("x-requests-last") or 0))
+    if data is not None:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        (CACHE_DIR / f"{cache_id}__{stamp}.json").write_text(
+            json.dumps({"fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                        "data": data}), encoding="utf-8")
+    return data, cost, "api", _remaining(headers)
+
+
+def odds_api_events(session, key, slugs, window, now, horizon):
+    """Fallback sharp events from the **league-wide** endpoint.
+
+    Returns ``(events, credits, remaining, cached_hits, stopped)``.
+    """
+    out: list[dict] = []
+    credits = 0
+    remaining = None
+    cached_hits = 0
+    stopped: str | None = None
+    for slug in slugs:
+        sport_key = league_registry.odds_api_key(slug)
+        if sport_key is None or stopped is not None:
+            continue
+        snapshot, cost, source, balance = league_snapshot(session, key, sport_key)
+        credits += cost
+        cached_hits += source == "cache"
+        if balance is not None:
+            remaining = balance
+        for event in snapshot_events(snapshot):
+            try:
+                kickoff = kickoff_utc(event["commence_time"])
+            except (KeyError, ValueError):
+                continue
+            if not in_window(kickoff, window, now, horizon):
+                continue
+            prices = pinnacle_prices(event, snapshot)
+            if prices is None:
+                continue
+            out.append({"event_id": str(event.get("id", "")), "league": slug,
+                        "home": event.get("home_team", ""), "away": event.get("away_team", ""),
+                        "kickoff": kickoff.isoformat(), "prices": prices, "source": "odds_api"})
+        if credits >= CREDIT_CAP or (remaining is not None and remaining < MIN_REMAINING):
+            stopped = (f"credit cap {CREDIT_CAP} reached" if credits >= CREDIT_CAP
+                       else f"account below {MIN_REMAINING} credits ({remaining})")
+    out.sort(key=lambda event: event["kickoff"])
+    return out, credits, remaining, cached_hits, stopped
+
+
+# --------------------------------------------------------------------------- #
 # entry point
 # --------------------------------------------------------------------------- #
-def main(start: str | None = None, days: int = 1) -> int:
+def main(start: str | None = None, days: int = 1,
+         within_minutes: int | None = None, only: list[str] | None = None) -> int:
     first = date.fromisoformat(start) if start else date.today()
     window = {first + timedelta(days=offset) for offset in range(max(days, 1))}
+    now = datetime.now(timezone.utc)
+    horizon = now + timedelta(minutes=within_minutes) if within_minutes else None
 
-    key = load_key()
     session = requests.Session()
-    events, headers, started = upcoming_events(session, key, window)
-    remaining = _remaining(headers)
     built = datetime.now().astimezone().isoformat(timespec="minutes")
     notes: list[str] = []
-
     paper = load_paper_config()
-    mozzart: list[dict] = []
+
+    slugs = [slug for slug in league_registry.slug_of() if league_registry.is_active(slug)]
+    if only:
+        wanted = set(only)
+        slugs = [slug for slug in slugs if slug in wanted]
+
+    # Fixture gate (free Odds API events): spend PulseScore only where a match is on.
+    gate: dict[str, bool] = {slug: True for slug in slugs}
     try:
-        import mozzart_odds
+        key = load_key()
+    except SystemExit as exc:
+        key = None
+        notes.append(f"Odds API key unavailable ({exc}); fetching every active league.")
+    if key is not None:
+        try:
+            gate, gate_ok = fixture_gate(session, key, slugs, window, now, horizon)
+            if not gate_ok:
+                notes.append("fixture gate incomplete — leagues with an unknown calendar "
+                             "were fetched anyway.")
+        except Exception as exc:  # noqa: BLE001
+            notes.append(f"fixture gate failed ({exc}); fetching every active league.")
+    fetch_slugs = [slug for slug in slugs if gate.get(slug)]
 
-        mkey = mozzart_odds.load_key()
-        ids = mozzart_odds.league_ids(session, mkey)
-        raw_events = mozzart_odds.fetch_events(session, mkey, ids)
-        mozzart = mozzart_index(raw_events)
-        notes.append(f"Mozzart: {len(raw_events)} event(s) across {len(ids)} league(s) "
-                     f"({', '.join(sorted(ids)) or 'none mapped'}).")
-    except Exception as exc:  # noqa: BLE001
-        notes.append(f"Mozzart feed unavailable ({exc}); no flags this run.")
+    sharp_events: list[dict] = []
+    ps_fetched: list[str] = []
+    ps_errors: list[str] = []
+    started = 0
+    try:
+        pkey = ps3838_odds.load_key()
+    except SystemExit as exc:
+        pkey = None
+        notes.append(f"PS3838 feed unavailable ({exc}).")
+    if pkey is not None:
+        try:
+            sharp_events, ps_fetched, ps_errors, started = ps3838_events(
+                session, pkey, fetch_slugs, window, now, horizon)
+        except Exception as exc:  # noqa: BLE001
+            notes.append(f"PS3838 feed failed ({exc}) — falling back to The Odds API.")
+        notes.append(f"PS3838 (primary sharp): {len(fetch_slugs)} league(s) with a fixture, "
+                     f"{len(ps_fetched)} fetched, {len(sharp_events)} priced match(es).")
+        if ps_errors:
+            notes.append("PS3838 errors: " + "; ".join(ps_errors[:3]) + ".")
 
-    print(f"fair-sheet {first} (+{max(days, 1) - 1}d): {len(events)} upcoming matches in window"
+    credits = 0
+    remaining = None
+    cached_hits = 0
+    missing = [slug for slug in fetch_slugs
+               if slug not in {e["league"] for e in sharp_events}]
+    if missing:
+        if key is None:
+            notes.append("Odds API fallback skipped: no key.")
+        else:
+            try:
+                fallback, credits, remaining, cached_hits, stopped = odds_api_events(
+                    session, key, missing, window, now, horizon)
+                sharp_events = sorted(sharp_events + fallback,
+                                      key=lambda event: event["kickoff"])
+                if fallback:
+                    notes.append(f"Odds API fallback (league-wide): {len(fallback)} match(es) "
+                                 f"across {len({e['league'] for e in fallback})} league(s) "
+                                 f"({credits} credits).")
+                if stopped:
+                    notes.append(f"Fallback stopped: {stopped}.")
+            except Exception as exc:  # noqa: BLE001
+                notes.append(f"Odds API fallback failed ({exc}).")
+
+    print(f"fair-sheet {first} (+{max(days, 1) - 1}d): {len(sharp_events)} upcoming "
+          f"match(es) in window"
+          + (f", horizon {within_minutes} min" if horizon else "")
           + (f", {started} already started (skipped)" if started else ""))
-    print(f"credits remaining before pull: {remaining}")
+
+    # --- Mozzart, in the same run, only for leagues with a match in the window ---
+    mozzart: list[dict] = []
+    needed = set(fetch_slugs)
+    if not needed:
+        notes.append("Mozzart: skip — no league has a fixture in the window.")
+    else:
+        try:
+            import mozzart_odds
+
+            mkey = mozzart_odds.load_key()
+            ids = mozzart_odds.league_ids(session, mkey)
+            subset = {slug: lid for slug, lid in ids.items() if slug in needed}
+            raw_events = mozzart_odds.fetch_events(session, mkey, subset)
+            mozzart = mozzart_index(raw_events)
+            notes.append(f"Mozzart: {len(raw_events)} event(s) across {len(subset)} league(s) "
+                         f"({', '.join(sorted(subset)) or 'none mapped'}).")
+        except Exception as exc:  # noqa: BLE001
+            notes.append(f"Mozzart feed unavailable ({exc}); no flags this run.")
 
     matches: list[dict] = []
-    credits = 0
-    cached_hits = 0
     pinned: str | None = None
-    stopped: str | None = None
-
-    for sport_key, event in events:
-        slug = SPORTS[sport_key]
+    for event in sharp_events:
+        slug = event["league"]
         record = {
-            "date": local_date(event["commence_time"]).isoformat(),
-            "kickoff": event["commence_time"], "league": slug,
-            "home": event["home_team"], "away": event["away_team"],
+            "date": local_date(event["kickoff"]).isoformat(),
+            "kickoff": event["kickoff"], "league": slug,
+            "home": event["home"], "away": event["away"],
             "rows": [], "hidden": 0, "suppressed": 0, "error": "",
+            "source": event["source"],
         }
-        if stopped is None:
-            snapshot, cost, source, balance = fetch_snapshot(session, key, sport_key, event)
-            credits += cost
-            cached_hits += source == "cache"
-            if balance is not None:
-                remaining = balance
-            prices = pinnacle_prices(event, snapshot) if snapshot else None
-            if prices is None:
-                record["error"] = ("no Pinnacle h2h + totals in the snapshot "
-                                   f"({source}) — match skipped")
-                record["snapshot"] = ""
-            else:
-                try:
-                    rows, residual = price_match(slug, prices)
-                except Exception as exc:  # noqa: BLE001
-                    record["error"] = f"could not price: {exc}"
-                    rows = []
-                kept, hidden, suppressed = select(rows)
-                record.update({
-                    "rows": kept, "hidden": hidden, "suppressed": suppressed,
-                    "snapshot": prices["snapshot"] or "n/a",
-                    "raw_1x2": prices["raw_1x2"], "line": prices["line"],
-                    "margin_1x2": prices["margin_1x2"], "margin_ou": prices["margin_ou"],
-                    "residual": residual,
-                })
-                record["flags"] = compute_flags(record, find_mozzart(record, mozzart), paper)
-                pinned = pinned or prices["snapshot"]
-        else:
-            record["error"] = f"not fetched: {stopped}"
+        prices = event["prices"]
+        if prices is None:
+            record["error"] = (f"no sharp 1X2 + totals in the {event['source']} snapshot "
+                               "— match skipped")
             record["snapshot"] = ""
+        else:
+            residual = 0.0
+            try:
+                rows, residual = price_match(slug, prices)
+            except Exception as exc:  # noqa: BLE001
+                record["error"] = f"could not price: {exc}"
+                rows = []
+            kept, hidden, suppressed = select(rows)
+            record.update({
+                "rows": kept, "hidden": hidden, "suppressed": suppressed,
+                "snapshot": prices["snapshot"] or "n/a",
+                "raw_1x2": prices["raw_1x2"], "line": prices["line"],
+                "margin_1x2": prices["margin_1x2"], "margin_ou": prices["margin_ou"],
+                "residual": residual,
+            })
+            record["flags"] = compute_flags(record, find_mozzart(record, mozzart), paper)
+            pinned = pinned or prices["snapshot"]
         matches.append(record)
 
-        spent_fraction = credits >= CREDIT_CAP
-        if stopped is None and (spent_fraction or (remaining is not None and remaining < MIN_REMAINING)):
-            stopped = (f"credit cap {CREDIT_CAP} reached" if spent_fraction
-                       else f"account below {MIN_REMAINING} credits ({remaining})")
-            notes.append(f"Stopped after {credits} credits: {stopped}. Later matches "
-                         "were not fetched.")
-
-    if cached_hits:
-        notes.append(f"{cached_hits} match(es) served from the {CACHE_HOURS}h cache (0 credits).")
     if started:
         notes.append(f"{started} match(es) in the window had already kicked off and were "
-                     "skipped (no credits spent).")
+                     "skipped (no sharp fetch spent on them).")
 
     all_flags = [flag for match in matches for flag in match.get("flags", [])]
+    tracks: dict[str, int] = {}
+    for flag in all_flags:
+        tracks[flag["track"]] = tracks.get(flag["track"], 0) + 1
     meta = {
         "window": sorted(window), "built": built, "snapshot": pinned,
         "leagues": ", ".join(sorted({m["league"] for m in matches})),
@@ -848,12 +1063,16 @@ def main(start: str | None = None, days: int = 1) -> int:
         import paper_trade
 
         added = paper_trade.record(all_flags)
-        print(f"paper bets recorded: {added} (of {len(all_flags)} flags)")
+        print(f"paper bets recorded: {added} (of {len(all_flags)} flags; "
+              f"{', '.join(f'{k}={v}' for k, v in sorted(tracks.items()))})")
+    import flag_audit
+
+    flag_audit.audit(all_flags, matches=len(matches))
 
     shown = sum(1 for m in matches if m["rows"])
     print(f"matches priced: {shown}/{len(matches)} · rows written: {n_rows} · "
           f"flags: {len(all_flags)}")
-    print(f"credits this run: {credits} (cap {CREDIT_CAP}) · remaining {remaining} "
+    print(f"Odds API credits this run: {credits} (cap {CREDIT_CAP}) · remaining {remaining} "
           f"· cached {cached_hits}")
     print(f"wrote {md_path}")
     print(f"wrote {csv_path}")
