@@ -85,6 +85,14 @@ def write() -> int:
         "# Health",
         "",
     ]
+    zero = coverage.zero_joins()
+    if zero:
+        out += [
+            "**ZERO JOINS** — Mozzart and PS3838 shared **no** match in the window",
+            f"while PS3838 priced {zero}. The Mozzart feed is likely empty, or every",
+            "in-scope league's label mapping has drifted:",
+            "",
+        ]
     gap = coverage.gaps()
     if gap:
         out += [

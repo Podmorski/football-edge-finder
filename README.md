@@ -93,7 +93,7 @@ A Windows-friendly runner; no make required.
 | `team_audit.py` | Team-name audit per league (local only) | `reports/team_audit_<slug>.md` |
 | `fair_sheet.py` | Daily Pinnacle-anchored fair odds + minimum acceptable odds, with a **FLAGS** block joining Mozzart prices | `reports/fair_sheets/<date>.md` / `.csv`, `reports/fair_sheets/summary.csv` |
 | `ps3838_odds.py` | **Primary sharp source**: PS3838 (Pinnacle) via PulseScore, fetched in the same run as Mozzart | `data/ps3838/leagues/<slug>.json` |
-| `mozzart_odds.py` | Mozzart (PulseScore) pre-match odds, mapped to the catalogue | `data/mozzart/raw/` |
+| `mozzart_odds.py` | Mozzart (PulseScore) pre-match odds from the **global** feed, filtered locally by Serbian league label (the per-league endpoint is empty on the free tier) | `data/mozzart/global_events.json`, `data/mozzart/raw/` |
 | `paper_trade.py` | Automatic paper trading by **track**: record flags, save the PS3838 close, settle, report | `data/paper/paper_bets.csv` |
 | `flag_audit.py` | First 10 flags per track with raw prices + a SUSPECT flag-rate check | `reports/flag_audit.md` |
 | `scores.py` | Results for the widened leagues via The Odds API **scores** (fallback) | — |

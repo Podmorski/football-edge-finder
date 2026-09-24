@@ -1,4 +1,19 @@
 date,kickoff_local,league,home,away,section,market,family,meaning,fair_odds,min_acceptable_odds,status,pinnacle_snapshot
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,1.9459,2.0141,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Ukupno Golova,3-6,GOAL_RANGE_FT,Full-time: 3 to 6 goals,1.9221,1.9894,SHARP,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7198,1.7800,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Konačni Ishod,2,RESULT,Away wins the match,2.3647,2.4475,SHARP,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Dupla Šansa,1X,DOUBLE_CHANCE,Home or draw,1.7328,1.7934,SHARP,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,X No Bet,XNB FT 2,NO_BET,"away wins, draw voids (FT)",1.7364,1.7972,SHARP,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Poluvreme,IX,HALF_RESULT,Half-time draw,2.4371,2.5224,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Pada Više Golova,I>II,MORE_GOALS_HALF,more goals in the 1st half than in the 2nd,3.4662,3.5876,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Pol. Dupla Šansa,I12,HALF_DC,Not a half-time draw,1.6958,1.7552,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Poluvreme/Kraj,NE 2-2,HTFT_NE,not (Away leads at half time and away wins at full time),1.3401,1.3870,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Poluvreme/Kraj,2-2,HTFT,Away leads at half time and away wins at full time,3.9404,4.0783,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,II Pol. Uk. Golova,II2+,GOAL_RANGE_2H,2nd half: at least 2 goals,2.0571,2.1291,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Ukupno Golova,NE 3-6,GOAL_RANGE_FT,Full-time: not 3 to 6 goals,2.0845,2.1575,SHARP,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Pol. Uk. Golova,NE 1,GOAL_RANGE_1H,1st half: not exactly 1 goal,1.5593,1.6139,PASS,2026-09-24T20:57:47.214Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Konačni Ishod,1,RESULT,Home wins the match,3.2112,3.3236,SHARP,2026-09-24T20:57:47.214Z
 2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Ukupno Golova,3-6,GOAL_RANGE_FT,Full-time: 3 to 6 goals,1.9518,2.0201,SHARP,2026-09-24T20:57:47.214Z
 2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,1.8861,1.9521,PASS,2026-09-24T20:57:47.214Z
 2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7185,1.7787,PASS,2026-09-24T20:57:47.214Z
@@ -59,6 +74,66 @@ date,kickoff_local,league,home,away,section,market,family,meaning,fair_odds,min_
 2026-09-26,2026-09-26T12:00:00+00:00,esp_segunda,Ceuta,Real Sociedad II,II Pol. Uk. Golova,II2+,GOAL_RANGE_2H,2nd half: at least 2 goals,2.0787,2.1515,PASS,2026-09-24T20:57:47.214Z
 2026-09-26,2026-09-26T12:00:00+00:00,esp_segunda,Ceuta,Real Sociedad II,I Pol. Uk. Golova,NE 1,GOAL_RANGE_1H,1st half: not exactly 1 goal,1.5611,1.6157,PASS,2026-09-24T20:57:47.214Z
 2026-09-26,2026-09-26T12:00:00+00:00,esp_segunda,Ceuta,Real Sociedad II,Konačni Ishod,2,RESULT,Away wins the match,3.1964,3.3082,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Ukupno Golova,NE 1-2,GOAL_RANGE_FT,Full-time: not 1 to 2 goals,1.8695,1.9350,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,II Pol. Uk. Golova,II1-2,GOAL_RANGE_2H,2nd half: 1 to 2 goals,1.7065,1.7662,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7543,1.8158,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Konačni Ishod,1,RESULT,Home wins the match,1.9133,1.9803,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Dupla Šansa,X2,DOUBLE_CHANCE,Away or draw,2.0949,2.1683,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,X No Bet,XNB FT 1,NO_BET,"home wins, draw voids (FT)",1.4103,1.4597,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,I Poluvreme,IX,HALF_RESULT,Half-time draw,2.3349,2.4166,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Pada Više Golova,I>II,MORE_GOALS_HALF,more goals in the 1st half than in the 2nd,3.2391,3.3525,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,I Pol. Dupla Šansa,I12,HALF_DC,Not a half-time draw,1.7491,1.8103,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Poluvreme/Kraj,NE 1-1,HTFT_NE,not (Home leads at half time and home wins at full time),1.4808,1.5327,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Poluvreme/Kraj,1-1,HTFT,Home leads at half time and home wins at full time,3.0798,3.1876,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Ukupno Golova,2-3,GOAL_RANGE_FT,Full-time: 2 to 3 goals,2.1321,2.2067,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,1.6404,1.6978,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,I Pol. Uk. Golova,NE 1,GOAL_RANGE_1H,1st half: not exactly 1 goal,1.5759,1.6311,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Cambridge United,AFC Wimbledon,Konačni Ishod,X,RESULT,Draw,3.8040,3.9372,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Ukupno Golova,NE 3-5,GOAL_RANGE_FT,Full-time: not 3 to 5 goals,1.9558,2.0243,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,1.9459,2.0140,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7072,1.7669,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Konačni Ishod,1,RESULT,Home wins the match,1.6310,1.6881,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Dupla Šansa,X2,DOUBLE_CHANCE,Away or draw,2.5849,2.6753,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,X No Bet,XNB FT 1,NO_BET,"home wins, draw voids (FT)",1.2819,1.3267,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,II Poluvreme,II1,HALF_RESULT,Home wins the second half,2.0019,2.0720,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Pada Više Golova,I>II,MORE_GOALS_HALF,more goals in the 1st half than in the 2nd,3.2054,3.3176,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,II Pol. Dupla Šansa,IIX2,HALF_DC,Away or draw in the second half,1.9981,2.0680,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Poluvreme/Kraj,NE 1-1,HTFT_NE,not (Home leads at half time and home wins at full time),1.6621,1.7203,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Poluvreme/Kraj,1-1,HTFT,Home leads at half time and home wins at full time,2.5104,2.5982,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Ukupno Golova,3-5,GOAL_RANGE_FT,Full-time: 3 to 5 goals,2.0462,2.1179,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,II Pol. Uk. Golova,II2+,GOAL_RANGE_2H,2nd half: at least 2 goals,2.0572,2.1292,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,I Pol. Uk. Golova,I0-1,GOAL_RANGE_1H,1st half: 0 to 1 goals,1.6254,1.6823,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Plymouth Argyle,Burton Albion,Konačni Ishod,X,RESULT,Draw,4.6717,4.8352,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,II Pol. Uk. Golova,II1-2,GOAL_RANGE_2H,2nd half: 1 to 2 goals,1.9190,1.9862,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Ukupno Golova,4+,GOAL_RANGE_FT,Full-time: at least 4 goals,1.8796,1.9454,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,I Pol. Uk. Golova,I2+,GOAL_RANGE_1H,1st half: at least 2 goals,1.9910,2.0607,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Konačni Ishod,1,RESULT,Home wins the match,1.3861,1.4346,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Dupla Šansa,12,DOUBLE_CHANCE,Home or away,1.1937,1.2355,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,X No Bet,XNB FT 1,NO_BET,"home wins, draw voids (FT)",1.1611,1.2018,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,I Poluvreme,I1,HALF_RESULT,Home leads at half time,1.8213,1.8850,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Pada Više Golova,I>II,MORE_GOALS_HALF,more goals in the 1st half than in the 2nd,3.2530,3.3669,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,I Pol. Dupla Šansa,IX2,HALF_DC,Away or draw at half time,2.2176,2.2952,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Poluvreme/Kraj,NE 1-1,HTFT_NE,not (Home leads at half time and home wins at full time),1.9928,2.0626,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Poluvreme/Kraj,1-1,HTFT,Home leads at half time and home wins at full time,2.0072,2.0775,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,II Pol. Uk. Golova,II2-3,GOAL_RANGE_2H,2nd half: 2 to 3 goals,2.1676,2.2434,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Ukupno Golova,0-3,GOAL_RANGE_FT,Full-time: 0 to 3 goals,2.1368,2.2116,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,I Pol. Uk. Golova,I0-1,GOAL_RANGE_1H,1st half: 0 to 1 goals,2.0091,2.0794,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Stockport County,Peterborough United,Konačni Ishod,X,RESULT,Draw,6.1617,6.3773,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Ukupno Golova,NE 3-5,GOAL_RANGE_FT,Full-time: not 3 to 5 goals,1.9605,2.0291,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,II Pol. Uk. Golova,II2+,GOAL_RANGE_2H,2nd half: at least 2 goals,1.9424,2.0104,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7164,1.7765,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Konačni Ishod,2,RESULT,Away wins the match,2.6722,2.7658,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Dupla Šansa,1X,DOUBLE_CHANCE,Home or draw,1.5980,1.6539,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,X No Bet,XNB FT 2,NO_BET,"away wins, draw voids (FT)",1.9717,2.0408,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,I Poluvreme,IX,HALF_RESULT,Half-time draw,2.4524,2.5382,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Pada Više Golova,I>II,MORE_GOALS_HALF,more goals in the 1st half than in the 2nd,3.5980,3.7240,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,I Pol. Dupla Šansa,I12,HALF_DC,Not a half-time draw,1.6885,1.7476,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Poluvreme/Kraj,NE 2-2,HTFT_NE,not (Away leads at half time and away wins at full time),1.2771,1.3218,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Poluvreme/Kraj,2-2,HTFT,Away leads at half time and away wins at full time,4.6089,4.7702,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Ukupno Golova,3-5,GOAL_RANGE_FT,Full-time: 3 to 5 goals,2.0411,2.1125,SHARP,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,2.0611,2.1332,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,I Pol. Uk. Golova,I0-1,GOAL_RANGE_1H,1st half: 0 to 1 goals,1.5606,1.6152,PASS,2026-09-24T20:57:47.214Z
+2026-09-26,2026-09-26T14:00:00+00:00,league_one_t3,Wycombe Wanderers,Reading,Konačni Ishod,1,RESULT,Home wins the match,2.7499,2.8462,SHARP,2026-09-24T20:57:47.214Z
 2026-09-26,2026-09-26T14:00:00+00:00,eng_league_two,Bristol Rovers,Exeter City,Ukupno Golova,NE 3-6,GOAL_RANGE_FT,Full-time: not 3 to 6 goals,1.9803,2.0496,SHARP,2026-09-24T20:57:47.214Z
 2026-09-26,2026-09-26T14:00:00+00:00,eng_league_two,Bristol Rovers,Exeter City,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,1.8413,1.9058,PASS,2026-09-24T20:57:47.214Z
 2026-09-26,2026-09-26T14:00:00+00:00,eng_league_two,Bristol Rovers,Exeter City,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7290,1.7895,PASS,2026-09-24T20:57:47.214Z

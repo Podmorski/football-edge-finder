@@ -40,7 +40,7 @@ import csv
 import json
 import sys
 from dataclasses import replace
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -989,6 +989,10 @@ def main(start: str | None = None, days: int = 1,
           + (f", {started} already started (skipped)" if started else ""))
 
     # --- Mozzart, in the same run, only for leagues with a match in the window ---
+    # The global feed is ordered by kick-off, so an exclusive window end lets the
+    # one pass stop as soon as it crosses out of the sheet's window.
+    window_end = datetime.combine(max(window) + timedelta(days=1),
+                                  time.min).astimezone(timezone.utc)
     mozzart: list[dict] = []
     needed = set(fetch_slugs)
     if not needed:
@@ -998,34 +1002,13 @@ def main(start: str | None = None, days: int = 1,
             import mozzart_odds
 
             mkey = mozzart_odds.load_key()
-            ids = mozzart_odds.league_ids(session, mkey)
-            subset = {slug: lid for slug, lid in ids.items() if slug in needed}
-            raw_events = mozzart_odds.fetch_events(session, mkey, subset)
+            raw_events = mozzart_odds.fetch_events(session, mkey, needed, until=window_end)
             mozzart = mozzart_index(raw_events)
-            notes.append(f"Mozzart: {len(raw_events)} event(s) across {len(subset)} league(s) "
-                         f"({', '.join(sorted(subset)) or 'none mapped'}).")
+            labels = {event.get("league") for event in raw_events}
+            notes.append(f"Mozzart: {len(raw_events)} event(s) from the global feed "
+                         f"across {len(labels)} league label(s).")
         except Exception as exc:  # noqa: BLE001
             notes.append(f"Mozzart feed unavailable ({exc}); no flags this run.")
-
-    # Standing coverage record (PART 4): PS3838 vs Mozzart per fetched league.
-    coverage_leagues: dict[str, dict] = {}
-    for slug in fetch_slugs:
-        ps = sum(1 for event in sharp_events
-                 if event["league"] == slug and event["source"] == "ps3838")
-        mz = 0
-        for entry in mozzart:
-            kickoff = entry.get("kickoff")
-            if entry.get("slug") == slug and kickoff is not None \
-                    and local_date(kickoff.isoformat()) in window:
-                mz += 1
-        coverage_leagues[slug] = {"ps3838": ps, "mozzart": mz}
-    if coverage_leagues:
-        coverage.write(window, coverage_leagues)
-        gaps = [(slug, c["ps3838"]) for slug, c in coverage_leagues.items()
-                if c["ps3838"] >= coverage.GAP_MIN_PS and c["mozzart"] == 0]
-        if gaps:
-            notes.append("MOZZART COVERAGE GAP: "
-                         + ", ".join(f"{slug} (ps3838={n})" for slug, n in sorted(gaps)))
 
     matches: list[dict] = []
     pinned: str | None = None
@@ -1058,9 +1041,36 @@ def main(start: str | None = None, days: int = 1,
                 "margin_1x2": prices["margin_1x2"], "margin_ou": prices["margin_ou"],
                 "residual": residual,
             })
-            record["flags"] = compute_flags(record, find_mozzart(record, mozzart), paper)
+            joined = find_mozzart(record, mozzart)
+            record["mozzart_joined"] = joined is not None
+            record["flags"] = compute_flags(record, joined, paper)
             pinned = pinned or prices["snapshot"]
         matches.append(record)
+
+    # Standing coverage record (PART 4): PS3838 vs Mozzart vs joined, per fetched
+    # league. A league where PS3838 priced plenty but Mozzart returned none is a
+    # coverage gap; a run where *no* league joined is a ZERO JOINS alarm.
+    coverage_leagues: dict[str, dict] = {}
+    for slug in fetch_slugs:
+        ps = sum(1 for event in sharp_events
+                 if event["league"] == slug and event["source"] == "ps3838")
+        mz = sum(1 for entry in mozzart
+                 if entry.get("slug") == slug and entry.get("kickoff") is not None
+                 and local_date(entry["kickoff"].isoformat()) in window)
+        joined = sum(1 for record in matches
+                     if record["league"] == slug and record.get("mozzart_joined"))
+        coverage_leagues[slug] = {"ps3838": ps, "mozzart": mz, "joined": joined}
+    if coverage_leagues:
+        doc = coverage.write(window, coverage_leagues)
+        gaps = [(slug, c["ps3838"]) for slug, c in coverage_leagues.items()
+                if c["ps3838"] >= coverage.GAP_MIN_PS and c["mozzart"] == 0]
+        if gaps:
+            notes.append("MOZZART COVERAGE GAP: "
+                         + ", ".join(f"{slug} (ps3838={n})" for slug, n in sorted(gaps)))
+        zero = coverage.zero_joins(doc)
+        if zero:
+            notes.append(f"ZERO JOINS: Mozzart joined 0 of {zero} PS3838 match(es) "
+                         "in the window.")
 
     if started:
         notes.append(f"{started} match(es) in the window had already kicked off and were "

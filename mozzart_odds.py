@@ -1,13 +1,24 @@
 """Mozzart (PulseScore) pre-match odds for the fair sheet and paper trading.
 
-Fetches the upcoming-events feed (throttled to the BASIC plan's 1 request per
-second) and maps each selection to a catalogue market through
-:mod:`core.mozzart_map`. Only the leagues the wide registry lists (and that
-Mozzart currently names) are kept. Every call is logged to
-``logs/pulsescore_requests.csv`` and counted against the monthly budget.
+The **global** events feed (``GET /soccer/events``) is the working source on the
+free tier. Probed 2026-09-24: the per-league endpoint
+(``GET /soccer/leagues/{id}/events``) returns ``{"total": 0, "events": []}`` for
+every division we tested (Engleska 1 = 4187, Engleska 4 = 4047, League One =
+4080), while the global feed carries those same fixtures under their Serbian
+league **label** — "Engleska 4" is League Two and "Engleska 3" is League One,
+confirmed by the team names in each label (Cheltenham / Chesterfield sit under
+Engleska 4, Plymouth / Burton under Engleska 3). A league is therefore selected
+by its label, never by Mozzart's numeric id.
 
-The feed returns **pre-match** events (``live: false``) with their full market
-list, so no live WebSocket is needed.
+The page size is fixed at **30** (``limit`` is ignored) and the feed is ordered by
+kick-off, so a run pages only as far as its window needs and then stops. A pass
+costs one request per 30 events — *not* one per league — so the feed is cached on
+disk for an hour: every league in a run, and any re-run inside the hour, is
+served from that single pass. Only events whose label maps to an in-scope league
+are kept, so the cache stays a fraction of the raw feed.
+
+Every call is logged to ``logs/pulsescore_requests.csv`` and counted against the
+monthly budget.
 """
 
 from __future__ import annotations
@@ -25,18 +36,15 @@ from core import league_registry
 BASE = "https://api.pulsescore.net/api/mozzart"
 TIMEOUT = 30
 THROTTLE_SECONDS = 1.2          # BASIC plan: 1 request/second per bookmaker
-LEAGUE_CACHE = Path("data/mozzart/league_ids.json")
-LEAGUE_CACHE_DAYS = 7
+PAGE_SIZE = 30                  # fixed by the API; `limit` is ignored
+EVENTS_CACHE = Path("data/mozzart/global_events.json")
+# A pass costs one request per 30 events, so a re-run within the hour reuses the
+# snapshot instead of paying for the feed again (mirrors PS3838's sheet cache).
+EVENTS_MAX_AGE_MINUTES = 60
 
 # Mozzart Serbian league name -> our slug, from the wide registry. A league with
 # no Mozzart listing (e.g. 2. Bundesliga / Ligue 2 pending listing) is absent.
 MOZZART_LEAGUES = league_registry.mozzart_names()
-# The league ids seen in the discovery run (2026-09-24). Nemačka 2 / Francuska 2
-# were absent from the feed then; they are re-resolved from the league list.
-KNOWN_LEAGUE_IDS = {
-    "bundesliga_1": "4143",
-    "league_one_t3": "4080",
-}
 
 _last_call = [0.0]
 
@@ -65,48 +73,105 @@ def _get(session, key, path, params=None, note=""):
     return response.json()
 
 
-def league_ids(session, key) -> dict[str, str]:
-    """{slug: leagueId} for the in-scope leagues, cached on disk for a week.
+# --------------------------------------------------------------------------- #
+# global feed (cached per run window)
+# --------------------------------------------------------------------------- #
+def _read_cache() -> dict | None:
+    if not EVENTS_CACHE.exists():
+        return None
+    try:
+        doc = json.loads(EVENTS_CACHE.read_text(encoding="utf-8"))
+        return {"fetched_at": datetime.fromisoformat(doc["fetched_at"]),
+                "until": datetime.fromisoformat(doc["until"]) if doc.get("until") else None,
+                "events": doc["events"]}
+    except (ValueError, KeyError, OSError):
+        return None
 
-    The league list is 4 pages; caching it keeps a normal run to one request per
-    mapped league instead of five.
+
+def _write_cache(fetched_at: datetime, until: datetime | None, events: list[dict]) -> None:
+    EVENTS_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    EVENTS_CACHE.write_text(json.dumps({
+        "fetched_at": fetched_at.isoformat(timespec="seconds"),
+        "until": until.isoformat(timespec="seconds") if until else None,
+        "events": events,
+    }, ensure_ascii=False), encoding="utf-8")
+
+
+def _covers(cached_until: datetime | None, wanted_until: datetime | None) -> bool:
+    """True when a cached feed reaches at least as far as this run needs.
+
+    A cache with no bound holds the whole feed, so it covers any window; a
+    window-bounded cache only covers a window that ends no later than it.
     """
-    if LEAGUE_CACHE.exists():
-        try:
-            doc = json.loads(LEAGUE_CACHE.read_text(encoding="utf-8"))
-            fetched = datetime.fromisoformat(doc["fetched_at"])
-            if datetime.now(timezone.utc) - fetched < timedelta(days=LEAGUE_CACHE_DAYS):
-                return dict(doc["ids"])
-        except (ValueError, KeyError, OSError):
-            pass
-
-    out: dict[str, str] = {}
-    for page in (1, 2, 3, 4):
-        doc = _get(session, key, "/soccer/leagues", {"page": page, "limit": 30},
-                   note="mozzart league list")
-        for league in doc.get("leagues", []):
-            slug = MOZZART_LEAGUES.get(league.get("name", ""))
-            if slug:
-                out[slug] = str(league.get("leagueId"))
-    LEAGUE_CACHE.parent.mkdir(parents=True, exist_ok=True)
-    LEAGUE_CACHE.write_text(json.dumps(
-        {"fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-         "ids": out}, ensure_ascii=False, indent=2), encoding="utf-8")
-    return out
+    if cached_until is None:
+        return True
+    if wanted_until is None:
+        return False
+    return cached_until >= wanted_until
 
 
-def fetch_events(session, key, ids: dict[str, str]) -> list[dict]:
-    """Upcoming events for the in-scope leagues, each stamped with ``_fetched_at``."""
-    fetched = datetime.now(timezone.utc).isoformat(timespec="seconds")
+def fetch_global_events(session, key, until: datetime | None = None,
+                        max_age_minutes: int | None = EVENTS_MAX_AGE_MINUTES
+                        ) -> tuple[list[dict], datetime]:
+    """The in-scope events from the global feed, oldest first.
+
+    Pages ``/soccer/events`` (30 events a page) and stops at ``until`` — the feed
+    is ordered by kick-off, so everything after the page that crosses ``until`` is
+    out of window. Returns ``(events, fetched_at)``; a fresh cached snapshot that
+    reaches ``until`` costs no requests.
+    """
+    cached = _read_cache()
+    if cached is not None and max_age_minutes is not None:
+        age = datetime.now(timezone.utc) - cached["fetched_at"]
+        if age <= timedelta(minutes=max_age_minutes) and _covers(cached["until"], until):
+            return cached["events"], cached["fetched_at"]
+
+    fetched_at = datetime.now(timezone.utc)
     events: list[dict] = []
-    for slug, league_id in ids.items():
-        doc = _get(session, key, f"/soccer/leagues/{league_id}/events", {},
-                   note=f"mozzart events {slug}")
-        for event in doc.get("events", []):
-            event["_slug"] = slug
-            event["_fetched_at"] = fetched
+    page = 1
+    total_pages: int | None = None
+    while True:
+        doc = _get(session, key, "/soccer/events", {"page": page, "limit": PAGE_SIZE},
+                   note=f"mozzart global events p{page}")
+        batch = [e for e in (doc or {}).get("events", []) if isinstance(e, dict)]
+        if total_pages is None and (doc or {}).get("totalPages"):
+            total_pages = int(doc["totalPages"])
+        crossed = False
+        for event in batch:
+            if event.get("league") not in MOZZART_LEAGUES:
+                continue
+            kickoff = event_kickoff(event)
+            if until is not None and kickoff is not None and kickoff >= until:
+                crossed = True
+                break
             events.append(event)
-    return events
+        if crossed or not batch or (total_pages is not None and page >= total_pages):
+            break
+        page += 1
+    events.sort(key=lambda event: event.get("startTime", ""))
+    _write_cache(fetched_at, until, events)
+    return events, fetched_at
+
+
+def fetch_events(session, key, slugs, until: datetime | None = None,
+                 max_age_minutes: int | None = EVENTS_MAX_AGE_MINUTES) -> list[dict]:
+    """Upcoming in-scope events for ``slugs``, each stamped ``_slug``/``_fetched_at``.
+
+    The feed is fetched **once** (one pass, cached) and filtered locally by the
+    Serbian league label, so the cost does not grow with the number of leagues.
+    """
+    events, fetched_at = fetch_global_events(session, key, until=until,
+                                             max_age_minutes=max_age_minutes)
+    stamp = fetched_at.isoformat(timespec="seconds")
+    out: list[dict] = []
+    for event in events:
+        slug = MOZZART_LEAGUES.get(event.get("league", ""))
+        if slug is None or slug not in slugs:
+            continue
+        event["_slug"] = slug
+        event["_fetched_at"] = stamp
+        out.append(event)
+    return out
 
 
 def market_odds(event: dict) -> dict[tuple[str, str], dict]:

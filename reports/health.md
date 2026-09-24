@@ -1,14 +1,7 @@
 # Health
 
-**MOZZART COVERAGE GAP** — PS3838 priced matches where Mozzart returned
-none (the local book may not have posted odds, or a league mapping drifted):
-
-- bra_serie_b: PS3838 5 match(es) in the window, Mozzart 0
-- eng_league_two: PS3838 10 match(es) in the window, Mozzart 0
-- esp_segunda: PS3838 5 match(es) in the window, Mozzart 0
-
-- generated 2026-09-24T21:29:41+00:00
-- PulseScore: 112 used this month, 288 remaining (cap 400)
+- generated 2026-09-24T21:41:11+00:00
+- PulseScore: 157 used this month, 243 remaining (cap 400)
 - The Odds API: 37 credits today, account remaining 463
 - paper bets recorded today: 0
 
