@@ -100,6 +100,10 @@ Initial gates (revisable — record changes in the decision log):
 - Target bookmaker / exchange.
 - Bankroll and drawdown limit.
 - Promoted / relegated-team rating rule.
+- **Whether to integrate PulseScore** (Mozzart's feed; free tier 500 requests/month,
+  and it also carries **PS3838 = Pinnacle** and **bet365**). Not integrated yet.
+- **Reworking the base catalogue's ambiguous goal-range bare codes** (see the
+  2026-09-24 finding): it needs a calibration re-run to be recorded honestly.
 
 ## Resolved
 
@@ -299,3 +303,87 @@ is **past its first year** (>365 days before the cutoff):
 Full team lists: `reports/figures/newcomer_prior_detail.csv`
 (`newcomer_prior_detail.py`). A team can appear more than once if it arrived in
 more than one season (e.g. Rotherham 2017-18 and 2019-20).
+
+### Daily sheet and bet log (decided 2026-09-24)
+
+The daily workflow is **check locally, then decide**, not collect prices:
+
+| Command | What it does |
+|---|---|
+| `run.py fair-sheet --date D [--days 3]` | Pinnacle-anchored fair odds + **minimum acceptable odds** per market |
+| `run.py log-close` | Fills the closing price and result in the bet log; reports CLV and P&L |
+
+* **The user-driven local check replaces manual price capture.** The user reads
+  the price at the book they already use and compares it with the sheet; nothing
+  is typed into a recorder before betting.
+* **MAINLINE-1 price capture is therefore optional, no longer required.** The
+  hypothesis still stands, but it is no longer on the critical path — the sheet
+  covers the same ground without a capture step.
+* **`MIN ACCEPTABLE ODDS = fair odds x 1.035`.** A bet is only taken at or above
+  it, so the cushion is explicit rather than implicit.
+* The sheet shows families whose calibration is **PASS**, plus the four main-line
+  families (**RESULT, DOUBLE_CHANCE, GOAL_RANGE_FT, NO_BET**) whose fair price
+  **is** the de-margined sharp anchor rather than a model estimate. UNTESTABLE and
+  UNCONFIRMED markets are never shown.
+* Books: **Soccer Bet has no API** — it is checked locally only. **Mozzart is
+  reachable through PulseScore** (free tier 500 requests/month, also carrying
+  PS3838 = Pinnacle and bet365) but is **not integrated yet**.
+
+### Hoffenheim sample: not evidence for MAINLINE-1 (2026-09-24)
+
+Re-read of `reports/phase3_soccerbet_sample.md` in this light:
+
+* **0 of 720** settleable markets had positive EV against Soccer Bet's **own**
+  de-margined main line. The book is self-consistent; the margin dominates.
+* The 42 "positive EV" markets found against the Pinnacle anchor came from a
+  snapshot that was **STALE by 305 minutes**. A stale sharp price is not a sharp
+  price, so **that is not evidence of edge** in either direction.
+
+### CLV decision rule (decided 2026-09-24)
+
+> **No conclusion before 50 logged bets; continue only if the mean CLV is > 0.**
+
+* `CLV = odds_taken / fair_close - 1`, and the summary always reports the mean
+  CLV **with a 95% interval** plus P&L (P&L is reported, never used to decide).
+* For a **main-line** market the closing benchmark is the de-margined closing
+  price, per the benchmark rule. For a **derived** market no book prints a closing
+  price we can read, so `fair_close` is the half model's fair price on the **last
+  Pinnacle snapshot held before kickoff** (the sheet's snapshot history). This is
+  recorded here so the number is never mistaken for an observed book price.
+* Closing snapshots are kept **append-only** (`data/odds_snapshots/`), so the
+  price nearest a kickoff survives; the 6h cache only decides whether a new fetch
+  is needed.
+
+### Finding: the base catalogue's goal-range bare codes are ambiguous (2026-09-24)
+
+> **12 bare codes in `GOAL_RANGE_FT` / `GOAL_RANGE_1H` / `GOAL_RANGE_2H` do not
+> mean what their family says.**
+
+`core.market_code.parse_leg` tests a result token before a goal token, and strips
+a leading `I`/`II` first, so:
+
+| Catalogue entry | Parses as | Should be |
+|---|---|---|
+| `GOAL_RANGE_FT 1` / `2` | RESULT `1` / `2` (home / away wins) | exactly 1 / 2 goals |
+| `GOAL_RANGE_FT NE 1` / `NE 2` | DOUBLE_CHANCE `X2` / `1X` | not exactly 1 / 2 goals |
+| `GOAL_RANGE_1H I1` / `I2` | HALF_RESULT `I1` / `I2` | exactly 1 / 2 first-half goals |
+| `GOAL_RANGE_1H NE 1` / `NE 2` | HALF_DC `IX2` / `I1X` | not exactly 1 / 2 first-half goals |
+| `GOAL_RANGE_2H II1` / `II2` | HALF_RESULT `II1` / `II2` | exactly 1 / 2 second-half goals |
+| `GOAL_RANGE_2H NE 1` / `NE 2` | HALF_DC `IIX2` / `II1X` | not exactly 1 / 2 second-half goals |
+
+**Consequences.**
+
+1. The **GOAL_RANGE_FT / 1H / 2H calibration verdicts are not clean** — part of
+   what they measured in the goal-range bucket belonged to RESULT, DOUBLE_CHANCE,
+   HALF_RESULT and HALF_DC. (They FAILed either way, but the numbers are mixed.)
+2. **A bare goal-range code must not be trusted without its printed prefix.** This
+   is the same reason the ext layer is keyed by prefix: `1` is a result under `FT`
+   and exactly one goal under `T`.
+3. The correct readings are already carried **prefix-keyed** in the catalogue's
+   `ext_markets` section (`T:1`, `T1:NE1`, ...), and the daily sheet **drops the
+   misparsed rows** by de-duplicating on settlement identity with the canonical
+   family first.
+
+**Not fixed in place.** Removing the 12 entries from the base catalogue would
+invalidate the committed `reports/figures/family_calibration.csv` without a
+re-run, so it is logged as an open decision instead.

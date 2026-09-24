@@ -67,6 +67,8 @@ A Windows-friendly runner; no make required.
 ./venv/Scripts/python.exe run.py fixtures --date 2026-09-24
 ./venv/Scripts/python.exe run.py requests-today
 ./venv/Scripts/python.exe run.py snapshot-fd
+./venv/Scripts/python.exe run.py fair-sheet --date 2026-09-25 --days 3
+./venv/Scripts/python.exe run.py log-close
 ```
 
 ## Scripts
@@ -81,6 +83,8 @@ A Windows-friendly runner; no make required.
 | `refresh_historical.py` | Re-pulls the **current season only** and merges | updates `data/historical/<slug>.parquet` |
 | `get_fixtures.py` | Fixtures for a date via API-Football | `data/fixtures/raw/<date>.json`, `data/fixtures/<date>.csv` |
 | `team_audit.py` | Team-name audit per league (local only) | `reports/team_audit_<slug>.md` |
+| `fair_sheet.py` | Daily Pinnacle-anchored fair odds + minimum acceptable odds | `reports/fair_sheets/<date>.md` / `.csv` |
+| `bet_log.py` | Closing price + result per logged bet; CLV and P&L | fills `data/bet_log.csv` |
 | `run.py` | Runner for all of the above | — |
 
 `refresh_historical.py` de-duplicates on `(date, team_home, team_away)` and is
@@ -137,6 +141,51 @@ recorder.
 `oddsapi_probe.py` performs a bounded, fully logged probe (hard cap 10 credits)
 and writes raw responses to `data/odds_snapshots/oddsapi/`. Findings and the
 proposed snapshot plan are in `reports/phase2_step6_league_one.md`.
+
+## The daily fair-odds sheet
+
+```bash
+./venv/Scripts/python.exe run.py fair-sheet --date 2026-09-25 --days 3
+./venv/Scripts/python.exe run.py log-close          # after the matches
+```
+
+`fair-sheet` pulls the upcoming events for the four sport keys (free), then
+Pinnacle h2h + totals for each match in the window (region `eu`, 2 credits per
+match, **cached per match for 6h**, hard cap **60 credits per run**, stops when the
+account drops below **100**). It de-margins Pinnacle with the **power** method,
+solves the half model's `(lambda, mu)` anchor on it, and prices every market in
+the catalogue plus every market in the catalogue's `ext_markets` section.
+
+Each row states the **fair odds** and the **minimum acceptable odds**
+(`fair x 1.035`). Only families whose calibration **PASSED** are shown, plus the
+four main-line families (RESULT, DOUBLE_CHANCE, GOAL_RANGE_FT, NO_BET) whose price
+is the sharp anchor itself. UNTESTABLE / UNCONFIRMED markets are hidden.
+
+The anchor is only as fresh as the snapshot printed at the top of the sheet:
+**odds move — re-run within ~1h of betting.**
+
+Bet settlements and closing-line value are in
+[`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) (decision log), including the rule
+that **no conclusion is drawn before 50 logged bets**.
+
+### The catalogue has two sections
+
+| Section | Keyed by | Generated from |
+|---|---|---|
+| `markets` | bare code | `docs/soccerbet_rules_sr.txt` (`step1_catalogue.py`) |
+| `ext_markets` | printed `PREFIX` | `core/soccerbet_ext.py` + the sample capture |
+
+`ext_markets` is a separate section on purpose: it is keyed by prefix because the
+same bare code means different things under different prefixes, and it omits any
+code whose settlement matches a base market exactly, so the two sections together
+list each distinct market once. Regenerating the catalogue keeps `ext_markets`
+unchanged when the sample capture is absent (`data/` is gitignored).
+
+### Fitted half-model parameters are cached on disk
+
+`data/cache/half_params/` holds the L2/L3 fit per league, keyed by an exact hash of
+its inputs. The fit is deterministic, so the cache only saves the ~40 s per league
+that solving an anchor for every training match would otherwise cost on every run.
 
 ## Findings and decisions
 
