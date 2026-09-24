@@ -27,6 +27,7 @@ OUT_DIR = Path("data/auxiliary")
 AUXILIARY = [
     ("e1", "E1", "ENG Championship"),
     ("e3", "E3", "ENG League 2"),
+    ("f1", "F1", "FRA Ligue 1"),
 ]
 
 SEASONS = [f"{y}-{y + 1}" for y in range(2014, 2023)]  # 2014-15 .. 2022-23
