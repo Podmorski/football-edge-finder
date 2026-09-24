@@ -451,7 +451,7 @@ CLAIMED_4 = [
     ("I<II model", 0.4613),
     ("I<II observed", 0.4460),
     ("longshot model", 0.0572),
-    ("longshot observed", 0.0574),
+    ("longshot observed", 0.0573),
 ]
 
 
