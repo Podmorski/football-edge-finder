@@ -118,3 +118,46 @@ The first draft of this ingest was re-run from scratch; re-running found:
 
 `data/soccerbet/2026-09-24_ev_table.csv` holds the per-market EV under both
 anchors. **No ROI is claimed.**
+
+## 6. Appendix — partition margins added for the fair-sheet ordering (2026-09-24)
+
+The daily sheet orders its rows by the family's typical Serbian-book margin,
+lowest first. §3 measures the exhaustive partitions that happen to exist as
+*sets*; the goal-total and No-Bet families had none, so two-way partitions of the
+same capture were added. All of these are exhaustive, so each sum **is** a margin:
+
+| section | partition | prices | margin |
+|---|---|---|---|
+| Ukupno Golova | `T:0-2` / `T:3+` | 2.75 / 1.40 | **+0.0779** |
+| Ukupno Golova | `T:0-1` / `T:2+` | 5.90 / 1.10 | +0.0786 |
+| Ukupno Golova | `T:2` / `T:NE2` | 4.45 / 1.16 | +0.0868 |
+| Ukupno Golova | `T:1` / `T:NE1` | 6.85 / 1.06 | +0.0894 |
+| II Pol. Uk. Golova | `T2:0-2` / `T2:3+` | 1.40 / 2.75 | **+0.0779** |
+| I Pol. Uk. Golova | `T1:0-1` / `T1:2+` | 1.70 / 2.03 | **+0.0808** |
+| X No Bet | `XNB:1` / `XNB:2` (draw voids) | 1.11 / 4.77 | **+0.1105** |
+
+Cheapest partition per family, which is what the sheet's ordering uses:
+**Ukupno Golova +0.0779**, **II Pol. Uk. Golova +0.0779**, **I Pol. Uk. Golova
++0.0808**, **X No Bet +0.1105**; RESULT +0.0856 and DOUBLE_CHANCE +0.0901 are
+§3's. `HTFT_NE` and `HTFT_DC` are printed in the **Poluvreme/Kraj** section, so
+they take HTFT's +0.1990 rather than a figure of their own.
+
+**Caveat, stated plainly:** a 3-way partition carries more margin than a 2-way one
+at the same "vig level", so the goal-total and No-Bet entries are not strictly
+comparable with §3's 3-way RESULT figure. They are the margins the book actually
+charges on those markets **as it prints them**, which is what the ordering needs.
+
+## 7. What the sample does NOT settle (2026-09-24)
+
+**Section names.** The capture records only the printed prefix (`FT`, `T`, `I1`,
+`HRG` …), never the Serbian heading, so every section name we hold comes from the
+rules text or from the user. Prefixes whose display name is still unconfirmed are
+flagged `(section not confirmed)` in the catalogue **rather than guessed**:
+
+> AT, AT1, AT2, C, CA, CH, CS, CS1, DCG, GG, GGC, HFG, HT, HT1, HT2, PN, R,
+> SANSA (and M15/M30, PGC, which are ingest-only)
+
+The **section is what decides a code's meaning**, so an invented name would be
+worse than an admitted gap: `1` is a home win under `Konačni Ishod` and exactly
+one goal under `Ukupno Golova`, and `I1` is a 1st-half home win under `Poluvreme`
+but exactly one 1st-half goal under `I Pol. Uk. Golova`.

@@ -85,6 +85,9 @@ A Windows-friendly runner; no make required.
 | `team_audit.py` | Team-name audit per league (local only) | `reports/team_audit_<slug>.md` |
 | `fair_sheet.py` | Daily Pinnacle-anchored fair odds + minimum acceptable odds | `reports/fair_sheets/<date>.md` / `.csv` |
 | `bet_log.py` | Closing price + result per logged bet; CLV and P&L | fills `data/bet_log.csv` |
+| `step6_mainline_hist.py` | MAINLINE-HIST-1: the pre-registered soft-book backtest | `reports/figures/mainline_hist_*.csv` |
+| `mainline_data_check.py` | Coverage + price-comparability check for that backtest | `reports/figures/mainline_hist_data_check.csv` |
+| `audit_clv.py` | Independent CLV re-implementation and audit (no project imports) | stdout |
 | `run.py` | Runner for all of the above | — |
 
 `refresh_historical.py` de-duplicates on `(date, team_home, team_away)` and is
@@ -157,9 +160,15 @@ solves the half model's `(lambda, mu)` anchor on it, and prices every market in
 the catalogue plus every market in the catalogue's `ext_markets` section.
 
 Each row states the **fair odds** and the **minimum acceptable odds**
-(`fair x 1.035`). Only families whose calibration **PASSED** are shown, plus the
-four main-line families (RESULT, DOUBLE_CHANCE, GOAL_RANGE_FT, NO_BET) whose price
-is the sharp anchor itself. UNTESTABLE / UNCONFIRMED markets are hidden.
+(`fair x 1.035`) for the code **inside its section**. Rows carry the columns
+`SECTION | CODE | MEANING | FAIR | BET ONLY IF ODDS >= ...`, ordered by the
+family's typical Serbian-book margin (lowest first), at most 3 prices per family
+and 15 rows per match, so the cheapest sections are the ones you check first.
+
+Markets read straight off the sharp price (**RESULT, DOUBLE_CHANCE, full-time
+No-Bet, and the goal totals from the sharp 1X2 + totals line**) are marked
+`SHARP`; everything else shown is a family whose calibration **PASSED** on unseen
+seasons. UNTESTABLE / UNCONFIRMED markets are hidden.
 
 The anchor is only as fresh as the snapshot printed at the top of the sheet:
 **odds move — re-run within ~1h of betting.**
@@ -175,11 +184,22 @@ that **no conclusion is drawn before 50 logged bets**.
 | `markets` | bare code | `docs/soccerbet_rules_sr.txt` (`step1_catalogue.py`) |
 | `ext_markets` | printed `PREFIX` | `core/soccerbet_ext.py` + the sample capture |
 
+**The section decides a code's meaning, never the bare code.** Every market
+carries a Serbian `section` (as displayed by Soccer Bet), and the parser derives
+the family from it: `1` is a home win under *Konačni Ishod* and exactly one goal
+under *Ukupno Golova*; `I1` is a 1st-half home win under *Poluvreme* but exactly
+one 1st-half goal under *I Pol. Uk. Golova*. Inside a goal family a leg is always
+a goal total. A prefix whose display name is not confirmed is flagged
+`(section not confirmed)` rather than guessed.
+
 `ext_markets` is a separate section on purpose: it is keyed by prefix because the
 same bare code means different things under different prefixes, and it omits any
-code whose settlement matches a base market exactly, so the two sections together
-list each distinct market once. Regenerating the catalogue keeps `ext_markets`
-unchanged when the sample capture is absent (`data/` is gitignored).
+code whose settlement matches a base market exactly **when its family is already
+in the base catalogue**, so the two sections together list each distinct market
+once. A printed code inside a family the base does not cover is always kept, and
+one that happens to settle like a base market is recorded in
+`settles_like_a_base_market` rather than hidden. Regenerating the catalogue keeps
+`ext_markets` unchanged when the sample capture is absent (`data/` is gitignored).
 
 ### Fitted half-model parameters are cached on disk
 

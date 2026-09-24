@@ -387,3 +387,133 @@ a leading `I`/`II` first, so:
 **Not fixed in place.** Removing the 12 entries from the base catalogue would
 invalidate the committed `reports/figures/family_calibration.csv` without a
 re-run, so it is logged as an open decision instead.
+
+### The SECTION decides a code, and the family decides the token type (2026-09-24)
+
+> **A bare code has no meaning on its own.** `1` is a home win under *Konačni
+> Ishod* and exactly one goal under *Ukupno Golova*; `I1` is a 1st-half home win
+> under *Poluvreme* and exactly one 1st-half goal under *I Pol. Uk. Golova*.
+
+Implemented:
+
+1. Every catalogue market carries a **`section`** field (the Serbian heading as
+   displayed). `parse()` derives the family from the section; a section that
+   contradicts a supplied family **raises** instead of guessing, and an unknown
+   section raises too.
+2. **The family decides the token type.** Inside the goal families a leg is always
+   a goal total, so the 12 codes above can no longer be read as results. A guard
+   test requires *every* code in *every* goal family to settle on the goal total
+   alone — the invariant the old behaviour violated.
+3. `Dupla Super Pobeda` moved to its own family `WIN_BOTH_HALVES_TO_NIL` (it was
+   filed under `WIN_BOTH_HALVES`), matching the ext layer. The Holm family count
+   therefore went **18 → 19**.
+4. Prefixes whose Serbian display name is not confirmed are flagged
+   `(section not confirmed)` rather than invented — see
+   `reports/phase3_soccerbet_sample.md` §7 for the list.
+
+**Calibration re-run (discovery only, Holm again).** The **PASS list is
+unchanged: the same 7 families** (`GOAL_RANGE_1H`, `GOAL_RANGE_2H`, `HALF_RESULT`,
+`HALF_DC`, `HTFT`, `HTFT_NE`, `MORE_GOALS_HALF`). Only the two half-goal families
+moved, and not enough to change a verdict:
+
+| family | slope before → after | gain vs B0 | verdict |
+|---|---|---|---|
+| `GOAL_RANGE_1H` | 0.9796 → **0.9730** | +0.0023 | PASS (unchanged) |
+| `GOAL_RANGE_2H` | 1.0302 → **1.0207** | +0.0045 | PASS (unchanged) |
+| `GOAL_RANGE_FT` | 1.0050 → **1.0048** | +0.0000 | fail (unchanged) |
+
+The earlier run is **superseded** in the ledger (marker row, never deleted) and
+its table is kept beside the new one as
+`reports/figures/family_calibration_preparserfix.csv`.
+
+> **So the bug was real but not verdict-changing.** The move is small enough that
+> the previous session's reading — "the goal-range verdicts are mixed" — should
+> be restated: the codes were wrong, the bucket verdicts were not.
+
+### Fair-sheet presentation (2026-09-24)
+
+The user matches prices to Soccer Bet / Mozzart **by hand**, so each match prints
+one short table with the columns **SECTION | CODE | MEANING | FAIR | BET ONLY IF
+ODDS >= fair x 1.035**, ordered by the family's typical Serbian-book margin,
+**lowest first**:
+
+`GOAL_RANGE_FT .0779 · GOAL_RANGE_2H .0779 · GOAL_RANGE_1H .0808 · RESULT .0856 ·
+DOUBLE_CHANCE .0901 · NO_BET .1105 · HALF_RESULT .1327 · MORE_GOALS_HALF .1365 ·
+HALF_DC .1370 · HTFT .1990 (= HTFT_NE, same section)`
+
+* at most **3 prices per family** and **15 rows per match**, so the cheap families
+  all appear instead of 40 goal-total prices filling the sheet;
+* rows read straight off the sharp price — **RESULT, DOUBLE_CHANCE, full-time
+  No-Bet, and the goal totals from the sharp 1X2 + totals line — carry status
+  `SHARP`**, never a calibration verdict;
+* the margin figures and their caveats are recorded in
+  `reports/phase3_soccerbet_sample.md` §6. **A margin table orders a shortlist; it
+  is not a claim that any row is value.**
+
+### MAINLINE-HIST-1: the historical main-line test (2026-09-24)
+
+Pre-registered in `research/preregistration.md` **before computing**, on the same
+rule as MAINLINE-1: fair = Pinnacle **pre-match** de-margined (power), bet 1 unit
+at the soft book's **pre-match** price when `soft >= fair x 1.035`, discovery
+2017-18..2022-23, all four leagues, closing prices used **only** to evaluate.
+
+| book | market | n | ROI | mean CLV | CLV 95% CI | Holm p | verdict |
+|---|---|---:|---:|---:|---|---:|---|
+| b365 | 1X2 | 273 | −3.55% | **+1.94%** | [+0.74%, +3.14%] | 0.000 | **FAIL** (n<300) |
+| b365 | O/U 2.5 | 11 | −9.73% | +11.20% | [+7.37%, +15.07%] | 0.124 | FAIL (n<300) |
+| b365 | AH | 7 | −18.43% | +5.91% | [−2.87%, +15.06%] | 0.124 | FAIL (n<300) |
+| market average | 1X2 | 1 | −100% | +21.14% | [—] | 0.000 | FAIL (n<300) |
+| market average | O/U 2.5 | 8 | −1.00% | +10.42% | [+6.31%, +14.25%] | 0.000 | FAIL (n<300) |
+| market average | AH | 0 | — | — | — | — | FAIL (no bets) |
+
+**No CONFIRMATION CANDIDATE. The locked seasons were not opened.**
+
+Three things this run establishes beyond the verdict:
+
+1. **The market average is structurally not a contender.** It cannot beat the
+   de-margined sharp price: 1 bet in six seasons of 1X2, 0 in AH, 8 in O/U. The
+   `BbAv` fallback behaves the same (0 of 9,246). A mean of many books *is* mostly
+   the margin.
+2. **O/U 2.5 and AH barely exist before 2019-20** in this data (Pinnacle pre-match
+   O/U and AH are 0% before then), so those two markets cover **4** discovery
+   seasons, not 6, and cannot reach n=300 at 1 unit per bet.
+3. **B365 / 1X2 is the only near-miss**: mean CLV is positive with a CI above 0,
+   at **273** bets — one gate short. It is **not** a PASS and it is **not** a
+   candidate; the ROI on the same 273 bets is **−3.55%**, which is exactly the
+   small-sample divergence CLV and P&L are known to show.
+
+The AH test is limited in general: only half and whole lines were used (quarter
+lines split the stake and were excluded, 3,986 rows), pushes are void and were
+excluded, and de-margining a 2-way price ignores push mass.
+
+> **Proxies, not Mozzart.** B365 and the market average are **proxies**. **A FAIL
+> does not rule out the local books**, and a PASS would have been *encouraging, not
+> proof*. Nothing here licenses a bet at Soccer Bet or Mozzart.
+
+### CLV benchmark note (2026-09-24)
+
+`CLV = odds_taken / fair_close - 1` with `fair_close` the **de-margined** closing
+price, as the benchmark rule requires. **De-margining makes the closing price
+*longer* than the raw book price**, so this gate is **stricter** than the usual
+"beat the raw closing odds" CLV — the audit below caught the direction being
+written the wrong way round in one review comment, which is why it is stated here.
+
+### Independent CLV audit (2026-09-24)
+
+`audit_clv.py` re-implements the CLV chain **from scratch** (no project imports)
+from the raw parquet and checks the backtest and `run.py log-close`:
+
+| check | result |
+|---|---|
+| 1. recomputed power de-margin vs the bets CSV's `fair_close` (200 bets) | agrees to **1.8e−15** |
+| 2. `clv == soft_odds / fair_close - 1` | agrees to **3.1e−16** |
+| 3. `fair_close` is a de-margined price, never a raw odd | 0 violations |
+| 4. ROI / mean CLV / bootstrap CI recomputed independently | summary agrees exactly; CI brackets the mean |
+| 5. `run.py log-close` CLV identity, run end-to-end as a subprocess | holds to 1e−9 |
+| 6. no snapshot used after kick-off | 9 snapshots, 0 violations |
+
+> **It found a real defect.** The bets CSV had the CLV value written into the
+> `fair_close` column. The headline statistics were unaffected, but the audit
+> input was wrong, so the run was repeated with the column corrected and the
+> earlier ledger row **superseded**. The fresh-process re-run reproduces every
+> headline number exactly.
