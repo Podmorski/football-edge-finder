@@ -105,11 +105,22 @@ def _save_cached(slug: str, events: list[dict]) -> None:
                     "events": events}, ensure_ascii=False), encoding="utf-8")
 
 
-def fetch_league(session, key, slug: str) -> tuple[list[dict], datetime]:
-    """PS3838 events for one division (1 request), cached on disk. Newest first."""
+def fetch_league(session, key, slug: str, max_age_minutes: int | None = None
+                 ) -> tuple[list[dict], datetime]:
+    """PS3838 events for one division (1 request unless a fresh cache is reused).
+
+    ``max_age_minutes=None`` always makes the request (the close run wants the
+    freshest price); a number reuses the on-disk snapshot when it is younger than
+    that, so back-to-back sheet runs inside the window cost no requests.
+    """
     name = league_registry.ps3838_name(slug)
     if name is None:
         return [], datetime.now(timezone.utc)
+    if max_age_minutes is not None:
+        cached = load_cached(slug)
+        if cached is not None and (datetime.now(timezone.utc) - cached["fetched_at"]
+                                   ) <= timedelta(minutes=max_age_minutes):
+            return cached["events"], cached["fetched_at"]
     doc = _get(session, key, f"/soccer/leagues/{name}/events", {},
                note=f"ps3838 events {slug}")
     events = [e for e in (doc or {}).get("events", []) if isinstance(e, dict)]

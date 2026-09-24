@@ -12,16 +12,16 @@ than 10.0% of matches.
 
 ## SHARP_WIDE — ok
 
-flags 0 / matches 0 = rate 0.00% (threshold 10.00%)
+flags 0 / matches 20 = rate 0.00% (threshold 10.00%)
 
 _no flags recorded yet._
 
 ## MODEL_4L — ok
 
-flags 0 / matches 0 = rate 0.00% (threshold 10.00%)
+flags 0 / matches 20 = rate 0.00% (threshold 10.00%)
 
 _no flags recorded yet._
 
 ---
 
-_updated 2026-09-24T21:14:46+00:00_
+_updated 2026-09-24T21:29:28+00:00_

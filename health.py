@@ -13,6 +13,7 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import coverage
 import odds_api_log
 import pulsescore_log
 
@@ -83,6 +84,18 @@ def write() -> int:
     out = [
         "# Health",
         "",
+    ]
+    gap = coverage.gaps()
+    if gap:
+        out += [
+            "**MOZZART COVERAGE GAP** — PS3838 priced matches where Mozzart returned",
+            "none (the local book may not have posted odds, or a league mapping drifted):",
+            "",
+        ]
+        out += [f"- {slug}: PS3838 {ps} match(es) in the window, Mozzart 0"
+                for slug, ps in gap]
+        out += [""]
+    out += [
         f"- generated {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
         f"- PulseScore: {ps_used} used this month, {ps_left} remaining "
         f"(cap {pulsescore_log.MONTHLY_CAP})",

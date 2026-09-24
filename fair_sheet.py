@@ -48,6 +48,7 @@ import pandas as pd
 import requests
 import yaml
 
+import coverage
 import odds_api_log
 import ps3838_odds
 import step4_pricing
@@ -81,6 +82,9 @@ TRACK_MODEL = "MODEL_4L"
 CREDIT_CAP = 60
 MIN_REMAINING = 100
 CACHE_HOURS = 6
+# A PS3838 league snapshot younger than this is reused, so a re-run within the
+# hour costs no PulseScore requests (the close run still fetches fresh).
+PS3838_SHEET_MAX_AGE_MINUTES = 60
 EDGE_CUSHION = 1.035
 MAX_HALF = MAX_HALF_GOALS
 
@@ -812,7 +816,8 @@ def ps3838_events(session, key, slugs, window, now, horizon):
     started = 0
     for slug in slugs:
         try:
-            events, _when = ps3838_odds.fetch_league(session, key, slug)
+            events, _when = ps3838_odds.fetch_league(
+                session, key, slug, max_age_minutes=PS3838_SHEET_MAX_AGE_MINUTES)
             fetched.append(slug)
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{slug}: {exc}")
@@ -1001,6 +1006,26 @@ def main(start: str | None = None, days: int = 1,
                          f"({', '.join(sorted(subset)) or 'none mapped'}).")
         except Exception as exc:  # noqa: BLE001
             notes.append(f"Mozzart feed unavailable ({exc}); no flags this run.")
+
+    # Standing coverage record (PART 4): PS3838 vs Mozzart per fetched league.
+    coverage_leagues: dict[str, dict] = {}
+    for slug in fetch_slugs:
+        ps = sum(1 for event in sharp_events
+                 if event["league"] == slug and event["source"] == "ps3838")
+        mz = 0
+        for entry in mozzart:
+            kickoff = entry.get("kickoff")
+            if entry.get("slug") == slug and kickoff is not None \
+                    and local_date(kickoff.isoformat()) in window:
+                mz += 1
+        coverage_leagues[slug] = {"ps3838": ps, "mozzart": mz}
+    if coverage_leagues:
+        coverage.write(window, coverage_leagues)
+        gaps = [(slug, c["ps3838"]) for slug, c in coverage_leagues.items()
+                if c["ps3838"] >= coverage.GAP_MIN_PS and c["mozzart"] == 0]
+        if gaps:
+            notes.append("MOZZART COVERAGE GAP: "
+                         + ", ".join(f"{slug} (ps3838={n})" for slug, n in sorted(gaps)))
 
     matches: list[dict] = []
     pinned: str | None = None
