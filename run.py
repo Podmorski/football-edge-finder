@@ -25,6 +25,7 @@ COMMANDS = {
     "snapshot-fd": "Save football-data.co.uk fixtures.csv if its content hash has changed.",
     "price-match": "Fair probability and odds for every catalogue market of a match.",
     "analyse-book": "Analyse a Soccer Bet price file (margins, EV, cheapest representation).",
+    "compare-mainline": "Compare Soccer Bet's main line against sharp prices (MAINLINE-1).",
 }
 
 
@@ -88,6 +89,9 @@ def build_parser() -> argparse.ArgumentParser:
     book = sub.add_parser("analyse-book", help=COMMANDS["analyse-book"])
     book.add_argument("--file", required=True)
 
+    mainline = sub.add_parser("compare-mainline", help=COMMANDS["compare-mainline"])
+    mainline.add_argument("--file", required=True)
+
     fixtures = sub.add_parser("fixtures", help=COMMANDS["fixtures"])
     fixtures.add_argument(
         "--date",
@@ -130,6 +134,11 @@ def main(argv: list[str] | None = None) -> int:
         import step4_pricing
 
         return step4_pricing.analyse_book(args.file)
+
+    if args.command == "compare-mainline":
+        import step2_compare_mainline
+
+        return step2_compare_mainline.main(args.file)
 
     if args.command == "ingest-historical":
         import ingest_historical
