@@ -389,21 +389,58 @@ def model_from_ratings(
 
 
 def markets_from_grid(grid) -> dict:
-    """All markets for one fixture, straight from penaltyblog's grid."""
+    """All markets for one fixture, straight from penaltyblog's grid.
+
+    Combo markets are computed as **grid-cell sums** (true joint probabilities),
+    never as products of marginals.
+    """
+    g = grid.grid
+    i, j = np.indices(g.shape)
+    total = i + j
+    home_win = i > j
+    draw = i == j
+    away_win = i < j
+    btts_yes = (i >= 1) & (j >= 1)
+    over15 = total >= 2
+    over25 = total >= 3
+    over35 = total >= 4
+
+    def cell(mask) -> float:
+        return float(g[mask].sum())
+
     return {
         "expected_home_goals": float(grid.home_goal_expectation),
         "expected_away_goals": float(grid.away_goal_expectation),
         "grid_expected_home_goals": float(
-            (grid.home_goal_distribution() * np.arange(grid.grid.shape[0])).sum()
+            (grid.home_goal_distribution() * np.arange(g.shape[0])).sum()
         ),
         "grid_expected_away_goals": float(
-            (grid.away_goal_distribution() * np.arange(grid.grid.shape[1])).sum()
+            (grid.away_goal_distribution() * np.arange(g.shape[1])).sum()
         ),
         "p_home": float(grid.home_win),
         "p_draw": float(grid.draw),
         "p_away": float(grid.away_win),
         "p_over25": float(grid.total_goals("over", 2.5)),
         "p_btts": float(grid.btts_yes),
+        # --- singles ---
+        "p_dc_1x": cell(home_win | draw),
+        "p_dc_12": cell(home_win | away_win),
+        "p_dc_x2": cell(draw | away_win),
+        "p_over15": cell(over15),
+        "p_under15": cell(~over15),
+        "p_under25": cell(~over25),
+        "p_over35": cell(over35),
+        "p_under35": cell(~over35),
+        "p_btts_no": cell(~btts_yes),
+        # --- same-game combos ---
+        "p_under25_btts_no": cell((~over25) & (~btts_yes)),
+        "p_over25_btts_yes": cell(over25 & btts_yes),
+        "p_home_under35": cell(home_win & (~over35)),
+        "p_away_under35": cell(away_win & (~over35)),
+        "p_home_btts_no": cell(home_win & (~btts_yes)),
+        "p_draw_under25": cell(draw & (~over25)),
+        "p_home_or_draw_under25": cell((home_win | draw) & (~over25)),
+        "p_home_over15": cell(home_win & over15),
         # Full total-goals pmf (index = total goals), for dispersion diagnostics.
         "total_goals_pmf": [float(v) for v in grid.total_goals_distribution()],
     }
