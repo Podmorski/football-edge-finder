@@ -26,6 +26,8 @@ COMMANDS = {
     "price-match": "Fair probability and odds for every catalogue market of a match.",
     "analyse-book": "Analyse a Soccer Bet price file (margins, EV, cheapest representation).",
     "compare-mainline": "Compare Soccer Bet's main line against sharp prices (MAINLINE-1).",
+    "fair-sheet": "Daily fair-odds sheet anchored on Pinnacle (fair odds + minimum acceptable odds).",
+    "log-close": "Fill closing prices + results in the bet log; report CLV and P&L.",
 }
 
 
@@ -92,6 +94,16 @@ def build_parser() -> argparse.ArgumentParser:
     mainline = sub.add_parser("compare-mainline", help=COMMANDS["compare-mainline"])
     mainline.add_argument("--file", required=True)
 
+    sheet = sub.add_parser("fair-sheet", help=COMMANDS["fair-sheet"])
+    sheet.add_argument("--date", default=None,
+                       help="First day of the window, YYYY-MM-DD. Defaults to today.")
+    sheet.add_argument("--days", type=int, default=1,
+                       help="Length of the window in days (default 1).")
+
+    log_close = sub.add_parser("log-close", help=COMMANDS["log-close"])
+    log_close.add_argument("--file", default=None,
+                           help="Bet log CSV (default: data/bet_log.csv).")
+
     fixtures = sub.add_parser("fixtures", help=COMMANDS["fixtures"])
     fixtures.add_argument(
         "--date",
@@ -139,6 +151,16 @@ def main(argv: list[str] | None = None) -> int:
         import step2_compare_mainline
 
         return step2_compare_mainline.main(args.file)
+
+    if args.command == "fair-sheet":
+        import fair_sheet
+
+        return fair_sheet.main(args.date, args.days)
+
+    if args.command == "log-close":
+        import bet_log
+
+        return bet_log.main(args.file)
 
     if args.command == "ingest-historical":
         import ingest_historical
