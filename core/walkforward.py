@@ -221,16 +221,24 @@ def newcomer_type(pool: pd.DataFrame, cutoff: pd.Timestamp, team: str) -> str | 
     return "relegated_in" if seen else "promoted_in"
 
 
-def load_labels() -> dict[tuple[str, str], str]:
-    """(season, team) -> 'relegated_in' | 'promoted_in' | 'other'.
+def load_labels() -> dict[tuple[str, str, str], str]:
+    """(league, season, team) -> label.
 
-    Derived from auxiliary E1/E3 by ``newcomer_labels.py``. Known before each
-    season starts, so using them is not leakage.
+    Merges the League One label file with the multi-league one. Labels are
+    derived from auxiliary divisions and are known before each season starts, so
+    using them is not leakage.
     """
-    if not LABELS_PATH.exists():
-        return {}
-    frame = pd.read_parquet(LABELS_PATH)
-    return {(row.season, row.team): row.label for row in frame.itertuples(index=False)}
+    out: dict[tuple[str, str, str], str] = {}
+    if LABELS_PATH.exists():
+        frame = pd.read_parquet(LABELS_PATH)
+        for row in frame.itertuples(index=False):
+            out[("league_one_t3", row.season, row.team)] = row.label
+    multi = Path("data/auxiliary/newcomer_labels_multi.parquet")
+    if multi.exists():
+        frame = pd.read_parquet(multi)
+        for row in frame.itertuples(index=False):
+            out[(row.league, row.season, row.team)] = row.label
+    return out
 
 
 def season_start_dates(pool: pd.DataFrame) -> dict[str, pd.Timestamp]:
@@ -264,8 +272,9 @@ def team_spell_starts(pool: pd.DataFrame, cutoff: pd.Timestamp, team: str) -> li
 def newcomer_prior_members(
     pool: pd.DataFrame,
     cutoff: pd.Timestamp,
-    label_map: dict[tuple[str, str], str],
+    label_map: dict[tuple[str, str, str], str],
     target_season: str | None,
+    league: str | None = None,
 ) -> dict[str, list[tuple[str, str]]]:
     """Teams (and arrival season) behind each prior bucket, for reporting.
 
@@ -278,7 +287,9 @@ def newcomer_prior_members(
         "relegated_in": [],
         "other": [],
     }
-    for (season, team), label in label_map.items():
+    for (lg, season, team), label in label_map.items():
+        if league is not None and lg != league:
+            continue
         if target_season is not None and season >= target_season:
             continue
         season_start = starts.get(season)
@@ -294,8 +305,9 @@ def newcomer_priors(
     pool: pd.DataFrame,
     params: pd.Series,
     cutoff: pd.Timestamp,
-    label_map: dict[tuple[str, str], str] | None = None,
+    label_map: dict[tuple[str, str, str], str] | None = None,
     target_season: str | None = None,
+    league: str | None = None,
 ) -> dict:
     """Mean fitted ratings of earlier newcomers of each type, as of ``cutoff``.
 
@@ -316,7 +328,9 @@ def newcomer_priors(
         "relegated_in": [],
         "other": [],
     }
-    for (season, team), label in labels.items():
+    for (lg, season, team), label in labels.items():
+        if league is not None and lg != league:
+            continue
         if target_season is not None and season >= target_season:
             continue
         season_start = starts.get(season)
@@ -476,7 +490,7 @@ def run(
         params = fit_at(config, train, cutoff, week_season)
         fitted = ratings_from(params)
         if config.newcomer == "newcomer_prior":
-            priors = newcomer_priors(pool, params, cutoff, label_map, week_season)
+            priors = newcomer_priors(pool, params, cutoff, label_map, week_season, config.league)
         else:
             # league_avg only needs the fitted means; skip the (slower) scan
             # for earlier newcomers.
@@ -498,12 +512,12 @@ def run(
             home, away = match.team_home, match.team_away
             # Detection stays the 365-day rule; the TYPE comes from E1/E3 labels.
             kind_h = (
-                label_map.get((match.season, home))
+                label_map.get((config.league, match.season, home))
                 if recent_matches(pool, cutoff, home) == 0
                 else None
             )
             kind_a = (
-                label_map.get((match.season, away))
+                label_map.get((config.league, match.season, away))
                 if recent_matches(pool, cutoff, away) == 0
                 else None
             )
