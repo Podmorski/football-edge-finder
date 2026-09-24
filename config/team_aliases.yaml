@@ -6,6 +6,12 @@
 # `aliases` maps variant spellings onto a canonical name. It is intentionally
 # empty: only add an entry with evidence, because a wrong merge silently
 # corrupts team strength estimates.
+#
+# Three sources must agree on a club: **Mozzart** (PulseScore `home`/`away`),
+# **The Odds API** (`home_team`/`away_team`) and the **historical** parquet
+# (`team_home`/`team_away`). `team_audit_mozzart.py` reports any name that does
+# not match a historical name at the similarity threshold, so a miss is listed
+# rather than guessed. Add an alias here only when a report shows a real variant.
 
 non_merge:
   - league: ligue_2_t2
@@ -16,4 +22,21 @@ non_merge:
       appeared in Ligue 2. The Bishop-style name-containment heuristic flags
       them, but they are not the same team. NEVER MERGE.
 
-aliases: []
+aliases:
+  # The Odds API spells the club in full; football-data.co.uk uses the short form.
+  # Evidenced by team_audit_mozzart.py (2026-09-24).
+  - league: league_one_t3
+    canonical: "Burton"
+    variant: "Burton Albion"
+  - league: league_one_t3
+    canonical: "Plymouth"
+    variant: "Plymouth Argyle"
+  - league: league_one_t3
+    canonical: "Wycombe"
+    variant: "Wycombe Wanderers"
+
+# Source labels used by the audit, for the record.
+sources:
+  - mozzart
+  - odds_api
+  - historical

@@ -1,0 +1,74 @@
+# Mozzart (PulseScore) market map.
+#
+# Key: (section rawName, period). **The section decides what a code means**, exactly
+# as with Soccer Bet: `1` is a home win under `Konačan ishod` and exactly one goal
+# under `Tačan broj golova na meču`. A rule maps a section+period to one of our
+# catalogue families:
+#
+#   * `family`  — a base catalogue family, settled through core.market_code.parse;
+#   * `prefix`  — an ext_markets prefix, settled through core.soccerbet_ext.resolve.
+#
+# `code_map` translates Mozzart's printed code to ours when the two differ (e.g.
+# `Prvo poluvreme` prints `1` where our HALF_RESULT code is `I1`). `code_prefix`
+# or `codes` narrow a rule to a subset of a section's codes (the `NE` codes of
+# `Poluvreme - Kraj` are HTFT_NE, not HTFT). **Anything not matched is UNMAPPED** —
+# listed, never guessed.
+#
+# Mozzart's own spellings sit beside Soccer Bet's: the same family can be reached
+# from `Konačan ishod` (Mozzart) or `Konačni Ishod` (Soccer Bet). The per-selection
+# `moreInfo.description` is kept in the raw JSON under data/mozzart/raw/ for audit.
+#
+# Out of scope (never mapped): player goals, cards, corners, shots, "da" specials,
+# and the 15/30-minute markets — they cannot be settled from (HT, FT) scores.
+
+rules:
+  # --- base families -------------------------------------------------------
+  - {section: "Konačan ishod", period: FULL_TIME, family: RESULT}
+  - {section: "Dupla šansa", period: FULL_TIME, family: DOUBLE_CHANCE}
+  - {section: "Ukupno golova na meču", period: FULL_TIME, family: GOAL_RANGE_FT}
+  - {section: "Tačan broj golova na meču", period: FULL_TIME, family: GOAL_RANGE_FT}
+  - {section: "Prvo poluvreme", period: FIRST_HALF, family: HALF_RESULT,
+     code_map: {"1": "I1", "X": "IX", "2": "I2"}}
+  - {section: "Dupla šansa prvo poluvreme", period: FIRST_HALF, family: HALF_DC,
+     code_map: {"1X": "I1X", "12": "I12", "X2": "IX2"}}
+  - {section: "Ukupno golova prvo poluvreme", period: FIRST_HALF, family: GOAL_RANGE_1H,
+     code_map: {"0": "I0", "1": "I1", "2": "I2", "1+": "I1+", "0-1": "I0-1",
+                "2+": "I2+", "0-2": "I0-2", "3+": "I3+", "1-2": "I1-2", "2-3": "I2-3"}}
+  - {section: "Drugo poluvreme", period: SECOND_HALF, family: HALF_RESULT,
+     code_map: {"1": "II1", "X": "IIX", "2": "II2"}}
+  - {section: "Ukupno golova drugo poluvreme", period: SECOND_HALF, family: GOAL_RANGE_2H,
+     code_map: {"0": "II0", "1": "II1", "2": "II2", "1+": "II1+", "0-1": "II0-1",
+                "2+": "II2+", "0-2": "II0-2", "3+": "II3+", "1-2": "II1-2", "2-3": "II2-3"}}
+  - {section: "Poluvreme - Kraj", period: FULL_TIME, family: HTFT}
+  - {section: "Poluvreme - Kraj", period: FULL_TIME, family: HTFT_NE, code_prefix: "NE"}
+  - {section: "Poluvreme- Kraj / Dupla šansa", period: FULL_TIME, family: HTFT_DC}
+  - {section: "Poluvreme sa više golova", period: FULL_TIME, family: MORE_GOALS_HALF,
+     code_map: {"prvo": "I>II", "jednako": "I=II", "drugo": "I<II"}}
+
+  # --- ext families --------------------------------------------------------
+  - {section: "Oba tima daju gol", period: FULL_TIME, prefix: GG}
+  - {section: "Oba tima daju gol", period: FIRST_HALF, prefix: GG}
+  - {section: "Oba tima daju gol", period: SECOND_HALF, prefix: GG}
+  - {section: "Ukupno golova - Par/Nepar", period: FULL_TIME, prefix: PN,
+     code_map: {"PAR": "Par", "NEPAR": "Nepar"}}
+  - {section: "Winner", period: FULL_TIME, family: NO_BET,
+     code_map: {"W1": "XNB FT 1", "W2": "XNB FT 2"}}
+  - {section: "Winner prvo poluvreme", period: FIRST_HALF, family: NO_BET,
+     code_map: {"W1": "XNB 1. Pol. 1", "W2": "XNB 1. Pol. 2"}}
+  - {section: "Dupla pobeda", period: FULL_TIME, family: WIN_BOTH_HALVES,
+     code_map: {"DP1": "DP 1", "DP2": "DP 2"}}
+  - {section: "Sigurna pobeda", period: FULL_TIME, family: WIN_TO_NIL,
+     code_map: {"SP1": "SP 1", "SP2": "SP 2"}}
+  - {section: "Hendikep pobeda", period: FULL_TIME, family: MARGIN,
+     code_map: {"1": "HP 1", "2": "HP 2"}}
+  - {section: "Tim 1 daje gol", period: FULL_TIME, prefix: HT}
+  - {section: "Tim 2 daje gol", period: FULL_TIME, prefix: AT}
+  - {section: "Tim 1 golovi prvo poluvreme", period: FIRST_HALF, prefix: HT1}
+  - {section: "Tim 2 golovi prvo poluvreme", period: FIRST_HALF, prefix: AT1}
+  - {section: "Tim 1 golovi drugo poluvreme", period: SECOND_HALF, prefix: HT2}
+  - {section: "Tim 2 golovi drugo poluvreme", period: SECOND_HALF, prefix: AT2}
+  - {section: "Tačan rezultat", period: FULL_TIME, prefix: CS}
+  - {section: "Konačan ishod + Golovi", period: FULL_TIME, prefix: R}
+  - {section: "Dupla šansa + Golovi", period: FULL_TIME, prefix: DCG}
+  - {section: "Poluvreme - Kraj + Golovi", period: FULL_TIME, prefix: HFG}
+  - {section: "Broj golova u prvom i drugom poluvremenu", period: SECOND_HALF, prefix: C}

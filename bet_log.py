@@ -21,20 +21,16 @@ logged bets, and continue only if the mean CLV is above 0.**
 from __future__ import annotations
 
 import csv
-import difflib
-import re
 import sys
-import unicodedata
 from datetime import date
-from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import yaml
 
 import fair_sheet as fs
 from core.soccerbet_ext import PREFIX_MAP
+from core.team_names import MATCH_SIMILARITY, similarity as _similarity
 
 TEMPLATE = Path("templates/bet_log.csv")
 LOG = Path("data/bet_log.csv")
@@ -47,53 +43,6 @@ BET_FIELDS = FIELDS[:9]
 
 MIN_BETS_FOR_CONCLUSION = 50
 MATCH_TOLERANCE_DAYS = 3
-MATCH_SIMILARITY = 0.70
-
-# Tokens that carry no identifying information about a club.
-_NOISE = {
-    "fc", "cf", "sc", "ac", "afc", "sv", "vfl", "vfb", "tsg", "bsc", "fk", "sk",
-    "nk", "hk", "cd", "ud", "sd", "as", "ss", "ssc", "usl", "ev", "e", "v",
-    "1", "ii", "b", "u19", "u21", "04", "05", "07", "09", "1846", "1899",
-}
-
-
-# --------------------------------------------------------------------------- #
-# team-name matching
-# --------------------------------------------------------------------------- #
-def _tokens(name: str) -> list[str]:
-    text = unicodedata.normalize("NFKD", str(name)).encode("ascii", "ignore").decode()
-    text = re.sub(r"[^a-z0-9 ]", " ", text.lower())
-    return [token for token in text.split() if token not in _NOISE]
-
-
-def _similarity(a: str, b: str) -> float:
-    left, right = " ".join(_tokens(a)), " ".join(_tokens(b))
-    if not left or not right:
-        return 0.0
-    if frozenset({left, right}) in _non_merge_pairs():
-        return 0.0
-    if left == right:
-        return 1.0
-    return difflib.SequenceMatcher(None, left, right).ratio()
-
-
-@lru_cache(maxsize=1)
-def _non_merge_pairs() -> set[frozenset[str]]:
-    """Club pairs that look similar but are different clubs — never merged.
-
-    Read from ``config/team_aliases.yaml``; the locked entry (Ajaccio vs Ajaccio
-    GFCO) sits at a similarity of ~0.74, so without this guard the matcher would
-    silently merge two clubs.
-    """
-    if not ALIASES.exists():
-        return set()
-    doc = yaml.safe_load(ALIASES.read_text(encoding="utf-8")) or {}
-    pairs = set()
-    for entry in doc.get("non_merge") or []:
-        left, right = " ".join(_tokens(entry.get("a", ""))), " ".join(_tokens(entry.get("b", "")))
-        if left and right:
-            pairs.add(frozenset({left, right}))
-    return pairs
 
 
 def _split_match(text: str) -> tuple[str, str] | None:
