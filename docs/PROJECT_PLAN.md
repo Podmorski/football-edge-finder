@@ -5,20 +5,23 @@
 
 ## Objective
 
-Find bets with **reliably positive expected value (EV)** against prices we can
-actually get, **only** in buckets (league × market × selection [× odds band])
-proven on data the model has never seen, and concentrate modelling effort on
-those buckets.
+Find outcomes — **singles and same-game combos** — that layered statistical
+models rate likely **AND** whose probabilities are **proven calibrated on unseen
+seasons**; bet only where the typical payout exceeds break-even
+(`p × odds > 1`).
 
-- `EV = p_model × odds − 1`
-- **"Most likely outcome" is NOT the target.**
+- **Not price-hunting.** Bookmaker choice is **not** a selection criterion.
+- **Systematic, market-wide statistical biases** (e.g. over-reaction) **are in
+  scope.**
+- **"Most likely outcome" alone is NOT the target** — a likely outcome that does
+  not pay enough is not a bet.
 - This is **not arbitrage.**
 
 ### Success
 
-- Positive **closing-line value (CLV)** monthly.
-- Drawdowns within pre-set limits.
-- Profit at quarterly / yearly level.
+- Probabilities that are **calibrated** on seasons the model has never seen.
+- Payouts that clear break-even at the prices actually available.
+- Positive **closing-line value (CLV)** monthly; drawdowns within pre-set limits.
 
 A real 3% edge still has roughly **1 losing month in 3** — that is expected,
 not failure.
@@ -108,13 +111,21 @@ Initial gates (revisable — record changes in the decision log):
 
 | Role | Source | Availability |
 |---|---|---|
-| **SHARP benchmark** | Pinnacle closing (`PSCH/PSCD/PSCA`) | 2015-16 … 2024-25 |
-| **SHARP benchmark** | market-average closing (`AvgCH/CD/CA`) | 2025-26 onward (Pinnacle degrades to 0% in 2026-27) |
-| **BET PRICE proxy** | B365 pre-match (`B365H/D/A`) | all seasons |
+| **Accuracy reference** | Pinnacle closing (`PSCH/PSCD/PSCA`) | 2015-16 … 2024-25 |
+| **Accuracy reference** | market-average closing (`AvgCH/CD/CA`) | 2025-26 onward |
+| **Payout check only** | **market-average pre-match odds** | all seasons |
 
-The bet price is a *proxy* until the user names a real book. Because the sharp
-source changes over time, **`AvgC*` must always be reported alongside `PSC*`** so
-a mid-sample switch can never be mistaken for a change in achievable edge.
+> **REVERSED (2026-09-24).** The earlier "BET PRICE proxy = B365" entry is
+> withdrawn. Prices are used **only** for the payout check, and the payout check
+> uses the **market average**. Pinnacle closing is an **accuracy reference
+> only** — it is never treated as a price we could take. Because the sharp
+> source changes over time, `AvgC*` is always reported alongside `PSC*`.
+
+### Book
+
+**Soccer Bet (Serbia)** is the user's book; online books are possible. The book
+is **not** a selection criterion. Later, a **manual log of Soccer Bet prices vs
+market-average prices** will be kept for flagged plays.
 
 ### Tuning design rule (decided 2026-09-23)
 
@@ -148,3 +159,40 @@ the option could not affect the tune seasons. It is superseded by the
 
 **E1 (Championship)** and **E3 (League Two)** are ingested as *auxiliary* data
 purely to label League One newcomers. They are **never in scope for betting**.
+
+### Scope changes (2026-09-24)
+
+* **Same-game combos from one scoreline grid are IN scope** (1X2, double chance,
+  O/U 1.5/2.5/3.5, BTTS, and combinations of them).
+* **Multi-match accumulators are later**, capped at **2–3 legs**.
+* **HT/FT is back in scope**, via a separate half-time model (later).
+
+### Standing diagnostics and verdicts
+
+* **1X2 verdict: the model adds no information beyond the market.** The
+  encompassing test (blend vs market pre-match) is now a **standing diagnostic**
+  that every future model must pass, not a one-off.
+* **No clean discovery validation remains.** 2021-22 and 2022-23 were consumed by
+  the COVID-mode selection, so they are no longer fresh. **Confirmation
+  (2023-24 … 2025-26) is the only clean test**, and **every rule must be
+  pre-registered in the ledger before confirmation is touched**.
+
+### Newcomer counts (corrected)
+
+Every season has 7 newcomers (3 `relegated_in`, 4 `promoted_in`) **except
+2019-20, which had 6** — **Bury were expelled** from League One in August 2019,
+so the division ran with 23 teams.
+
+The `n` behind each prior grows because the rule admits an arrival only once it
+is **past its first year** (>365 days before the cutoff):
+
+| Target | arrival cohorts old enough | promoted_in n | relegated_in n |
+|---|---|---|---|
+| 2019-2020 | 2017-18 | 4 | 3 |
+| 2020-2021 | + 2018-19, 2019-20 | 11 | 9 |
+| 2021-2022 | (same three) | 11 | 9 |
+| 2022-2023 | + 2020-21 | 15 | 12 |
+
+Full team lists: `reports/figures/newcomer_prior_detail.csv`
+(`newcomer_prior_detail.py`). A team can appear more than once if it arrived in
+more than one season (e.g. Rotherham 2017-18 and 2019-20).
