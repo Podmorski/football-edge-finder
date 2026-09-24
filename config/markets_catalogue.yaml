@@ -188,7 +188,7 @@ markets:
   note: ''
 - code: 1-1
   label_sr: 1-1
-  definition_en: Half time 1, full time 1
+  definition_en: Home leads at half time and home wins at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -198,7 +198,7 @@ markets:
   note: ''
 - code: 1-X
   label_sr: 1-X
-  definition_en: Half time 1, full time X
+  definition_en: Home leads at half time and draw at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -208,7 +208,7 @@ markets:
   note: ''
 - code: 1-2
   label_sr: 1-2
-  definition_en: Half time 1, full time 2
+  definition_en: Home leads at half time and away wins at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -218,7 +218,7 @@ markets:
   note: ''
 - code: X-1
   label_sr: X-1
-  definition_en: Half time X, full time 1
+  definition_en: Level at half time and home wins at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -228,7 +228,7 @@ markets:
   note: ''
 - code: X-X
   label_sr: X-X
-  definition_en: Half time X, full time X
+  definition_en: Level at half time and draw at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -238,7 +238,7 @@ markets:
   note: ''
 - code: X-2
   label_sr: X-2
-  definition_en: Half time X, full time 2
+  definition_en: Level at half time and away wins at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -248,7 +248,7 @@ markets:
   note: ''
 - code: 2-1
   label_sr: 2-1
-  definition_en: Half time 2, full time 1
+  definition_en: Away leads at half time and home wins at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -258,7 +258,7 @@ markets:
   note: ''
 - code: 2-X
   label_sr: 2-X
-  definition_en: Half time 2, full time X
+  definition_en: Away leads at half time and draw at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -268,7 +268,7 @@ markets:
   note: ''
 - code: 2-2
   label_sr: 2-2
-  definition_en: Half time 2, full time 2
+  definition_en: Away leads at half time and away wins at full time
   family: HTFT
   section: Poluvreme/Kraj
   period: FT
@@ -548,7 +548,7 @@ markets:
   note: ''
 - code: NE 1-1
   label_sr: NE 1-1
-  definition_en: Not (half time 1, full time 1)
+  definition_en: not (Home leads at half time and home wins at full time)
   family: HTFT_NE
   section: Poluvreme/Kraj
   period: FT
@@ -558,7 +558,7 @@ markets:
   note: ''
 - code: NE X-1
   label_sr: NE X-1
-  definition_en: Not (half time X, full time 1)
+  definition_en: not (Level at half time and home wins at full time)
   family: HTFT_NE
   section: Poluvreme/Kraj
   period: FT
@@ -568,7 +568,7 @@ markets:
   note: ''
 - code: NE X-X
   label_sr: NE X-X
-  definition_en: Not (half time X, full time X)
+  definition_en: not (Level at half time and draw at full time)
   family: HTFT_NE
   section: Poluvreme/Kraj
   period: FT
@@ -578,7 +578,7 @@ markets:
   note: ''
 - code: NE X-2
   label_sr: NE X-2
-  definition_en: Not (half time X, full time 2)
+  definition_en: not (Level at half time and away wins at full time)
   family: HTFT_NE
   section: Poluvreme/Kraj
   period: FT
@@ -588,7 +588,7 @@ markets:
   note: ''
 - code: NE 2-2
   label_sr: NE 2-2
-  definition_en: Not (half time 2, full time 2)
+  definition_en: not (Away leads at half time and away wins at full time)
   family: HTFT_NE
   section: Poluvreme/Kraj
   period: FT
@@ -598,7 +598,7 @@ markets:
   note: ''
 - code: 0-1
   label_sr: 0-1
-  definition_en: Full-time total goals 0-1
+  definition_en: 'Full-time: 0 to 1 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -608,7 +608,7 @@ markets:
   note: ''
 - code: 0-2
   label_sr: 0-2
-  definition_en: Full-time total goals 0-2
+  definition_en: 'Full-time: 0 to 2 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -618,7 +618,7 @@ markets:
   note: ''
 - code: 0-3
   label_sr: 0-3
-  definition_en: Full-time total goals 0-3
+  definition_en: 'Full-time: 0 to 3 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -628,7 +628,7 @@ markets:
   note: ''
 - code: 0-4
   label_sr: 0-4
-  definition_en: Full-time total goals 0-4
+  definition_en: 'Full-time: 0 to 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -638,7 +638,7 @@ markets:
   note: ''
 - code: '1'
   label_sr: '1'
-  definition_en: Full-time total goals 1
+  definition_en: 'Full-time: exactly 1 goal'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -648,7 +648,7 @@ markets:
   note: ''
 - code: 1+
   label_sr: 1+
-  definition_en: Full-time total goals 1+
+  definition_en: 'Full-time: at least 1 goal'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -658,7 +658,7 @@ markets:
   note: ''
 - code: 1-2
   label_sr: 1-2
-  definition_en: Full-time total goals 1-2
+  definition_en: 'Full-time: 1 to 2 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -668,7 +668,7 @@ markets:
   note: ''
 - code: 1-3
   label_sr: 1-3
-  definition_en: Full-time total goals 1-3
+  definition_en: 'Full-time: 1 to 3 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -678,7 +678,7 @@ markets:
   note: ''
 - code: 1-4
   label_sr: 1-4
-  definition_en: Full-time total goals 1-4
+  definition_en: 'Full-time: 1 to 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -688,7 +688,7 @@ markets:
   note: ''
 - code: 1-5
   label_sr: 1-5
-  definition_en: Full-time total goals 1-5
+  definition_en: 'Full-time: 1 to 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -698,7 +698,7 @@ markets:
   note: ''
 - code: 1-6
   label_sr: 1-6
-  definition_en: Full-time total goals 1-6
+  definition_en: 'Full-time: 1 to 6 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -708,7 +708,7 @@ markets:
   note: ''
 - code: '2'
   label_sr: '2'
-  definition_en: Full-time total goals 2
+  definition_en: 'Full-time: exactly 2 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -718,7 +718,7 @@ markets:
   note: ''
 - code: 2+
   label_sr: 2+
-  definition_en: Full-time total goals 2+
+  definition_en: 'Full-time: at least 2 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -728,7 +728,7 @@ markets:
   note: ''
 - code: 2-3
   label_sr: 2-3
-  definition_en: Full-time total goals 2-3
+  definition_en: 'Full-time: 2 to 3 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -738,7 +738,7 @@ markets:
   note: ''
 - code: 2-4
   label_sr: 2-4
-  definition_en: Full-time total goals 2-4
+  definition_en: 'Full-time: 2 to 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -748,7 +748,7 @@ markets:
   note: ''
 - code: 2-5
   label_sr: 2-5
-  definition_en: Full-time total goals 2-5
+  definition_en: 'Full-time: 2 to 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -758,7 +758,7 @@ markets:
   note: ''
 - code: 2-6
   label_sr: 2-6
-  definition_en: Full-time total goals 2-6
+  definition_en: 'Full-time: 2 to 6 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -768,7 +768,7 @@ markets:
   note: ''
 - code: '3'
   label_sr: '3'
-  definition_en: Full-time total goals 3
+  definition_en: 'Full-time: exactly 3 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -778,7 +778,7 @@ markets:
   note: ''
 - code: 3+
   label_sr: 3+
-  definition_en: Full-time total goals 3+
+  definition_en: 'Full-time: at least 3 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -788,7 +788,7 @@ markets:
   note: ''
 - code: 3-4
   label_sr: 3-4
-  definition_en: Full-time total goals 3-4
+  definition_en: 'Full-time: 3 to 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -799,7 +799,7 @@ markets:
     as 3 or 4
 - code: 3-5
   label_sr: 3-5
-  definition_en: Full-time total goals 3-5
+  definition_en: 'Full-time: 3 to 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -809,7 +809,7 @@ markets:
   note: ''
 - code: 3-6
   label_sr: 3-6
-  definition_en: Full-time total goals 3-6
+  definition_en: 'Full-time: 3 to 6 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -819,7 +819,7 @@ markets:
   note: ''
 - code: '4'
   label_sr: '4'
-  definition_en: Full-time total goals 4
+  definition_en: 'Full-time: exactly 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -829,7 +829,7 @@ markets:
   note: ''
 - code: 4+
   label_sr: 4+
-  definition_en: Full-time total goals 4+
+  definition_en: 'Full-time: at least 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -839,7 +839,7 @@ markets:
   note: ''
 - code: 4-5
   label_sr: 4-5
-  definition_en: Full-time total goals 4-5
+  definition_en: 'Full-time: 4 to 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -849,7 +849,7 @@ markets:
   note: ''
 - code: 4-6
   label_sr: 4-6
-  definition_en: Full-time total goals 4-6
+  definition_en: 'Full-time: 4 to 6 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -859,7 +859,7 @@ markets:
   note: ''
 - code: '5'
   label_sr: '5'
-  definition_en: Full-time total goals 5
+  definition_en: 'Full-time: exactly 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -869,7 +869,7 @@ markets:
   note: ''
 - code: 5+
   label_sr: 5+
-  definition_en: Full-time total goals 5+
+  definition_en: 'Full-time: at least 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -879,7 +879,7 @@ markets:
   note: ''
 - code: 6+
   label_sr: 6+
-  definition_en: Full-time total goals 6+
+  definition_en: 'Full-time: at least 6 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -889,7 +889,7 @@ markets:
   note: ''
 - code: 7+
   label_sr: 7+
-  definition_en: Full-time total goals 7+
+  definition_en: 'Full-time: at least 7 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -899,7 +899,7 @@ markets:
   note: ''
 - code: NE 1
   label_sr: NE 1
-  definition_en: Full-time total goals NE 1
+  definition_en: 'Full-time: not exactly 1 goal'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -909,7 +909,7 @@ markets:
   note: ''
 - code: NE 1-2
   label_sr: NE 1-2
-  definition_en: Full-time total goals NE 1-2
+  definition_en: 'Full-time: not 1 to 2 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -919,7 +919,7 @@ markets:
   note: ''
 - code: NE 1-3
   label_sr: NE 1-3
-  definition_en: Full-time total goals NE 1-3
+  definition_en: 'Full-time: not 1 to 3 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -929,7 +929,7 @@ markets:
   note: ''
 - code: NE 1-4
   label_sr: NE 1-4
-  definition_en: Full-time total goals NE 1-4
+  definition_en: 'Full-time: not 1 to 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -939,7 +939,7 @@ markets:
   note: ''
 - code: NE 2
   label_sr: NE 2
-  definition_en: Full-time total goals NE 2
+  definition_en: 'Full-time: not exactly 2 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -949,7 +949,7 @@ markets:
   note: ''
 - code: NE 4-6
   label_sr: NE 4-6
-  definition_en: Full-time total goals NE 4-6
+  definition_en: 'Full-time: not 4 to 6 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -959,7 +959,7 @@ markets:
   note: ''
 - code: NE 3-4
   label_sr: NE 3-4
-  definition_en: Full-time total goals NE 3-4
+  definition_en: 'Full-time: not 3 to 4 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -969,7 +969,7 @@ markets:
   note: ''
 - code: NE 3-5
   label_sr: NE 3-5
-  definition_en: Full-time total goals NE 3-5
+  definition_en: 'Full-time: not 3 to 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -979,7 +979,7 @@ markets:
   note: ''
 - code: NE 3-6
   label_sr: NE 3-6
-  definition_en: Full-time total goals NE 3-6
+  definition_en: 'Full-time: not 3 to 6 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -989,7 +989,7 @@ markets:
   note: ''
 - code: NE 4-5
   label_sr: NE 4-5
-  definition_en: Full-time total goals NE 4-5
+  definition_en: 'Full-time: not 4 to 5 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -999,7 +999,7 @@ markets:
   note: ''
 - code: NE 3
   label_sr: NE 3
-  definition_en: Full-time total goals NE 3
+  definition_en: 'Full-time: not exactly 3 goals'
   family: GOAL_RANGE_FT
   section: Ukupno Golova
   period: FT
@@ -1009,7 +1009,7 @@ markets:
   note: ''
 - code: I0
   label_sr: I0
-  definition_en: First-half total goals I0
+  definition_en: '1st half: exactly 0 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1019,7 +1019,7 @@ markets:
   note: ''
 - code: I0-1
   label_sr: I0-1
-  definition_en: First-half total goals I0-1
+  definition_en: '1st half: 0 to 1 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1029,7 +1029,7 @@ markets:
   note: ''
 - code: I0-2
   label_sr: I0-2
-  definition_en: First-half total goals I0-2
+  definition_en: '1st half: 0 to 2 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1039,7 +1039,7 @@ markets:
   note: ''
 - code: I1
   label_sr: I1
-  definition_en: First-half total goals I1
+  definition_en: '1st half: exactly 1 goal'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1049,7 +1049,7 @@ markets:
   note: ''
 - code: NE 1
   label_sr: NE 1
-  definition_en: First-half total goals NE 1
+  definition_en: '1st half: not exactly 1 goal'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1059,7 +1059,7 @@ markets:
   note: ''
 - code: I1+
   label_sr: I1+
-  definition_en: First-half total goals I1+
+  definition_en: '1st half: at least 1 goal'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1069,7 +1069,7 @@ markets:
   note: ''
 - code: I1-2
   label_sr: I1-2
-  definition_en: First-half total goals I1-2
+  definition_en: '1st half: 1 to 2 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1079,7 +1079,7 @@ markets:
   note: ''
 - code: NE 2
   label_sr: NE 2
-  definition_en: First-half total goals NE 2
+  definition_en: '1st half: not exactly 2 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1089,7 +1089,7 @@ markets:
   note: ''
 - code: I2
   label_sr: I2
-  definition_en: First-half total goals I2
+  definition_en: '1st half: exactly 2 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1099,7 +1099,7 @@ markets:
   note: ''
 - code: I2+
   label_sr: I2+
-  definition_en: First-half total goals I2+
+  definition_en: '1st half: at least 2 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1109,7 +1109,7 @@ markets:
   note: ''
 - code: I2-3
   label_sr: I2-3
-  definition_en: First-half total goals I2-3
+  definition_en: '1st half: 2 to 3 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1119,7 +1119,7 @@ markets:
   note: ''
 - code: I2-4
   label_sr: I2-4
-  definition_en: First-half total goals I2-4
+  definition_en: '1st half: 2 to 4 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1129,7 +1129,7 @@ markets:
   note: ''
 - code: I3
   label_sr: I3
-  definition_en: First-half total goals I3
+  definition_en: '1st half: exactly 3 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1139,7 +1139,7 @@ markets:
   note: ''
 - code: I3+
   label_sr: I3+
-  definition_en: First-half total goals I3+
+  definition_en: '1st half: at least 3 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1149,7 +1149,7 @@ markets:
   note: ''
 - code: I4+
   label_sr: I4+
-  definition_en: First-half total goals I4+
+  definition_en: '1st half: at least 4 goals'
   family: GOAL_RANGE_1H
   section: I Pol. Uk. Golova
   period: 1H
@@ -1159,7 +1159,7 @@ markets:
   note: ''
 - code: II0
   label_sr: II0
-  definition_en: Second-half total goals II0
+  definition_en: '2nd half: exactly 0 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1169,7 +1169,7 @@ markets:
   note: ''
 - code: II0-1
   label_sr: II0-1
-  definition_en: Second-half total goals II0-1
+  definition_en: '2nd half: 0 to 1 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1179,7 +1179,7 @@ markets:
   note: ''
 - code: II0-2
   label_sr: II0-2
-  definition_en: Second-half total goals II0-2
+  definition_en: '2nd half: 0 to 2 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1189,7 +1189,7 @@ markets:
   note: ''
 - code: II1
   label_sr: II1
-  definition_en: Second-half total goals II1
+  definition_en: '2nd half: exactly 1 goal'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1199,7 +1199,7 @@ markets:
   note: ''
 - code: NE 1
   label_sr: NE 1
-  definition_en: Second-half total goals NE 1
+  definition_en: '2nd half: not exactly 1 goal'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1209,7 +1209,7 @@ markets:
   note: ''
 - code: II1+
   label_sr: II1+
-  definition_en: Second-half total goals II1+
+  definition_en: '2nd half: at least 1 goal'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1219,7 +1219,7 @@ markets:
   note: ''
 - code: II1-2
   label_sr: II1-2
-  definition_en: Second-half total goals II1-2
+  definition_en: '2nd half: 1 to 2 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1229,7 +1229,7 @@ markets:
   note: ''
 - code: II1-3
   label_sr: II1-3
-  definition_en: Second-half total goals II1-3
+  definition_en: '2nd half: 1 to 3 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1239,7 +1239,7 @@ markets:
   note: ''
 - code: NE 2
   label_sr: NE 2
-  definition_en: Second-half total goals NE 2
+  definition_en: '2nd half: not exactly 2 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1249,7 +1249,7 @@ markets:
   note: ''
 - code: II2
   label_sr: II2
-  definition_en: Second-half total goals II2
+  definition_en: '2nd half: exactly 2 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1259,7 +1259,7 @@ markets:
   note: ''
 - code: II2+
   label_sr: II2+
-  definition_en: Second-half total goals II2+
+  definition_en: '2nd half: at least 2 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1269,7 +1269,7 @@ markets:
   note: ''
 - code: II2-3
   label_sr: II2-3
-  definition_en: Second-half total goals II2-3
+  definition_en: '2nd half: 2 to 3 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1279,7 +1279,7 @@ markets:
   note: ''
 - code: II2-4
   label_sr: II2-4
-  definition_en: Second-half total goals II2-4
+  definition_en: '2nd half: 2 to 4 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1289,7 +1289,7 @@ markets:
   note: ''
 - code: II3
   label_sr: II3
-  definition_en: Second-half total goals II3
+  definition_en: '2nd half: exactly 3 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1299,7 +1299,7 @@ markets:
   note: ''
 - code: II3+
   label_sr: II3+
-  definition_en: Second-half total goals II3+
+  definition_en: '2nd half: at least 3 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1309,7 +1309,7 @@ markets:
   note: ''
 - code: II4+
   label_sr: II4+
-  definition_en: Second-half total goals II4+
+  definition_en: '2nd half: at least 4 goals'
   family: GOAL_RANGE_2H
   section: II Pol. Uk. Golova
   period: 2H
@@ -1319,7 +1319,7 @@ markets:
   note: ''
 - code: I0-1&II0-1
   label_sr: I0-1&II0-1
-  definition_en: Half-goal combination I0-1&II0-1
+  definition_en: 1st half 0 to 1 goals and 2nd half 0 to 1 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1329,7 +1329,7 @@ markets:
   note: ''
 - code: I0-1&II0-2
   label_sr: I0-1&II0-2
-  definition_en: Half-goal combination I0-1&II0-2
+  definition_en: 1st half 0 to 1 goals and 2nd half 0 to 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1339,7 +1339,7 @@ markets:
   note: ''
 - code: I0-1&II0-3
   label_sr: I0-1&II0-3
-  definition_en: Half-goal combination I0-1&II0-3
+  definition_en: 1st half 0 to 1 goals and 2nd half 0 to 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1349,7 +1349,7 @@ markets:
   note: ''
 - code: I0-2&II0-1
   label_sr: I0-2&II0-1
-  definition_en: Half-goal combination I0-2&II0-1
+  definition_en: 1st half 0 to 2 goals and 2nd half 0 to 1 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1359,7 +1359,7 @@ markets:
   note: ''
 - code: I0-2&II0-2
   label_sr: I0-2&II0-2
-  definition_en: Half-goal combination I0-2&II0-2
+  definition_en: 1st half 0 to 2 goals and 2nd half 0 to 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1369,7 +1369,7 @@ markets:
   note: ''
 - code: I0-2&II0-3
   label_sr: I0-2&II0-3
-  definition_en: Half-goal combination I0-2&II0-3
+  definition_en: 1st half 0 to 2 goals and 2nd half 0 to 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1379,7 +1379,7 @@ markets:
   note: ''
 - code: I1+&II1+
   label_sr: I1+&II1+
-  definition_en: Half-goal combination I1+&II1+
+  definition_en: 1st half at least 1 goal and 2nd half at least 1 goal
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1389,7 +1389,7 @@ markets:
   note: ''
 - code: I1+&II2+
   label_sr: I1+&II2+
-  definition_en: Half-goal combination I1+&II2+
+  definition_en: 1st half at least 1 goal and 2nd half at least 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1399,7 +1399,7 @@ markets:
   note: ''
 - code: I1+&II3+
   label_sr: I1+&II3+
-  definition_en: Half-goal combination I1+&II3+
+  definition_en: 1st half at least 1 goal and 2nd half at least 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1409,7 +1409,7 @@ markets:
   note: ''
 - code: I1-2&II1-2
   label_sr: I1-2&II1-2
-  definition_en: Half-goal combination I1-2&II1-2
+  definition_en: 1st half 1 to 2 goals and 2nd half 1 to 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1419,7 +1419,7 @@ markets:
   note: ''
 - code: I1-3&II1-3
   label_sr: I1-3&II1-3
-  definition_en: Half-goal combination I1-3&II1-3
+  definition_en: 1st half 1 to 3 goals and 2nd half 1 to 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1429,7 +1429,7 @@ markets:
   note: ''
 - code: I2+&II1+
   label_sr: I2+&II1+
-  definition_en: Half-goal combination I2+&II1+
+  definition_en: 1st half at least 2 goals and 2nd half at least 1 goal
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1439,7 +1439,7 @@ markets:
   note: ''
 - code: I2+&II2+
   label_sr: I2+&II2+
-  definition_en: Half-goal combination I2+&II2+
+  definition_en: 1st half at least 2 goals and 2nd half at least 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1449,7 +1449,7 @@ markets:
   note: ''
 - code: I2+&II3+
   label_sr: I2+&II3+
-  definition_en: Half-goal combination I2+&II3+
+  definition_en: 1st half at least 2 goals and 2nd half at least 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1459,7 +1459,7 @@ markets:
   note: ''
 - code: I1+&2+
   label_sr: I1+&2+
-  definition_en: Half-goal combination I1+&2+
+  definition_en: 1st half at least 1 goal and full time at least 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1469,7 +1469,7 @@ markets:
   note: ''
 - code: I1+&3+
   label_sr: I1+&3+
-  definition_en: Half-goal combination I1+&3+
+  definition_en: 1st half at least 1 goal and full time at least 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1479,7 +1479,7 @@ markets:
   note: ''
 - code: I1-2&3+
   label_sr: I1-2&3+
-  definition_en: Half-goal combination I1-2&3+
+  definition_en: 1st half 1 to 2 goals and full time at least 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1489,7 +1489,7 @@ markets:
   note: ''
 - code: I1-2&4+
   label_sr: I1-2&4+
-  definition_en: Half-goal combination I1-2&4+
+  definition_en: 1st half 1 to 2 goals and full time at least 4 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1499,7 +1499,7 @@ markets:
   note: ''
 - code: I2+&3+
   label_sr: I2+&3+
-  definition_en: Half-goal combination I2+&3+
+  definition_en: 1st half at least 2 goals and full time at least 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1509,7 +1509,7 @@ markets:
   note: ''
 - code: I2+&4+
   label_sr: I2+&4+
-  definition_en: Half-goal combination I2+&4+
+  definition_en: 1st half at least 2 goals and full time at least 4 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1519,7 +1519,7 @@ markets:
   note: ''
 - code: NE I1-3&II1-3
   label_sr: NE I1-3&II1-3
-  definition_en: Half-goal combination NE I1-3&II1-3
+  definition_en: not (1st half 1 to 3 goals and 2nd half 1 to 3 goals)
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1529,7 +1529,7 @@ markets:
   note: ''
 - code: I2-3&4+
   label_sr: I2-3&4+
-  definition_en: Half-goal combination I2-3&4+
+  definition_en: 1st half 2 to 3 goals and full time at least 4 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1539,7 +1539,7 @@ markets:
   note: ''
 - code: NE I1+&II2+
   label_sr: NE I1+&II2+
-  definition_en: Half-goal combination NE I1+&II2+
+  definition_en: not (1st half at least 1 goal and 2nd half at least 2 goals)
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1549,7 +1549,7 @@ markets:
   note: ''
 - code: NE I1+&II1+
   label_sr: NE I1+&II1+
-  definition_en: Half-goal combination NE I1+&II1+
+  definition_en: not (1st half at least 1 goal and 2nd half at least 1 goal)
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1559,7 +1559,7 @@ markets:
   note: ''
 - code: I2-3&II2-3
   label_sr: I2-3&II2-3
-  definition_en: Half-goal combination I2-3&II2-3
+  definition_en: 1st half 2 to 3 goals and 2nd half 2 to 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1569,7 +1569,7 @@ markets:
   note: ''
 - code: I2-3&II2+
   label_sr: I2-3&II2+
-  definition_en: Half-goal combination I2-3&II2+
+  definition_en: 1st half 2 to 3 goals and 2nd half at least 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1579,7 +1579,7 @@ markets:
   note: ''
 - code: I2-3&II1-3
   label_sr: I2-3&II1-3
-  definition_en: Half-goal combination I2-3&II1-3
+  definition_en: 1st half 2 to 3 goals and 2nd half 1 to 3 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1589,7 +1589,7 @@ markets:
   note: ''
 - code: I2-3&II1-2
   label_sr: I2-3&II1-2
-  definition_en: Half-goal combination I2-3&II1-2
+  definition_en: 1st half 2 to 3 goals and 2nd half 1 to 2 goals
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1599,7 +1599,7 @@ markets:
   note: ''
 - code: I2-3&II1+
   label_sr: I2-3&II1+
-  definition_en: Half-goal combination I2-3&II1+
+  definition_en: 1st half 2 to 3 goals and 2nd half at least 1 goal
   family: HALF_GOAL_COMBOS
   section: Uk. Golova Kombinacije
   period: MIXED
@@ -1970,7 +1970,7 @@ markets:
   note: ''
 - code: I>II
   label_sr: I>II
-  definition_en: 1H goals > 2H goals
+  definition_en: more goals in the 1st half than in the 2nd
   family: MORE_GOALS_HALF
   section: Pada Više Golova
   period: MIXED
@@ -1980,7 +1980,7 @@ markets:
   note: ''
 - code: I=II
   label_sr: I = II
-  definition_en: 1H goals == 2H goals
+  definition_en: the same number of goals in each half
   family: MORE_GOALS_HALF
   section: Pada Više Golova
   period: MIXED
@@ -1990,7 +1990,7 @@ markets:
   note: ''
 - code: I<II
   label_sr: I<II
-  definition_en: 1H goals < 2H goals
+  definition_en: more goals in the 2nd half than in the 1st
   family: MORE_GOALS_HALF
   section: Pada Više Golova
   period: MIXED

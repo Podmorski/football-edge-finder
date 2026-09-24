@@ -146,6 +146,84 @@ add(HAG, "HTFT_AND_GOALS", "Half + Match Outcome Combinations", {c: c for c in H
 
 
 # --------------------------------------------------------------------------- #
+# plain-English meanings
+# --------------------------------------------------------------------------- #
+# The sheet prints a MEANING column, and a mechanical "total goals NE 3-6" is not
+# English. These are the families the sheet shows; everything else keeps the
+# generated form.
+RESULT_WORD = {"1": "home win", "X": "draw", "2": "away win",
+               "1X": "home win or draw", "12": "home win or away win",
+               "X2": "away win or draw"}
+LEAD_WORD = {"1": "home leads", "X": "level", "2": "away leads"}
+FT_WORD = {"1": "home wins", "X": "draw", "2": "away wins"}
+
+GOAL_SCOPE = {"GOAL_RANGE_FT": "Full-time", "GOAL_RANGE_1H": "1st half",
+              "GOAL_RANGE_2H": "2nd half"}
+
+
+def plain_goals(code: str) -> str:
+    """'NE 3-6' -> 'not 3 to 6 goals'; 'I1' -> 'exactly 1 goal'."""
+    raw = code.strip()
+    negate = raw.upper().startswith("NE ")
+    if negate:
+        raw = raw[3:].strip()
+    for marker in ("II", "I"):
+        if raw.startswith(marker) and len(raw) > len(marker) and raw[len(marker)].isdigit():
+            raw = raw[len(marker):]
+            break
+    if raw.endswith("+"):
+        count = raw[:-1]
+        phrase = f"at least {count} goal" + ("" if count == "1" else "s")
+    elif "-" in raw:
+        low, high = raw.split("-", 1)
+        phrase = f"{low} to {high} goals"
+    else:
+        phrase = f"exactly {raw} goal" + ("" if raw == "1" else "s")
+    return f"not {phrase}" if negate else phrase
+
+
+def plain_combo(code: str) -> str:
+    """'I1-2&4+' -> '1st half 1 to 2 goals and full time at least 4 goals'."""
+    raw = code.strip()
+    negate = raw.upper().startswith("NE ")
+    if negate:
+        raw = raw[3:].strip()
+    parts = []
+    for leg in raw.split("&"):
+        leg = leg.strip()
+        scope = "full time"
+        for marker, label in (("II", "2nd half"), ("I", "1st half")):
+            if leg.startswith(marker) and len(leg) > len(marker) and leg[len(marker)].isdigit():
+                scope, leg = label, leg[len(marker):]
+                break
+        parts.append(f"{scope} {plain_goals(leg)}")
+    text = " and ".join(parts)
+    return f"not ({text})" if negate else text
+
+
+def plain_meaning(family: str, code: str) -> str | None:
+    """Plain English for a shown family, or None to keep the generated text."""
+    if family in GOAL_SCOPE:
+        return f"{GOAL_SCOPE[family]}: {plain_goals(code)}"
+    if family == "HALF_GOAL_COMBOS":
+        return plain_combo(code)
+    if family in ("HTFT", "HTFT_NE"):
+        raw = code.strip()
+        negate = raw.upper().startswith("NE")
+        if negate:
+            raw = raw[2:].strip()
+        half, full = raw.split("-", 1)
+        text = f"{LEAD_WORD[half]} at half time and {FT_WORD[full]} at full time"
+        text = text[0].upper() + text[1:]
+        return f"not ({text})" if negate else text
+    if family == "MORE_GOALS_HALF":
+        return {"I>II": "more goals in the 1st half than the 2nd",
+                "I=II": "the same number of goals in each half",
+                "I<II": "more goals in the 2nd half than the 1st"}.get(code.strip())
+    return None
+
+
+# --------------------------------------------------------------------------- #
 # ext_markets section
 # --------------------------------------------------------------------------- #
 def settlement_signature(outcome) -> tuple:
@@ -251,6 +329,7 @@ def main() -> int:
     markets: list[Market] = []
 
     for code, family, section, label_sr, definition_en in CODE_ENTRIES:
+        definition_en = plain_meaning(family, code) or definition_en
         try:
             market: Market = parse(code, family, label_sr, definition_en, section=section)
         except Exception as exc:  # noqa: BLE001

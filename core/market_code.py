@@ -459,15 +459,15 @@ def direct_markets() -> list[Market]:
 
     # Pada Vise Golova — which half has more goals
     out.append(_direct("I>II", "MORE_GOALS_HALF", "MIXED", "I>II",
-                       "1H goals > 2H goals",
+                       "more goals in the 1st half than in the 2nd",
                        lambda hth, hta, fth, fta: WIN if (hth + hta) > ((fth - hth) + (fta - hta)) else LOSE,
                        section="Pada Više Golova"))
     out.append(_direct("I=II", "MORE_GOALS_HALF", "MIXED", "I = II",
-                       "1H goals == 2H goals",
+                       "the same number of goals in each half",
                        lambda hth, hta, fth, fta: WIN if (hth + hta) == ((fth - hth) + (fta - hta)) else LOSE,
                        section="Pada Više Golova"))
     out.append(_direct("I<II", "MORE_GOALS_HALF", "MIXED", "I<II",
-                       "1H goals < 2H goals",
+                       "more goals in the 2nd half than in the 1st",
                        lambda hth, hta, fth, fta: WIN if (hth + hta) < ((fth - hth) + (fta - hta)) else LOSE,
                        section="Pada Više Golova"))
 
