@@ -1868,3 +1868,682 @@ markets:
   testable: false
   do_not_bet: false
   note: out of scope (needs tie context)
+ext_markets:
+  note: 'Extended Soccer Bet families, settled by core.soccerbet_ext. Keyed by the
+    printed PREFIX: the same code means different things under different prefixes
+    (II0 is ''no goals in the 2nd half'' under T2 but ''away leads'' under H2), so
+    the family cannot be inferred from the code alone. A code here whose settlement
+    matches a market in the base `markets` section exactly on all 0..3^4 scorelines
+    is omitted, so the two sections together list every distinct market once. UNTESTABLE
+    families cannot be settled from (HT, FT) scores and are ingest-only.'
+  source: core/soccerbet_ext.py; codes observed in data/soccerbet/2026-09-24_hoffenheim_hamburg.csv
+  families:
+  - family: BTTS
+    testable: true
+    prefixes:
+    - prefix: GG
+      codes:
+      - 2GG
+      - 2NG
+      - GG
+      - IGG
+      - IIGG
+      - IING
+      - ING
+      - NG
+  - family: BTTS_COMBOS
+    testable: true
+    prefixes:
+    - prefix: GG
+      codes:
+      - IGG&IIGG
+      - IGG&IING
+      - ING&IIGG
+      - ING&IING
+    - prefix: GGC
+      codes:
+      - GG&2-3
+      - GG&3+
+      - GG&4+
+      - GG&D2+
+      - GG&D3+
+      - GG&G2+
+      - GG&G3+
+      - GG&I1+
+      - GG&I1+&II1+
+      - GG&I1-2
+      - GG&I2+
+      - GG&II1+
+      - GG&II2+
+      - IGG&3+
+      - IGG&4+
+      - IGG&I3+
+      - IIGG&3+
+      - IIGG&4+
+      - IIGG&II3+
+      - NE GG&3+
+  - family: CORRECT_SCORE
+    testable: true
+    prefixes:
+    - prefix: CS
+      codes:
+      - 0:0
+      - 0:1
+      - 0:2
+      - 0:3
+      - 0:4
+      - '1:0'
+      - '1:1'
+      - '1:2'
+      - '1:3'
+      - '1:4'
+      - '2:0'
+      - '2:1'
+      - '2:2'
+      - '2:3'
+      - '2:4'
+      - '3:0'
+      - '3:1'
+      - '3:2'
+      - '3:3'
+      - '3:4'
+      - '4:0'
+      - '4:1'
+      - '4:2'
+      - '4:3'
+      - '4:4'
+  - family: CORRECT_SCORE_1H
+    testable: true
+    prefixes:
+    - prefix: CS1
+      codes:
+      - 0:1
+      - 0:2
+      - 0:3
+      - '1:0'
+      - '1:1'
+      - '1:2'
+      - '1:3'
+      - '2:0'
+      - '2:1'
+      - '2:2'
+      - '2:3'
+      - '3:0'
+      - '3:1'
+      - '3:2'
+      - '3:3'
+  - family: DOUBLE_CHANCE_AND_GOALS
+    testable: true
+    prefixes:
+    - prefix: DCG
+      codes:
+      - 12&0-1
+      - 12&0-2
+      - 12&0-3
+      - 12&0-4
+      - 12&1-2
+      - 12&1-3
+      - 12&2+
+      - 12&2-3
+      - 12&2-4
+      - 12&2-5
+      - 12&2-6
+      - 12&3+
+      - 12&3-4
+      - 12&3-5
+      - 12&3-6
+      - 12&4+
+      - 12&4-6
+      - 12&D2+
+      - 12&G2+
+      - 12&GG
+      - 12&I0-1
+      - 12&I1+
+      - 12&I1+&II1+
+      - 12&I1-2
+      - 12&I<II
+      - 12&I=II
+      - 12&I>II
+      - 1X&0-1
+      - 1X&0-2
+      - 1X&0-3
+      - 1X&0-4
+      - 1X&1-2
+      - 1X&1-3
+      - 1X&2+
+      - 1X&2-3
+      - 1X&2-4
+      - 1X&2-5
+      - 1X&2-6
+      - 1X&3+
+      - 1X&3-4
+      - 1X&3-5
+      - 1X&3-6
+      - 1X&4+
+      - 1X&4-6
+      - 1X&D2+
+      - 1X&GG
+      - 1X&I0-1
+      - 1X&I1+
+      - 1X&I1+&2+
+      - 1X&I1+&3+
+      - 1X&I1+&II1+
+      - 1X&I1-2
+      - 1X&I1-2&II1-2
+      - 1X&I1-3&II1-3
+      - 1X&I2+
+      - 1X&I2+&4+
+      - 1X&I<II
+      - 1X&I=II
+      - 1X&I>II
+      - X2&0-1
+      - X2&0-2
+      - X2&0-3
+      - X2&0-4
+      - X2&1-2
+      - X2&1-3
+      - X2&2+
+      - X2&2-3
+      - X2&2-4
+      - X2&2-5
+      - X2&2-6
+      - X2&3+
+      - X2&3-4
+      - X2&3-5
+      - X2&3-6
+      - X2&4+
+      - X2&4-6
+      - X2&G2+
+      - X2&GG
+      - X2&I0-1
+      - X2&I1+
+      - X2&I1+&2+
+      - X2&I1+&3+
+      - X2&I1+&II1+
+      - X2&I1-2
+      - X2&I1-2&II1-2
+      - X2&I1-3&II1-3
+      - X2&I2+
+      - X2&I2+&4+
+      - X2&I<II
+      - X2&I=II
+      - X2&I>II
+  - family: GOAL_RANGE_1H
+    testable: true
+    prefixes:
+    - prefix: T1
+      codes:
+      - '1'
+      - 1-3
+      - '2'
+      - NE1
+      - NE2
+  - family: GOAL_RANGE_2H
+    testable: true
+    prefixes:
+    - prefix: T2
+      codes:
+      - '1'
+      - '2'
+      - NE1
+      - NE2
+  - family: GOAL_RANGE_FT
+    testable: true
+    prefixes:
+    - prefix: T
+      codes:
+      - '1'
+      - '2'
+      - NE1
+      - NE2
+  - family: HALF_GOAL_COMBOS
+    testable: true
+    prefixes:
+    - prefix: C
+      codes:
+      - I0-1&II1+
+      - I0-1&II1-2
+      - I0-1&II1-3
+      - I0-1&II2+
+      - I0-1&II2-3
+      - I0-2&II1-2
+      - I0-2&II1-3
+      - I0-2&II2+
+      - I0-2&II2-3
+      - I1+&4+
+      - I1+&II0-2
+      - I1+&II1-2
+      - I1+&II1-3
+      - I1+&II2-3
+      - I1-2&II0-1
+      - I1-2&II0-2
+      - I1-2&II0-3
+      - I1-2&II1+
+      - I1-2&II1-3
+      - I1-2&II2+
+      - I1-2&II2-3
+      - I1-3&II1+
+      - I1-3&II1-2
+      - I1-3&II2+
+      - I2-3&II0-1
+      - I2-3&II0-2
+      - NE I2+&II1+
+  - family: HALF_RESULT_AND_BTTS
+    testable: true
+    prefixes:
+    - prefix: HRG
+      codes:
+      - I1&IGG
+      - I1&ING
+      - I2&IGG
+      - I2&ING
+      - II1&IIGG
+      - II1&IING
+      - II2&IIGG
+      - II2&IING
+      - IIX&IIGG
+      - IX&IGG
+  - family: HTFT_AND_GOALS
+    testable: true
+    prefixes:
+    - prefix: HFG
+      codes:
+      - 1-1&0-2
+      - 1-1&0-3
+      - 1-1&2-3
+      - 1-1&2-4
+      - 1-1&2-5
+      - 1-1&2-6
+      - 1-1&3-4
+      - 1-1&3-5
+      - 1-1&3-6
+      - 1-1&4+
+      - 1-1&4-5
+      - 1-1&4-6
+      - 1-1&5+
+      - 1-1&D2-3
+      - 1-1&D3+
+      - 1-1&GG
+      - 1-1&HP1
+      - 1-1&I1-2&II1-2
+      - 1-1&I1-3&II1-3
+      - 1-1&I2+
+      - 1-1&I2+&4+
+      - 1-1&I<II
+      - 1-1&I=II
+      - 1-1&I>II
+      - 1-1&IGG
+      - 1-1&II1+
+      - 1-1&II2+
+      - 1-1&IIGG
+      - 1-1&NG
+      - 1-2&5+
+      - 2-1&5+
+      - 2-2&0-2
+      - 2-2&0-3
+      - 2-2&2-3
+      - 2-2&2-4
+      - 2-2&2-5
+      - 2-2&2-6
+      - 2-2&3-4
+      - 2-2&3-5
+      - 2-2&3-6
+      - 2-2&4+
+      - 2-2&4-5
+      - 2-2&4-6
+      - 2-2&5+
+      - 2-2&G2-3
+      - 2-2&G3+
+      - 2-2&GG
+      - 2-2&HP2
+      - 2-2&I1-2&II1-2
+      - 2-2&I1-3&II1-3
+      - 2-2&I2+
+      - 2-2&I2+&4+
+      - 2-2&I<II
+      - 2-2&I=II
+      - 2-2&I>II
+      - 2-2&IGG
+      - 2-2&II1+
+      - 2-2&II2+
+      - 2-2&IIGG
+      - 2-2&NG
+      - X-1&0-2
+      - X-1&0-3
+      - X-1&2+
+      - X-1&2-3
+      - X-1&2-4
+      - X-1&2-5
+      - X-1&2-6
+      - X-1&3+
+      - X-1&3-4
+      - X-1&3-5
+      - X-1&3-6
+      - X-1&4+
+      - X-1&GG
+      - X-1&HP1
+      - X-1&I2+
+      - X-1&II2+
+      - X-1&NG
+      - X-2&0-2
+      - X-2&0-3
+      - X-2&2+
+      - X-2&2-3
+      - X-2&2-4
+      - X-2&2-5
+      - X-2&2-6
+      - X-2&3+
+      - X-2&3-4
+      - X-2&3-5
+      - X-2&3-6
+      - X-2&4+
+      - X-2&GG
+      - X-2&HP2
+      - X-2&I2+
+      - X-2&II2+
+      - X-2&NG
+      - X-X&0-2
+      - X-X&2+
+  - family: ODD_EVEN
+    testable: true
+    prefixes:
+    - prefix: PN
+      codes:
+      - Nepar
+      - Par
+  - family: OR_MARKETS
+    testable: true
+    prefixes:
+    - prefix: SANSA
+      codes:
+      - 0:1v0:2v0:3
+      - 1-1v2-2
+      - 1-1vX-X
+      - 1-2v2-1
+      - 1:0v2:0v3:0
+      - 1:2v1:3v1:4
+      - 1v3+
+      - 1v4+
+      - 1vGG
+      - 1vI2+
+      - 1vI3+
+      - 2-2vX-X
+      - 2:1v3:1v4:1
+      - 2v3+
+      - 2v4+
+      - 2vGG
+      - 2vI2+
+      - 2vI3+
+      - D4+vG4+
+      - DI0vII0
+      - GGIvNGII
+      - GGv3+
+      - GI0vII0
+      - I1v1
+      - I1vII1
+      - I2+v4+
+      - I2+vII2+
+      - I2+vII3+
+      - I2v2
+      - I2vII2
+      - I3+vII3+
+      - IGGvIIGG
+      - IXvX
+      - NGIvGGII
+      - Xv3+
+  - family: RESULT_AND_GOALS
+    testable: true
+    prefixes:
+    - prefix: R
+      codes:
+      - 1&0-3
+      - 1&0-4
+      - 1&1-6
+      - 1&2-4
+      - 1&2-5
+      - 1&2-6
+      - 1&3-4
+      - 1&3-5
+      - 1&3-6
+      - 1&4-5
+      - 1&4-6
+      - 1&5+
+      - 1&D2-3
+      - 1&D3+
+      - 1&GG
+      - 1&I1+
+      - 1&I1+&2+
+      - 1&I1+&3+
+      - 1&I1+&II1+
+      - 1&I1-2
+      - 1&I1-2&II1-2
+      - 1&I1-3&II1-3
+      - 1&I2+
+      - 1&I2+&4+
+      - 1&I2-3
+      - 1&I<II
+      - 1&I=II
+      - 1&I>II
+      - 1&IGG
+      - 1&II1+
+      - 1&II2+
+      - 1&IIGG
+      - 2&0-3
+      - 2&0-4
+      - 2&1-6
+      - 2&2-4
+      - 2&2-5
+      - 2&2-6
+      - 2&3-4
+      - 2&3-5
+      - 2&3-6
+      - 2&4-5
+      - 2&4-6
+      - 2&5+
+      - 2&G2-3
+      - 2&G3+
+      - 2&GG
+      - 2&I1+
+      - 2&I1+&2+
+      - 2&I1+&3+
+      - 2&I1+&II1+
+      - 2&I1-2
+      - 2&I1-2&II1-2
+      - 2&I1-3&II1-3
+      - 2&I2+
+      - 2&I2+&4+
+      - 2&I2-3
+      - 2&I<II
+      - 2&I=II
+      - 2&I>II
+      - 2&IGG
+      - 2&II1+
+      - 2&II2+
+      - 2&IIGG
+      - X&0-2
+      - X&2+
+      - X&4+
+      - X&I0-2&II0-2
+      - X&I0-2&II1-3
+      - X&I1-2&II1-2
+      - X&I1-3&II1-3
+      - X&IGG
+      - X&IIGG
+      - X&IING
+      - X&ING
+  - family: TEAM_GOALS_AWAY_1H
+    testable: true
+    prefixes:
+    - prefix: AT1
+      codes:
+      - '0'
+      - 0-1
+      - '1'
+      - 1+
+      - 1-2
+      - 2+
+      - 2-3
+      - 3+
+      - 4+
+  - family: TEAM_GOALS_AWAY_2H
+    testable: true
+    prefixes:
+    - prefix: AT2
+      codes:
+      - '0'
+      - 0-1
+      - '1'
+      - 1+
+      - 1-2
+      - 2+
+      - 2-3
+      - 3+
+      - 4+
+  - family: TEAM_GOALS_AWAY_FT
+    testable: true
+    prefixes:
+    - prefix: AT
+      codes:
+      - '0'
+      - 0-1
+      - 0-2
+      - '1'
+      - 1+
+      - 1-2
+      - 1-3
+      - '2'
+      - 2+
+      - 2-3
+      - 2-4
+      - 2-5
+      - 2-6
+      - '3'
+      - 3+
+      - 3-4
+      - 3-5
+      - 3-6
+      - 4+
+      - I<II
+      - I=II
+      - I>II
+  - family: TEAM_GOALS_HOME_1H
+    testable: true
+    prefixes:
+    - prefix: HT1
+      codes:
+      - '0'
+      - 0-1
+      - '1'
+      - 1+
+      - 1-2
+      - 2+
+      - 2-3
+      - 3+
+      - 4+
+  - family: TEAM_GOALS_HOME_2H
+    testable: true
+    prefixes:
+    - prefix: HT2
+      codes:
+      - '0'
+      - 0-1
+      - '1'
+      - 1+
+      - 1-2
+      - 2+
+      - 2-3
+      - 3+
+      - 4+
+  - family: TEAM_GOALS_HOME_FT
+    testable: true
+    prefixes:
+    - prefix: HT
+      codes:
+      - '0'
+      - 0-1
+      - 0-2
+      - 0-3
+      - '1'
+      - 1+
+      - 1-2
+      - 1-3
+      - '2'
+      - 2+
+      - 2-3
+      - 2-4
+      - 2-5
+      - 2-6
+      - '3'
+      - 3+
+      - 3-4
+      - 3-5
+      - 3-6
+      - 4+
+      - I<II
+      - I=II
+      - I>II
+  - family: TEAM_HALF_COMBOS_AWAY
+    testable: true
+    prefixes:
+    - prefix: CA
+      codes:
+      - I0-1&II0-1
+      - I0-1&II0-2
+      - I0-2&II0-1
+      - I1+&2+
+      - I1+&3+
+      - I1+&II1+
+      - I1+&II2+
+      - I1-2&II1-2
+      - I1-3&II1-3
+      - I2+&3+
+      - I2+&II1+
+      - I2+&II2+
+  - family: TEAM_HALF_COMBOS_HOME
+    testable: true
+    prefixes:
+    - prefix: CH
+      codes:
+      - I0-1&II0-1
+      - I0-1&II0-2
+      - I0-2&II0-1
+      - I0-2&II0-2
+      - I1+&2+
+      - I1+&3+
+      - I1+&II1+
+      - I1+&II2+
+      - I1-2&II1-2
+      - I1-3&II1-3
+      - I2+&3+
+      - I2+&II1+
+      - I2+&II2+
+  untestable:
+  - family: FIRST_GOAL
+    prefixes:
+    - PDG
+    - PDG1
+    - PDG2
+    - PGC
+    - R
+    note: not settleable from (HT, FT) scores; ingest only
+  - family: MINUTE_MARKETS
+    prefixes:
+    - M15
+    - M30
+    note: not settleable from (HT, FT) scores; ingest only
+  unconfirmed:
+  - prefix: SANSA
+    code: 1vGG3+
+    family: OR_MARKETS
+    status: UNCONFIRMED
+    note: could not parse 'GG3+'
+  - prefix: SANSA
+    code: 2vGG3+
+    family: OR_MARKETS
+    status: UNCONFIRMED
+    note: could not parse 'GG3+'
+  - prefix: SANSA
+    code: I2-3+vII3+
+    family: OR_MARKETS
+    status: UNCONFIRMED
+    note: could not parse 'I2-3+'

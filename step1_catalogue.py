@@ -5,10 +5,22 @@ Serbian labels, English definitions, family, period and status. It must accept
 NEW codes at runtime (the user reports Soccer Bet offers more combinations than
 listed): any parseable code is priceable, with family ``UNLISTED`` until it has
 been calibration-tested.
+
+Two sections:
+
+* ``markets`` — the **base** catalogue, generated from the rules text
+  (``docs/soccerbet_rules_sr.txt``) and keyed by bare code.
+* ``ext_markets`` — the families settled by :mod:`core.soccerbet_ext`, keyed by
+  the printed ``PREFIX`` because the same bare code means different things under
+  different prefixes. The base section is never modified by this section: a code
+  whose settlement matches a base market exactly on every scoreline is omitted,
+  so the two sections together list each distinct market once.
 """
 
 from __future__ import annotations
 
+import csv
+import itertools
 import sys
 from pathlib import Path
 
@@ -20,8 +32,24 @@ from core.market_code import (
     direct_markets,
     parse,
 )
+from core.soccerbet_ext import resolve
 
 OUT = Path("config/markets_catalogue.yaml")
+# Codes observed in the one Soccer Bet capture we hold. ``data/`` is gitignored,
+# so on a clean checkout the existing ext_markets section is carried over
+# unchanged instead of being rebuilt.
+EXT_SAMPLE = Path("data/soccerbet/2026-09-24_hoffenheim_hamburg.csv")
+EXT_NOTE = (
+    "Extended Soccer Bet families, settled by core.soccerbet_ext. Keyed by the "
+    "printed PREFIX: the same code means different things under different "
+    "prefixes (II0 is 'no goals in the 2nd half' under T2 but 'away leads' under "
+    "H2), so the family cannot be inferred from the code alone. A code here whose "
+    "settlement matches a market in the base `markets` section exactly on all "
+    "0..3^4 scorelines is omitted, so the two sections together list every "
+    "distinct market once. UNTESTABLE families cannot be settled from (HT, FT) "
+    "scores and are ingest-only."
+)
+EXT_UNCONFIRMED_REASON = "the printed code has no unambiguous reading; refused rather than guessed"
 
 # (code, family, serbian label, english definition)
 CODE_ENTRIES: list[tuple[str, str, str, str]] = []
@@ -108,9 +136,82 @@ add(HAG, "HTFT_AND_GOALS", {c: c for c in HAG}, {c: f"HT/FT and goals: {c}" for 
 # --- MORE_GOALS_HALF is implemented directly (see core.market_code.direct_markets) ---
 
 
+# --------------------------------------------------------------------------- #
+# ext_markets section
+# --------------------------------------------------------------------------- #
+def settlement_signature(outcome) -> tuple:
+    """Settlement over every half-by-half scoreline in 0..3, as an identity.
+
+    Two markets are the same market exactly when their signatures match. The
+    grid is the one :func:`core.half_model.market_prob` evaluates on, so the
+    signature also captures void handling.
+    """
+    return tuple(
+        outcome(h1, a1, h1 + h2, a1 + a2)
+        for h1, a1, h2, a2 in itertools.product(range(4), repeat=4)
+    )
+
+
+def build_ext_markets(base_markets: list[Market]) -> dict:
+    """Build the ``ext_markets`` section from the sample capture + the ext layer."""
+    base_signatures = {settlement_signature(m.outcome) for m in base_markets}
+    groups: dict[str, dict[str, list[str]]] = {}
+    untestable: dict[str, set[str]] = {}
+    unconfirmed: list[dict] = []
+
+    with EXT_SAMPLE.open(newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            prefix, _, code = row["market_code"].partition(":")
+            market = resolve(prefix, code)
+            if market.status == "UNCONFIRMED":
+                unconfirmed.append({
+                    "prefix": prefix, "code": code, "family": market.family,
+                    "status": "UNCONFIRMED", "note": market.note or EXT_UNCONFIRMED_REASON,
+                })
+            elif market.status == "UNTESTABLE":
+                untestable.setdefault(market.family, set()).add(prefix)
+            elif settlement_signature(market.outcome) not in base_signatures:
+                groups.setdefault(market.family, {}).setdefault(prefix, []).append(code)
+
+    families = [
+        {
+            "family": family,
+            "testable": True,
+            "prefixes": [
+                {"prefix": prefix, "codes": sorted(groups[family][prefix])}
+                for prefix in sorted(groups[family])
+            ],
+        }
+        for family in sorted(groups)
+    ]
+    unconfirmed.sort(key=lambda e: (e["prefix"], e["code"]))
+    return {
+        "note": EXT_NOTE,
+        "source": f"core/soccerbet_ext.py; codes observed in {EXT_SAMPLE.as_posix()}",
+        "families": families,
+        "untestable": [
+            {
+                "family": family,
+                "prefixes": sorted(untestable[family]),
+                "note": "not settleable from (HT, FT) scores; ingest only",
+            }
+            for family in sorted(untestable)
+        ],
+        "unconfirmed": unconfirmed,
+    }
+
+
+def load_existing_ext() -> dict | None:
+    """The ext_markets section already in the catalogue, if any."""
+    if not OUT.exists():
+        return None
+    return yaml.safe_load(OUT.read_text(encoding="utf-8")).get("ext_markets")
+
+
 def main() -> int:
     entries: list[dict] = []
     errors: list[str] = []
+    markets: list[Market] = []
 
     for code, family, label_sr, definition_en in CODE_ENTRIES:
         try:
@@ -118,6 +219,7 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{family} {code!r}: {exc}")
             continue
+        markets.append(market)
         entries.append({
             "code": code,
             "label_sr": label_sr,
@@ -131,6 +233,7 @@ def main() -> int:
         })
 
     for market in direct_markets():
+        markets.append(market)
         entries.append({
             "code": market.code,
             "label_sr": market.label_sr,
@@ -143,6 +246,14 @@ def main() -> int:
             "note": market.note or DO_NOT_BET_UNTIL_CLARIFIED.get(market.code, ""),
         })
 
+    if EXT_SAMPLE.exists():
+        ext_section = build_ext_markets(markets)
+    else:
+        ext_section = load_existing_ext()
+        if ext_section is None:
+            print(f"WARNING: neither {EXT_SAMPLE} nor an existing ext_markets section; "
+                  "the catalogue will have no ext section")
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     doc = {
         "generated_by": "step1_catalogue.py",
@@ -153,10 +264,17 @@ def main() -> int:
         ),
         "markets": entries,
     }
+    if ext_section is not None:
+        doc["ext_markets"] = ext_section
     OUT.write_text(yaml.safe_dump(doc, sort_keys=False, allow_unicode=True), encoding="utf-8")
 
     print(f"wrote {OUT}")
     print(f"markets: {len(entries)}")
+    if ext_section is not None:
+        n_codes = sum(len(p["codes"]) for f in ext_section["families"] for p in f["prefixes"])
+        print(f"ext_markets: {len(ext_section['families'])} families, {n_codes} codes, "
+              f"{len(ext_section['untestable'])} untestable families, "
+              f"{len(ext_section['unconfirmed'])} unconfirmed")
     fams: dict[str, int] = {}
     for e in entries:
         fams[e["family"]] = fams.get(e["family"], 0) + 1

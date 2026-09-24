@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -19,6 +21,7 @@ import yaml
 from core import odds, walkforward as wf
 from core.half_model import (
     Anchor,
+    HalfParams,
     batch_market_probs,
     fair_odds,
     fit_half_params,
@@ -28,6 +31,7 @@ from core.half_model import (
     solve_anchor,
 )
 from core.market_code import VOID, WIN, direct_markets, parse
+from core.soccerbet_ext import ExtMarket, resolve
 
 MAX_HALF = 6
 DIRECT_FAMILIES = {
@@ -36,12 +40,22 @@ DIRECT_FAMILIES = {
 }
 CALIBRATION_CSV = Path("reports/figures/family_calibration.csv")
 TEMPLATE = Path("templates/soccerbet_prices.csv")
+CATALOGUE = Path("config/markets_catalogue.yaml")
+PARAMS_CACHE_DIR = Path("data/cache/half_params")
+
+# The L2/L3 fit inputs: (lam, mu) come only from these odds columns, and the fit
+# itself only from (lam, mu, hth, hta, fth, fta).
+FIT_COLUMNS = [
+    "fthg", "ftag", "hthg", "htag",
+    "avg_h", "avg_d", "avg_a", "bb_av_h", "bb_av_d", "bb_av_a",
+    "avg>2.5", "avg<2.5", "bb_av>2.5", "bb_av<2.5",
+]
 
 _PARAMS_CACHE: dict[str, object] = {}
 
 
 def load_markets() -> list:
-    catalogue = yaml.safe_load(Path("config/markets_catalogue.yaml").read_text(encoding="utf-8"))["markets"]
+    catalogue = yaml.safe_load(CATALOGUE.read_text(encoding="utf-8"))["markets"]
     direct = {m.code: m for m in direct_markets()}
     out = []
     for entry in catalogue:
@@ -49,6 +63,22 @@ def load_markets() -> list:
             out.append(direct[entry["code"]])
         else:
             out.append(parse(entry["code"], entry["family"]))
+    return out
+
+
+def load_ext_markets() -> list[ExtMarket]:
+    """Every settleable market in the catalogue's ``ext_markets`` section.
+
+    UNTESTABLE families (first goal, minute markets) are deliberately not
+    returned: they cannot be settled from (HT, FT) scores, so they have no fair
+    price. The section is keyed by prefix, never by the bare code.
+    """
+    section = yaml.safe_load(CATALOGUE.read_text(encoding="utf-8")).get("ext_markets") or {}
+    out: list[ExtMarket] = []
+    for family in section.get("families", []):
+        for group in family["prefixes"]:
+            for code in group["codes"]:
+                out.append(resolve(group["prefix"], code))
     return out
 
 
@@ -63,8 +93,48 @@ def family_status() -> dict[str, str]:
     return status
 
 
+def _fit_fingerprint(frame: pd.DataFrame) -> str:
+    """Exact content hash of the fit inputs (the fit is deterministic in them)."""
+    values = np.ascontiguousarray(frame[FIT_COLUMNS].to_numpy(dtype=float))
+    return hashlib.sha256(values.tobytes()).hexdigest()[:16]
+
+
+def _read_cached_params(slug: str, fingerprint: str) -> HalfParams | None:
+    path = PARAMS_CACHE_DIR / f"{slug}__{fingerprint}.json"
+    if not path.exists():
+        return None
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        return HalfParams(
+            split_a=float(doc["split_a"]), split_b=float(doc["split_b"]),
+            split_c=float(doc["split_c"]),
+            state_mult={tuple(k.split("|")): float(v) for k, v in doc["state_mult"].items()},
+            ht_draw_inflation=float(doc.get("ht_draw_inflation", 1.0)),
+        )
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def _write_cached_params(slug: str, fingerprint: str, params: HalfParams) -> None:
+    PARAMS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    (PARAMS_CACHE_DIR / f"{slug}__{fingerprint}.json").write_text(
+        json.dumps({
+            "split_a": params.split_a, "split_b": params.split_b, "split_c": params.split_c,
+            "state_mult": {f"{side}|{state}": value
+                           for (side, state), value in params.state_mult.items()},
+            "ht_draw_inflation": params.ht_draw_inflation,
+        }, indent=2),
+        encoding="utf-8",
+    )
+
+
 def league_params(slug: str):
-    """Fit L2/L3 on the league's discovery seasons (cached)."""
+    """Fit L2/L3 on the league's training seasons (in-memory + on-disk cached).
+
+    The fit is deterministic in :data:`FIT_COLUMNS`, so it is cached on disk under
+    ``data/cache/half_params/<slug>__<content hash>.json``. Without the cache the
+    per-match anchor solve costs ~40 s per league on every run.
+    """
     if slug in _PARAMS_CACHE:
         return _PARAMS_CACHE[slug]
     pool = wf.load_pool(slug)
@@ -73,6 +143,12 @@ def league_params(slug: str):
                  "avg_h", "avg_d", "avg_a", "bb_av_h", "bb_av_d", "bb_av_a",
                  "avg>2.5", "avg<2.5", "bb_av>2.5", "bb_av<2.5"]].dropna(
         subset=["hthg", "htag"])
+    fingerprint = _fit_fingerprint(frame)
+    cached = _read_cached_params(slug, fingerprint)
+    if cached is not None:
+        _PARAMS_CACHE[slug] = cached
+        return cached
+
     prem = odds.prematch_1x2(frame)
     ou = odds.prematch_ou25(frame)
     p1 = odds.demargin(prem.odds.where(prem.available), "proportional")
@@ -87,6 +163,7 @@ def league_params(slug: str):
                      "fth": r.fthg, "fta": r.ftag})
     params = fit_half_params(rows)
     _PARAMS_CACHE[slug] = params
+    _write_cached_params(slug, fingerprint, params)
     return params
 
 
