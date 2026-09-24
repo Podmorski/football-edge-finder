@@ -1,0 +1,1870 @@
+generated_by: step1_catalogue.py
+source: docs/soccerbet_rules_sr.txt
+note: Any parseable code is priceable. Codes not listed here are accepted at runtime
+  with family UNLISTED until calibration-tested.
+markets:
+- code: '1'
+  label_sr: '1'
+  definition_en: Home wins the match
+  family: RESULT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X
+  label_sr: X
+  definition_en: Draw
+  family: RESULT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: '2'
+  label_sr: '2'
+  definition_en: Away wins the match
+  family: RESULT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1X
+  label_sr: 1X
+  definition_en: Home or draw
+  family: DOUBLE_CHANCE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: '12'
+  label_sr: '12'
+  definition_en: Home or away
+  family: DOUBLE_CHANCE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X2
+  label_sr: X2
+  definition_en: Away or draw
+  family: DOUBLE_CHANCE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1
+  label_sr: I Pol. 1
+  definition_en: Home leads at half time
+  family: HALF_RESULT
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: IX
+  label_sr: I Pol. X
+  definition_en: Half-time draw
+  family: HALF_RESULT
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2
+  label_sr: I Pol. 2
+  definition_en: Away leads at half time
+  family: HALF_RESULT
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II1
+  label_sr: II Pol. 1
+  definition_en: Home wins the second half
+  family: HALF_RESULT
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: IIX
+  label_sr: II Pol. X
+  definition_en: Second half drawn
+  family: HALF_RESULT
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II2
+  label_sr: II Pol. 2
+  definition_en: Away wins the second half
+  family: HALF_RESULT
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1X
+  label_sr: I Pol. 1X
+  definition_en: Home or draw at half time
+  family: HALF_DC
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: IX2
+  label_sr: I Pol. X2
+  definition_en: Away or draw at half time
+  family: HALF_DC
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I12
+  label_sr: I Pol. 12
+  definition_en: Not a half-time draw
+  family: HALF_DC
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II1X
+  label_sr: II Pol. 1X
+  definition_en: Home or draw in the second half
+  family: HALF_DC
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: IIX2
+  label_sr: II Pol. X2
+  definition_en: Away or draw in the second half
+  family: HALF_DC
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II12
+  label_sr: II Pol. 12
+  definition_en: Second half not drawn
+  family: HALF_DC
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-1
+  label_sr: 1-1
+  definition_en: Half time 1, full time 1
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-X
+  label_sr: 1-X
+  definition_en: Half time 1, full time X
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-2
+  label_sr: 1-2
+  definition_en: Half time 1, full time 2
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X-1
+  label_sr: X-1
+  definition_en: Half time X, full time 1
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X-X
+  label_sr: X-X
+  definition_en: Half time X, full time X
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X-2
+  label_sr: X-2
+  definition_en: Half time X, full time 2
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-1
+  label_sr: 2-1
+  definition_en: Half time 2, full time 1
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-X
+  label_sr: 2-X
+  definition_en: Half time 2, full time X
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-2
+  label_sr: 2-2
+  definition_en: Half time 2, full time 2
+  family: HTFT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1X-1X
+  label_sr: 1X-1X
+  definition_en: Half time 1X, full time 1X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1X-12
+  label_sr: 1X-12
+  definition_en: Half time 1X, full time 12
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1X-X2
+  label_sr: 1X-X2
+  definition_en: Half time 1X, full time X2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 12-1X
+  label_sr: 12-1X
+  definition_en: Half time 12, full time 1X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 12-12
+  label_sr: 12-12
+  definition_en: Half time 12, full time 12
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 12-X2
+  label_sr: 12-X2
+  definition_en: Half time 12, full time X2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X2-1X
+  label_sr: X2-1X
+  definition_en: Half time X2, full time 1X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X2-12
+  label_sr: X2-12
+  definition_en: Half time X2, full time 12
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X2-X2
+  label_sr: X2-X2
+  definition_en: Half time X2, full time X2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1X-1
+  label_sr: 1X-1
+  definition_en: Half time 1X, full time 1
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1X-X
+  label_sr: 1X-X
+  definition_en: Half time 1X, full time X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1X-2
+  label_sr: 1X-2
+  definition_en: Half time 1X, full time 2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 12-1
+  label_sr: 12-1
+  definition_en: Half time 12, full time 1
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 12-X
+  label_sr: 12-X
+  definition_en: Half time 12, full time X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 12-2
+  label_sr: 12-2
+  definition_en: Half time 12, full time 2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X2-1
+  label_sr: X2-1
+  definition_en: Half time X2, full time 1
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X2-X
+  label_sr: X2-X
+  definition_en: Half time X2, full time X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X2-2
+  label_sr: X2-2
+  definition_en: Half time X2, full time 2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-1X
+  label_sr: 1-1X
+  definition_en: Half time 1, full time 1X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-12
+  label_sr: 1-12
+  definition_en: Half time 1, full time 12
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-X2
+  label_sr: 1-X2
+  definition_en: Half time 1, full time X2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X-1X
+  label_sr: X-1X
+  definition_en: Half time X, full time 1X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X-12
+  label_sr: X-12
+  definition_en: Half time X, full time 12
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: X-X2
+  label_sr: X-X2
+  definition_en: Half time X, full time X2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-1X
+  label_sr: 2-1X
+  definition_en: Half time 2, full time 1X
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-12
+  label_sr: 2-12
+  definition_en: Half time 2, full time 12
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-X2
+  label_sr: 2-X2
+  definition_en: Half time 2, full time X2
+  family: HTFT_DC
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 1-1
+  label_sr: NE 1-1
+  definition_en: Not (half time 1, full time 1)
+  family: HTFT_NE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE X-1
+  label_sr: NE X-1
+  definition_en: Not (half time X, full time 1)
+  family: HTFT_NE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE X-X
+  label_sr: NE X-X
+  definition_en: Not (half time X, full time X)
+  family: HTFT_NE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE X-2
+  label_sr: NE X-2
+  definition_en: Not (half time X, full time 2)
+  family: HTFT_NE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 2-2
+  label_sr: NE 2-2
+  definition_en: Not (half time 2, full time 2)
+  family: HTFT_NE
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 0-1
+  label_sr: 0-1
+  definition_en: Full-time total goals 0-1
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 0-2
+  label_sr: 0-2
+  definition_en: Full-time total goals 0-2
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 0-3
+  label_sr: 0-3
+  definition_en: Full-time total goals 0-3
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 0-4
+  label_sr: 0-4
+  definition_en: Full-time total goals 0-4
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: '1'
+  label_sr: '1'
+  definition_en: Full-time total goals 1
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1+
+  label_sr: 1+
+  definition_en: Full-time total goals 1+
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-2
+  label_sr: 1-2
+  definition_en: Full-time total goals 1-2
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-3
+  label_sr: 1-3
+  definition_en: Full-time total goals 1-3
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-4
+  label_sr: 1-4
+  definition_en: Full-time total goals 1-4
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-5
+  label_sr: 1-5
+  definition_en: Full-time total goals 1-5
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-6
+  label_sr: 1-6
+  definition_en: Full-time total goals 1-6
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: '2'
+  label_sr: '2'
+  definition_en: Full-time total goals 2
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2+
+  label_sr: 2+
+  definition_en: Full-time total goals 2+
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-3
+  label_sr: 2-3
+  definition_en: Full-time total goals 2-3
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-4
+  label_sr: 2-4
+  definition_en: Full-time total goals 2-4
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-5
+  label_sr: 2-5
+  definition_en: Full-time total goals 2-5
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-6
+  label_sr: 2-6
+  definition_en: Full-time total goals 2-6
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: '3'
+  label_sr: '3'
+  definition_en: Full-time total goals 3
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 3+
+  label_sr: 3+
+  definition_en: Full-time total goals 3+
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 3-4
+  label_sr: 3-4
+  definition_en: Full-time total goals 3-4
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: true
+  note: rules text says 'najmanje 3' (at least 3) but the code is a range; implemented
+    as 3 or 4
+- code: 3-5
+  label_sr: 3-5
+  definition_en: Full-time total goals 3-5
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 3-6
+  label_sr: 3-6
+  definition_en: Full-time total goals 3-6
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: '4'
+  label_sr: '4'
+  definition_en: Full-time total goals 4
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 4+
+  label_sr: 4+
+  definition_en: Full-time total goals 4+
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 4-5
+  label_sr: 4-5
+  definition_en: Full-time total goals 4-5
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 4-6
+  label_sr: 4-6
+  definition_en: Full-time total goals 4-6
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: '5'
+  label_sr: '5'
+  definition_en: Full-time total goals 5
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 5+
+  label_sr: 5+
+  definition_en: Full-time total goals 5+
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 6+
+  label_sr: 6+
+  definition_en: Full-time total goals 6+
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 7+
+  label_sr: 7+
+  definition_en: Full-time total goals 7+
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 1
+  label_sr: NE 1
+  definition_en: Full-time total goals NE 1
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 1-2
+  label_sr: NE 1-2
+  definition_en: Full-time total goals NE 1-2
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 1-3
+  label_sr: NE 1-3
+  definition_en: Full-time total goals NE 1-3
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 1-4
+  label_sr: NE 1-4
+  definition_en: Full-time total goals NE 1-4
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 2
+  label_sr: NE 2
+  definition_en: Full-time total goals NE 2
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 4-6
+  label_sr: NE 4-6
+  definition_en: Full-time total goals NE 4-6
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 3-4
+  label_sr: NE 3-4
+  definition_en: Full-time total goals NE 3-4
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 3-5
+  label_sr: NE 3-5
+  definition_en: Full-time total goals NE 3-5
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 3-6
+  label_sr: NE 3-6
+  definition_en: Full-time total goals NE 3-6
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 4-5
+  label_sr: NE 4-5
+  definition_en: Full-time total goals NE 4-5
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 3
+  label_sr: NE 3
+  definition_en: Full-time total goals NE 3
+  family: GOAL_RANGE_FT
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0
+  label_sr: I0
+  definition_en: First-half total goals I0
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-1
+  label_sr: I0-1
+  definition_en: First-half total goals I0-1
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-2
+  label_sr: I0-2
+  definition_en: First-half total goals I0-2
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1
+  label_sr: I1
+  definition_en: First-half total goals I1
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 1
+  label_sr: NE 1
+  definition_en: First-half total goals NE 1
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1+
+  label_sr: I1+
+  definition_en: First-half total goals I1+
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1-2
+  label_sr: I1-2
+  definition_en: First-half total goals I1-2
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 2
+  label_sr: NE 2
+  definition_en: First-half total goals NE 2
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2
+  label_sr: I2
+  definition_en: First-half total goals I2
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2+
+  label_sr: I2+
+  definition_en: First-half total goals I2+
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-3
+  label_sr: I2-3
+  definition_en: First-half total goals I2-3
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-4
+  label_sr: I2-4
+  definition_en: First-half total goals I2-4
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I3
+  label_sr: I3
+  definition_en: First-half total goals I3
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I3+
+  label_sr: I3+
+  definition_en: First-half total goals I3+
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I4+
+  label_sr: I4+
+  definition_en: First-half total goals I4+
+  family: GOAL_RANGE_1H
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II0
+  label_sr: II0
+  definition_en: Second-half total goals II0
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II0-1
+  label_sr: II0-1
+  definition_en: Second-half total goals II0-1
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II0-2
+  label_sr: II0-2
+  definition_en: Second-half total goals II0-2
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II1
+  label_sr: II1
+  definition_en: Second-half total goals II1
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 1
+  label_sr: NE 1
+  definition_en: Second-half total goals NE 1
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II1+
+  label_sr: II1+
+  definition_en: Second-half total goals II1+
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II1-2
+  label_sr: II1-2
+  definition_en: Second-half total goals II1-2
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II1-3
+  label_sr: II1-3
+  definition_en: Second-half total goals II1-3
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE 2
+  label_sr: NE 2
+  definition_en: Second-half total goals NE 2
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II2
+  label_sr: II2
+  definition_en: Second-half total goals II2
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II2+
+  label_sr: II2+
+  definition_en: Second-half total goals II2+
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II2-3
+  label_sr: II2-3
+  definition_en: Second-half total goals II2-3
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II2-4
+  label_sr: II2-4
+  definition_en: Second-half total goals II2-4
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II3
+  label_sr: II3
+  definition_en: Second-half total goals II3
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II3+
+  label_sr: II3+
+  definition_en: Second-half total goals II3+
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: II4+
+  label_sr: II4+
+  definition_en: Second-half total goals II4+
+  family: GOAL_RANGE_2H
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-1&II0-1
+  label_sr: I0-1&II0-1
+  definition_en: Half-goal combination I0-1&II0-1
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-1&II0-2
+  label_sr: I0-1&II0-2
+  definition_en: Half-goal combination I0-1&II0-2
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-1&II0-3
+  label_sr: I0-1&II0-3
+  definition_en: Half-goal combination I0-1&II0-3
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-2&II0-1
+  label_sr: I0-2&II0-1
+  definition_en: Half-goal combination I0-2&II0-1
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-2&II0-2
+  label_sr: I0-2&II0-2
+  definition_en: Half-goal combination I0-2&II0-2
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I0-2&II0-3
+  label_sr: I0-2&II0-3
+  definition_en: Half-goal combination I0-2&II0-3
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1+&II1+
+  label_sr: I1+&II1+
+  definition_en: Half-goal combination I1+&II1+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1+&II2+
+  label_sr: I1+&II2+
+  definition_en: Half-goal combination I1+&II2+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1+&II3+
+  label_sr: I1+&II3+
+  definition_en: Half-goal combination I1+&II3+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1-2&II1-2
+  label_sr: I1-2&II1-2
+  definition_en: Half-goal combination I1-2&II1-2
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1-3&II1-3
+  label_sr: I1-3&II1-3
+  definition_en: Half-goal combination I1-3&II1-3
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2+&II1+
+  label_sr: I2+&II1+
+  definition_en: Half-goal combination I2+&II1+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2+&II2+
+  label_sr: I2+&II2+
+  definition_en: Half-goal combination I2+&II2+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2+&II3+
+  label_sr: I2+&II3+
+  definition_en: Half-goal combination I2+&II3+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1+&2+
+  label_sr: I1+&2+
+  definition_en: Half-goal combination I1+&2+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1+&3+
+  label_sr: I1+&3+
+  definition_en: Half-goal combination I1+&3+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1-2&3+
+  label_sr: I1-2&3+
+  definition_en: Half-goal combination I1-2&3+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I1-2&4+
+  label_sr: I1-2&4+
+  definition_en: Half-goal combination I1-2&4+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2+&3+
+  label_sr: I2+&3+
+  definition_en: Half-goal combination I2+&3+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2+&4+
+  label_sr: I2+&4+
+  definition_en: Half-goal combination I2+&4+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE I1-3&II1-3
+  label_sr: NE I1-3&II1-3
+  definition_en: Half-goal combination NE I1-3&II1-3
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-3&4+
+  label_sr: I2-3&4+
+  definition_en: Half-goal combination I2-3&4+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE I1+&II2+
+  label_sr: NE I1+&II2+
+  definition_en: Half-goal combination NE I1+&II2+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: NE I1+&II1+
+  label_sr: NE I1+&II1+
+  definition_en: Half-goal combination NE I1+&II1+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-3&II2-3
+  label_sr: I2-3&II2-3
+  definition_en: Half-goal combination I2-3&II2-3
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-3&II2+
+  label_sr: I2-3&II2+
+  definition_en: Half-goal combination I2-3&II2+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-3&II1-3
+  label_sr: I2-3&II1-3
+  definition_en: Half-goal combination I2-3&II1-3
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-3&II1-2
+  label_sr: I2-3&II1-2
+  definition_en: Half-goal combination I2-3&II1-2
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I2-3&II1+
+  label_sr: I2-3&II1+
+  definition_en: Half-goal combination I2-3&II1+
+  family: HALF_GOAL_COMBOS
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1 & 2+
+  label_sr: 1 & 2+
+  definition_en: 'Result and goals: 1 & 2+'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1 & 3+
+  label_sr: 1 & 3+
+  definition_en: 'Result and goals: 1 & 3+'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1 & 4+
+  label_sr: 1 & 4+
+  definition_en: 'Result and goals: 1 & 4+'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2 & 2+
+  label_sr: 2 & 2+
+  definition_en: 'Result and goals: 2 & 2+'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2 & 3+
+  label_sr: 2 & 3+
+  definition_en: 'Result and goals: 2 & 3+'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2 & 4+
+  label_sr: 2 & 4+
+  definition_en: 'Result and goals: 2 & 4+'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1 & 0-2
+  label_sr: 1 & 0-2
+  definition_en: 'Result and goals: 1 & 0-2'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1 & 2-3
+  label_sr: 1 & 2-3
+  definition_en: 'Result and goals: 1 & 2-3'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2 & 0-2
+  label_sr: 2 & 0-2
+  definition_en: 'Result and goals: 2 & 0-2'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2 & 2-3
+  label_sr: 2 & 2-3
+  definition_en: 'Result and goals: 2 & 2-3'
+  family: RESULT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-1 & 2+
+  label_sr: 1-1 & 2+
+  definition_en: 'HT/FT and goals: 1-1 & 2+'
+  family: HTFT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 1-1 & 3+
+  label_sr: 1-1 & 3+
+  definition_en: 'HT/FT and goals: 1-1 & 3+'
+  family: HTFT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-2 & 2+
+  label_sr: 2-2 & 2+
+  definition_en: 'HT/FT and goals: 2-2 & 2+'
+  family: HTFT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: 2-2 & 3+
+  label_sr: 2-2 & 3+
+  definition_en: 'HT/FT and goals: 2-2 & 3+'
+  family: HTFT_AND_GOALS
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: DP 1
+  label_sr: Dupla Pobeda 1
+  definition_en: home wins both halves
+  family: WIN_BOTH_HALVES
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: DP 1&4+
+  label_sr: Dupla Pobeda 1&4+
+  definition_en: home wins both halves and total goals >= 4
+  family: WIN_BOTH_HALVES
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: DP 2
+  label_sr: Dupla Pobeda 2
+  definition_en: away wins both halves
+  family: WIN_BOTH_HALVES
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: DP 2&4+
+  label_sr: Dupla Pobeda 2&4+
+  definition_en: away wins both halves and total goals >= 4
+  family: WIN_BOTH_HALVES
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: DSP 1
+  label_sr: Dupla Super Pobeda 1
+  definition_en: home wins both halves and away scores 0
+  family: WIN_BOTH_HALVES
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: DSP 2
+  label_sr: Dupla Super Pobeda 2
+  definition_en: away wins both halves and home scores 0
+  family: WIN_BOTH_HALVES
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: SP 1
+  label_sr: Super Pobeda 1
+  definition_en: home wins and opponent scores 0
+  family: WIN_TO_NIL
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: SP 2
+  label_sr: Super Pobeda 2
+  definition_en: away wins and opponent scores 0
+  family: WIN_TO_NIL
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: HP 1
+  label_sr: Hendikep Pobeda 1
+  definition_en: home wins by >= 2
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: HH 1 3+
+  label_sr: HH 1 3+
+  definition_en: home wins by >= 3
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: W1 1
+  label_sr: Pobeda tacno 1 razlike 1
+  definition_en: home wins by exactly 1
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: W2 1
+  label_sr: Pobeda tacno 2 razlike 1
+  definition_en: home wins by exactly 2
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: HP 2
+  label_sr: Hendikep Pobeda 2
+  definition_en: away wins by >= 2
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: HH 2 3+
+  label_sr: HH 2 3+
+  definition_en: away wins by >= 3
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: W1 2
+  label_sr: Pobeda tacno 1 razlike 2
+  definition_en: away wins by exactly 1
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: W2 2
+  label_sr: Pobeda tacno 2 razlike 2
+  definition_en: away wins by exactly 2
+  family: MARGIN
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: XNB FT 1
+  label_sr: X No Bet FT 1
+  definition_en: home wins, draw voids (FT)
+  family: NO_BET
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: XNB FT 2
+  label_sr: X No Bet FT 2
+  definition_en: away wins, draw voids (FT)
+  family: NO_BET
+  period: FT
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: XNB 1. Pol. 1
+  label_sr: X No Bet 1. Pol. 1
+  definition_en: home wins, draw voids (1. Pol.)
+  family: NO_BET
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: true
+  note: rules text defines 1 = away wins and 2 = home wins, the opposite of every
+    other market; implemented as 1 = home, 2 = away
+- code: XNB 1. Pol. 2
+  label_sr: X No Bet 1. Pol. 2
+  definition_en: away wins, draw voids (1. Pol.)
+  family: NO_BET
+  period: 1H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: true
+  note: same 1/2 inversion as XNB 1. Pol. 1; implemented as 1 = home, 2 = away
+- code: XNB 2. Pol. 1
+  label_sr: X No Bet 2. Pol. 1
+  definition_en: home wins, draw voids (2. Pol.)
+  family: NO_BET
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: XNB 2. Pol. 2
+  label_sr: X No Bet 2. Pol. 2
+  definition_en: away wins, draw voids (2. Pol.)
+  family: NO_BET
+  period: 2H
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I>II
+  label_sr: I>II
+  definition_en: 1H goals > 2H goals
+  family: MORE_GOALS_HALF
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I=II
+  label_sr: I = II
+  definition_en: 1H goals == 2H goals
+  family: MORE_GOALS_HALF
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: false
+  note: ''
+- code: I<II
+  label_sr: I<II
+  definition_en: 1H goals < 2H goals
+  family: MORE_GOALS_HALF
+  period: MIXED
+  source: soccerbet_rules
+  testable: true
+  do_not_bet: true
+  note: definition text is scrambled in the source; implemented as 1H goals < 2H goals
+- code: FDG FT 1
+  label_sr: Prvi Daje Gol FT 1
+  definition_en: home scores the first goal (FT)
+  family: FIRST_GOAL
+  period: FT
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: not settleable from HT/FT data
+- code: FDG FT 2
+  label_sr: Prvi Daje Gol FT 2
+  definition_en: away scores the first goal (FT)
+  family: FIRST_GOAL
+  period: FT
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: not settleable from HT/FT data
+- code: FDG 1. Pol. 1
+  label_sr: Prvi Daje Gol 1. Pol. 1
+  definition_en: home scores the first goal (1. Pol.)
+  family: FIRST_GOAL
+  period: 1H
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: not settleable from HT/FT data
+- code: FDG 1. Pol. 2
+  label_sr: Prvi Daje Gol 1. Pol. 2
+  definition_en: away scores the first goal (1. Pol.)
+  family: FIRST_GOAL
+  period: 1H
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: not settleable from HT/FT data
+- code: FDG 2. Pol. 1
+  label_sr: Prvi Daje Gol 2. Pol. 1
+  definition_en: home scores the first goal (2. Pol.)
+  family: FIRST_GOAL
+  period: 2H
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: not settleable from HT/FT data
+- code: FDG 2. Pol. 2
+  label_sr: Prvi Daje Gol 2. Pol. 2
+  definition_en: away scores the first goal (2. Pol.)
+  family: FIRST_GOAL
+  period: 2H
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: not settleable from HT/FT data
+- code: PD 1
+  label_sr: Prolazi Dalje 1
+  definition_en: home progresses to the next round
+  family: TO_QUALIFY
+  period: FT
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: out of scope (needs tie context)
+- code: PD 2
+  label_sr: Prolazi Dalje 2
+  definition_en: away progresses to the next round
+  family: TO_QUALIFY
+  period: FT
+  source: soccerbet_rules
+  testable: false
+  do_not_bet: false
+  note: out of scope (needs tie context)

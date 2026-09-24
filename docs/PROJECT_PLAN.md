@@ -186,6 +186,52 @@ than a 50/50 constant (0.6931) in all five seasons** — implausible for a real
 de-margined market. Hypothesis: **over/under swapped or misaligned** somewhere in
 the O/U path. Verified in Step 1 below; 1X2 was never under suspicion.
 
+### STRATEGY PIVOT (2026-09-24): derived goal markets
+
+**The main-market hypothesis FAILED.** Results-only models cannot beat the sharp
+market on 1X2 or O/U 2.5 in any of our four leagues. Discovery verdict, with CIs:
+model − market = +0.0187 (ligue_2_t2), +0.0177 (bundesliga_2), +0.0182
+(bundesliga_1), +0.0142 (League One) — every CI excludes 0 and every sign says
+*the market is better*. No blend beats the market either.
+
+**New direction.** Soccer Bet (Serbia) prices hundreds of **derived goal markets**
+per match — goal ranges, per-half markets, HT/FT (incl. NE and double-chance
+variants), win both halves, which half more goals, half-goal combos,
+result&goals, HT/FT&goals, stake-back "No Bet" — almost certainly by formula.
+Every one settles on **(HT home, HT away, FT home, FT away)**, which we hold for
+every match since 2015.
+
+**Plan.** Take the SHARP **pre-match** 1X2 + O/U 2.5 as *input*, build a joint
+half-by-half scoreline model with an uneven half split and half-time game-state
+effects, and test calibration per market family on history. Edge = families our
+model prices accurately **AND** where Soccer Bet's price (entered later by the
+user) exceeds fair value net of margin. **Not cross-book price hunting.**
+
+### New principle: sharp pre-match odds as INPUTS
+
+> **Sharp PRE-MATCH odds (`Avg` / `BbAv`; NEVER closing) may be model INPUTS.**
+
+This is a deliberate change from "odds are never used to train models". The
+closing price remains an **accuracy reference only**. The distinction that keeps
+this honest: pre-match prices are information available *at bet time*, whereas
+closing prices are not.
+
+### Layers
+
+| Layer | Content |
+|---|---|
+| **L1 anchor** | per match, solve (lambda, mu) so a Dixon-Coles FT grid reproduces the de-margined pre-match 1X2 and O/U 2.5 |
+| **L2 half split** | first-half share of each team's goal rate, from training seasons only; may depend on expected goals and favourite strength |
+| **L3 game state** | Dixon-Robinson (1998) style: second-half rates scaled by HT-state factors (leading / level / trailing, by side); optional HT-draw inflation |
+| **Output** | joint grid over (h1, a1, h2, a2), every catalogue market derived from it |
+
+### Market families
+
+RESULT, DOUBLE_CHANCE, HALF_RESULT, HALF_DC, HTFT (9), HTFT_NE, HTFT_DC,
+WIN_BOTH_HALVES, WIN_TO_NIL, MARGIN, NO_BET, GOAL_RANGE_FT, GOAL_RANGE_1H,
+GOAL_RANGE_2H, MORE_GOALS_HALF, HALF_GOAL_COMBOS, RESULT_AND_GOALS,
+HTFT_AND_GOALS, FIRST_GOAL (untestable from HT/FT data), TO_QUALIFY (out of scope).
+
 ### Auxiliary divisions
 
 **E1 (Championship)** and **E3 (League Two)** are ingested as *auxiliary* data

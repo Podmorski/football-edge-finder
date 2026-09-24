@@ -1,0 +1,272 @@
+DEFINICIJA TIPOVA IGARA
+U nastavku su definisani tipovi igara u ponudi priređivača, osim ukoliko drugačije nije određeno na samom tiketu
+
+KLAĐENJE FUDBAL
+Konačni Ishod
+1 Domaćin pobeđuje na meču
+X Nerešen ishod na meču
+2 Gost pobeđuje na meču
+
+Dupla Šansa
+1X Domaćin pobeđuje ili nerešen ishod na meču
+12 Domaćin ili gost pobeđuje na meču
+X2 Gost pobeđuje ili nerešen ishod na meču
+
+I Pol. Dupla Šansa
+1X Domaćin pobeđuje ili nerešen ishod u prvom poluvremenu
+X2 Gost pobeđuje ili nerešen ishod u prvom poluvremenu
+12 Domaćin ili gost pobeđuje u prvom poluvremenu
+
+II Pol. Dupla Šansa
+1X Domaćin pobeđuje ili nerešen ishod u drugom poluvremenu
+X2 Gost pobeđuje ili nerešen ishod u drugom poluvremenu
+12 Domaćin ili gost pobeđuje u drugom poluvremenu
+
+I Poluvreme
+1 Domaćin pobeđuje u prvom poluvremenu
+X Nerešen ishod u prvom poluvremenu
+2 Gost pobeđuje u prvom poluvremenu
+
+II Poluvreme
+1 Domaćin pobeđuje u drugom poluvremenu
+X Nerešen ishod u drugom poluvremenu
+2 Gost pobeđuje u drugom poluvremenu
+
+Poluvreme/Kraj
+1-1 Domaćin vodi na poluvremenu i pobeđuje na meču
+1-X Domaćin vodi na poluvremenu i nerešen ishod na meču
+1-2 Domaćin vodi na poluvremenu i gost pobeđuje na meču
+X-1 Nerešen ishod na poluvremenu i domaćin pobeđuje na meču
+X-X Nerešen ishod na poluvremenu i na meču
+X-2 Nerešen ishod na poluvremenu i gost pobeđuje na meču
+2-1 Gost vodi na poluvremenu i domaćin pobeđuje na meču
+2-X Gost vodi na poluvremenu i nerešen ishod na meču
+2-2 Gost vodi na poluvremenu i pobeđuje na meču
+NE 1-1 Domaćin neće voditi na poluvremenu ili neće pobediti na meču
+NE X-1 Neće biti nerešen ishod na poluvremenu ili neće pobediti domaćin na meču
+NE X-X Neće biti nerešen ishod na poluvremenu ili neće biti nerešen ishod na meču
+NE X-2 Neće biti nerešen ishod na poluvremenu ili neće pobediti gost na meču
+NE 2-2 Gost neće voditi na poluvremenu ili neće pobediti na meču
+1X-1X Domaćin pobeđuje ili nerešen ishod na poluvremenu i na meču
+1X-12 Domaćin pobeđuje ili nerešen ishod na poluvremenu i domaćin ili gost pobeđuje na meču
+1X-X2 Domaćin pobeđuje ili nerešen ishod na poluvremenu i gost pobeđuje ili nerešen ishod na meču
+12-1X Domaćin ili gost pobeđuje u prvom poluvremenu i domaćin pobeđuje ili nerešen ishod na meču
+12-12 Domaćin ili gost pobeđuje u prvom poluvremenu i domaćin ili gost pobeđuje na meču
+12-X2 Domaćin ili gost pobeđuje u prvom poluvremenu i gost pobeđuje ili nerešen ishod na meču
+X2-1X Gost pobeđuje ili nerešen ishod u prvom poluvremenu i domaćin pobeđuje ili nerešen ishod na meču
+X2-12 Gost pobeđuje ili nerešen ishod u prvom poluvremenu i domaćin ili gost pobeđuje na meču
+X2-X2 Gost pobeđuje ili nerešen ishod u prvom poluvremenu i gost pobeđuje ili nerešen ishod na meču
+1X-1 Domaćin pobeđuje ili nerešen ishod u prvom poluvremenu i domaćin pobeđuje na meču
+1X-X Domaćin pobeđuje ili nerešen ishod u prvom poluvremenu i nerešen ishod na meču
+1X-2 Domaćin pobeđuje ili nerešen ishod u prvom poluvremenu i gost pobeđuje na meču
+12-1 Domaćin ili gost pobeđuje u prvom poluvremenu i domaćin pobeđuje na meču
+12-X Domaćin ili gost pobeđuje u prvom poluvremenu i nerešen ishod na meču
+12-2 Domaćin ili gost pobeđuje u prvom poluvremenu i gost pobeđuje na meču
+X2-1 Gost pobeđuje ili nerešen ishod u prvom poluvremenu i domaćin pobeđuje na meču
+X2-X Gost pobeđuje ili nerešen ishod u prvom poluvremenu i nerešen ishod na meču
+X2-2 Gost pobeđuje ili nerešen ishod u prvom poluvremenu i gost pobeđuje na meču
+1-1X Domaćin pobeđuje u prvom poluvremenu i domaćin pobeđuje ili nerešen ishod na meču
+1-12 Domaćin pobeđuje u prvom poluvremenu i domaćin ili gost pobeđuje na meču
+1-X2 Domaćin pobeđuje u prvom poluvremenu gost pobeđuje ili nerešen ishod na meču
+X-1X Nerešen ishod u prvom poluvremenu i domaćin pobeđuje ili nerešen ishod na meču
+X-12 Nerešen ishod u prvom poluvremenu i domaćin ili gost pobeđuje na meču
+X-X2 Nerešen ishod u prvom poluvremenu i gost pobeđuje ili nerešen ishod na meču
+2-1X Gost pobeđuje u prvom poluvremenu i domaćin pobeđuje ili nerešen ishod na meču
+2-12 Gost pobeđuje u prvom poluvremenu i domaćin ili gost pobeđuje na meču
+2-X2 Gost pobeđuje u prvom poluvremenu i gost pobeđuje ili nerešen ishod na meču
+
+Dupla Pobeda
+1 Domaćin pobeđuje u oba poluvremena
+2 Gost pobeđuje u oba poluvremena
+2&4+ Gost pobeđuje u oba poluvremena i ukupno golova na meču biće najmanje 4
+1&4+ Domaćin pobeđuje u oba poluvremena i ukupno golova na meču biće najmanje 4
+
+Dupla Super Pobeda
+1 Domaćin pobeđuje u oba poluvremena i gost ne postiže gol
+2 Gost pobeđuje u oba poluvremena i domaćin ne postiže gol
+
+Hendikep Pobeda (HP)
+1 Domaćin pobeđuje sa minimum 2 gola razlike na meču
+2 Gost pobeđuje sa minimum 2 gola razlike na meču
+
+Hendikep Pobeda (HH)
+D3+ Domaćin pobeđuje sa minimum 3 gola razlike na meču
+G3+ Gost pobeđuje sa minimum 3 gola razlike na meču
+
+Hendikep Pobeda (tačno jedan gol razlike)
+1 Domaćin pobeđuje sa tačno jednim golom razlike
+2 Gost pobeđuje sa tačno jednim golom razlike
+
+Hendikep Pobeda (tačno dva gola razlike)
+1 Domaćin pobeđuje sa tačno dva gola razlike
+2 Gost pobeđuje sa tačno dva gola razlike
+
+Prvi Daje Gol
+1 Domaćin postiže prvi gol na meču
+2 Gost postiže prvi gol na meču
+
+I Pol. Prvi Daje Gol
+1 Domaćin postiže prvi gol u prvom poluvremenu
+2 Gost postiže prvi gol u prvom poluvremenu
+
+II Pol. Prvi Daje Gol
+1 Domaćin postiže prvi gol u drugom poluvremenu
+2 Gost postiže prvi gol u drugom poluvremenu
+
+Super Pobeda
+1 Domaćin pobeđuje i gost ne postiže gol na meču
+2 Gost pobeđuje i domaćin ne postiže gol na meču
+
+X No Bet
+1 Domaćin pobeđuje, a u slučaju nerešenog ishoda na meču tip je dobitan sa kvotom 1.00
+2 Gost pobeđuje, a u slučaju nerešenog ishoda na meču tip je dobitan sa kvotom 1.00
+
+1. Pol. X No Bet
+1 Gost pobeđuje u prvom poluvremenu, a u slučaju nerešenog ishoda u prvom poluvremenu računa se kvota 1.00
+2 Domaćin pobeđuje u prvom poluvremenu, a u slučaju nerešenog ishoda u prvom poluvremenu računa se kvota 1.00
+
+2. Pol. X No Bet
+1 Domaćin pobeđuje u drugom poluvremenu, a u slučaju nerešenog ishoda u drugom poluvremenu računa se kvota 1.00
+2 Gost pobeđuje u drugom poluvremenu, a u slučaju nerešenog ishoda u drugom poluvremenu računa se kvota 1.00
+
+Prolazi Dalje
+1 Domaćin prolazi u narednu rundu takmičenja
+2 Gost prolazi u narednu rundu takmičenja
+
+Ukupno Golova
+0-1 Ukupno golova biće najviše 1 na meču
+0-2 Ukupno golova biće najviše 2 na meču
+0-3 Ukupno golova biće najviše 3 na meču
+0-4 Ukupno golova biće najviše 4 na meču
+1 Ukupno golova biće tačno 1 na meču
+1+ Ukupno golova biće najmanje 1 na meču
+1-2 Ukupno golova biće 1 ili 2 na meču
+1-3 Ukupno golova biće 1, 2 ili 3 na meču
+1-4 Ukupno golova biće 1, 2, 3 ili 4 na meču
+1-5 Ukupno golova biće 1, 2, 3, 4 ili 5 na meču
+1-6 Ukupno golova biće 1, 2, 3, 4, 5 ili 6 na meču
+2 Ukupno golova biće tačno 2 na meču
+2+ Ukupno golova biće najmanje 2 na meču
+2-3 Ukupno golova biće 2 ili 3 na meču
+2-4 Ukupno golova biće 2, 3 ili 4 na meču
+2-5 Ukupno golova biće 2, 3, 4 ili 5 na meču
+2-6 Ukupno golova biće 2, 3, 4, 5 ili 6 na meču
+3 Ukupno golova biće tačno 3 na meču
+3+ Ukupno golova biće najmanje 3 na meču
+3-4 Ukupno golova biće najmanje 3 na meču
+3-5 Ukupno golova biće 3, 4 ili 5 na meču
+3-6 Ukupno golova biće 3, 4, 5 ili 6 na meču
+4 Ukupno golova biće tačno 4 na meču
+4+ Ukupno golova biće najmanje 4 na meču
+4-5 Ukupno golova biće 4 ili 5 na meču
+4-6 Ukupno golova biće 4, 5 ili 6 na meču
+5 Ukupno golova biće tačno 5 na meču
+5+ Ukupno golova biće najmanje 5 na meču
+6+ Ukupno golova biće najmanje 6 na meču
+7+ Ukupno golova biće najmanje 7 na meču
+NE 1 Na meču neće biti tačno 1 gol
+NE 1-2 Na meču neće biti tačno 1 ili 2 gola
+NE 1-3 Na meču neće biti tačno 1 ili 2 ili 3 gola
+NE 1-4 Na meču neće biti tačno 1 ili 2 ili 3 ili 4 gola
+NE 2 Na meču neće biti tačno 2 gola
+NE 4-6 Na meču neće biti tačno 4 ili 5 ili 6 golova
+NE 3-4 Na meču neće biti tačno 3 ili 4 gola
+NE 3-5 Na meču neće biti tačno 3 ili 4 ili 5 golova
+NE 3-6 Na meču neće biti tačno 3 ili 4 ili 5 ili 6 golova
+NE 4-5 Na meču neće biti tačno 4 ili 5 golova
+NE 3 Na meču neće biti tačno 3 gola
+
+I Pol. Uk. Golova
+0 Nema golova u prvom poluvremenu
+0-1 Ukupno golova biće najviše 1 u prvom poluvremenu
+0-2 Ukupno golova biće najviše 2 u prvom poluvremenu
+1 Ukupno golova biće tačno 1 u prvom poluvremenu
+NE 1 U prvom poluvremenu neće biti tačno 1 gol
+1+ Ukupno golova biće najmanje 1 u prvom poluvremenu
+1-2 Ukupno golova biće 1 ili 2 u prvom poluvremenu
+NE 2 U prvom poluvremenu neće biti tačno 2 gola
+2 Ukupno golova biće tačno 2 u prvom poluvremenu
+2+ Ukupno golova biće najmanje 2 u prvom poluvremenu
+2-3 Ukupno golova biće 2 ili 3 u prvom poluvremenu
+2-4 Ukupno golova biće 2, 3 ili 4 u prvom poluvremenu
+3 Ukupno golova biće tačno 3 u prvom poluvremenu
+3+ Ukupno golova biće najmanje 3 u prvom poluvremenu
+4+ Ukupno golova biće najmanje 4 u prvom poluvremenu
+
+II Pol. Uk. Golova
+0 Nema golova u drugom poluvremenu
+0-1 Ukupno golova biće najviše 1 u drugom poluvremenu
+0-2 Ukupno golova biće najviše 2 u drugom poluvremenu
+1 Ukupno golova biće tačno 1 u drugom poluvremenu
+NE 1 U drugom poluvremenu neće biti tačno 1 gol
+1+ Ukupno golova biće najmanje 1 u drugom poluvremenu
+1-2 Ukupno golova biće 1 ili 2 u drugom poluvremenu
+1-3 Ukupno golova biće 1, 2 ili 3 u drugom poluvremenu
+NE 2 U drugom poluvremenu neće biti tačno 2 gola
+2 Ukupno golova biće tačno 2 u drugom poluvremenu
+2+ Ukupno golova biće najmanje 2 u drugom poluvremenu
+2-3 Ukupno golova biće 2 ili 3 u drugom poluvremenu
+2-4 Ukupno golova biće 2, 3 ili 4 u drugom poluvremenu
+3 Ukupno golova biće tačno 3 u drugom poluvremenu
+3+ Ukupno golova biće najmanje 3 u drugom poluvremenu
+4+ Ukupno golova biće najmanje 4 u drugom poluvremenu
+
+Pada Više Golova
+I>II U prvom poluvremenu biće postignuto više golova nego u drugom poluvremenu
+I = II U prvom i u drugom poluvremenu biće postignut isti broj golova
+I<II [definition scrambled in source; meaning: fewer goals in the first half than in the second]
+
+KOMBINACIJE (user-supplied, 2026-09-24)
+Uk. Golova Kombinacije
+I0-1&II0-1: Ukupno golova biće najviše 1 u prvom i najviše 1 u drugom poluvremenu
+I0-1&II0-2: Ukupno golova biće najviše 1 u prvom i najviše 2 u drugom poluvremenu
+I0-1&II0-3: Ukupno golova biće najviše 1 u prvom i najviše 3 u drugom poluvremenu
+I0-2&II0-1: Ukupno golova biće najviše 2 u prvom i najviše 1 u drugom poluvremenu
+I0-2&II0-2: Ukupno golova biće najviše 2 u prvom i najviše 2 u drugom poluvremenu
+I0-2&II0-3: Ukupno golova biće najviše 2 u prvom i najviše 3 u drugom poluvremenu
+I1+&II1+: Ukupno golova biće najmanje 1 u prvom i najmanje 1 u drugom poluvremenu
+I1+&II2+: Ukupno golova biće najmanje 1 u prvom i najmanje 2 u drugom poluvremenu
+I1+&II3+: Ukupno golova biće najmanje 1 u prvom i najmanje 3 u drugom poluvremenu
+I1-2&II1-2: Ukupno golova biće 1 ili 2 u prvom poluvremenu i 1 ili 2 u drugom poluvremenu
+I1-3&II1-3: Ukupno golova biće 1, 2 ili 3 u prvom poluvremenu i 1, 2 ili 3 u drugom poluvremenu
+I2+&II1+: Ukupno golova biće najmanje 2 u prvom i najmanje 1 u drugom poluvremenu
+I2+&II2+: Ukupno golova biće najmanje 2 u prvom i najmanje 2 u drugom poluvremenu
+I2+&II3+: Ukupno golova biće najmanje 2 u prvom i najmanje 3 u drugom poluvremenu
+I1+&2+: Ukupno golova biće najmanje 1 u prvom poluvremenu i najmanje 2 na meču
+I1+&3+: Ukupno golova biće najmanje 1 u prvom poluvremenu i najmanje 3 na meču
+I1-2&3+: Ukupno golova biće 1 ili 2 u prvom poluvremenu i najmanje 3 na meču
+I1-2&4+: Ukupno golova biće 1 ili 2 u prvom poluvremenu i najmanje 4 na meču
+I2+&3+: Ukupno golova biće najmanje 2 u prvom poluvremenu i najmanje 3 na meču
+I2+&4+: Ukupno golova biće najmanje 2 u prvom poluvremenu i najmanje 4 na meču
+NE I1-3&II1-3: Bar u jednom od poluvremena ukupno golova neće biti 1, 2 ili 3
+I2-3&4+: Ukupno golova biće 2 ili 3 u prvom poluvremenu i najmanje 4 na meču
+NE I1+&II2+: Ne postiže se gol u prvom poluvremenu ili ukupno golova u drugom poluvremenu će biti najviše 1
+NE I1+&II1+: Bar u jednom poluvremenu neće biti golova
+I2-3&II2-3: Ukupno golova biće 2 ili 3 u prvom poluvremenu i 2 ili 3 u drugom poluvremenu
+I2-3&II2+: Ukupno golova biće 2 ili 3 u prvom poluvremenu i najmanje 2 u drugom poluvremenu
+I2-3&II1-3: Ukupno golova biće 2 ili 3 u prvom poluvremenu i 1, 2 ili 3 u drugom poluvremenu
+I2-3&II1-2: Ukupno golova biće 2 ili 3 u prvom poluvremenu i 1 ili 2 u drugom poluvremenu
+I2-3&II1+: Ukupno golova biće 2 ili 3 u prvom poluvremenu i najmanje 1 u drugom poluvremenu
+
+Match Outcome & Goals Combinations
+1 & 2+: Domaćin pobedi na meču i ukupno golova na meču biće najmanje 2
+1 & 3+: Domaćin pobedi na meču i ukupno golova na meču biće najmanje 3
+1 & 4+: Domaćin pobedi na meču i ukupno golova na meču biće najmanje 4
+2 & 2+: Gost pobedi na meču i ukupno golova na meču biće najmanje 2
+2 & 3+: Gost pobedi na meču i ukupno golova na meču biće najmanje 3
+2 & 4+: Gost pobedi na meču i ukupno golova na meču biće najmanje 4
+
+Win & Under / Range Goals
+1 & 0-2: Domaćin pobedi na meču i ukupno golova na meču biće najviše 2 (npr. 1:0 ili 2:0)
+1 & 2-3: Domaćin pobedi na meču i ukupno golova na meču biće 2 ili 3
+2 & 0-2: Gost pobedi na meču i ukupno golova na meču biće najviše 2
+2 & 2-3: Gost pobedi na meču i ukupno golova na meču biće 2 ili 3
+
+Half + Match Outcome Combinations (Poluvreme/Kraj with goals)
+1-1 & 2+: Domaćin vodi na poluvremenu i pobedi na meču, a na meču će biti najmanje 2 gola
+1-1 & 3+: Domaćin vodi na poluvremenu i pobedi na meču, a na meču će biti najmanje 3 gola
+2-2 & 2+: Gost vodi na poluvremenu i pobedi na meču, a na meču će biti najmanje 2 gola
+2-2 & 3+: Gost vodi na poluvremenu i pobedi na meču, a na meču će biti najmanje 3 gola
+
+(User note: Soccer Bet offers many more combinations than listed here;
+the parser must handle any code built from the same grammar.)
