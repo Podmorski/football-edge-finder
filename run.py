@@ -23,6 +23,8 @@ COMMANDS = {
     "fixtures": "Pull fixtures for a date (default: tomorrow). Refuses out-of-window dates.",
     "requests-today": "Print today's API-Football request count from the local log.",
     "snapshot-fd": "Save football-data.co.uk fixtures.csv if its content hash has changed.",
+    "price-match": "Fair probability and odds for every catalogue market of a match.",
+    "analyse-book": "Analyse a Soccer Bet price file (margins, EV, cheapest representation).",
 }
 
 
@@ -76,6 +78,16 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("requests-today", help=COMMANDS["requests-today"])
     sub.add_parser("snapshot-fd", help=COMMANDS["snapshot-fd"])
 
+    price = sub.add_parser("price-match", help=COMMANDS["price-match"])
+    price.add_argument("--league", required=True)
+    price.add_argument("--home", required=True)
+    price.add_argument("--away", required=True)
+    price.add_argument("--odds-1x2", nargs=3, type=float, required=True, metavar=("H", "D", "A"))
+    price.add_argument("--odds-ou25", nargs=2, type=float, required=True, metavar=("OVER", "UNDER"))
+
+    book = sub.add_parser("analyse-book", help=COMMANDS["analyse-book"])
+    book.add_argument("--file", required=True)
+
     fixtures = sub.add_parser("fixtures", help=COMMANDS["fixtures"])
     fixtures.add_argument(
         "--date",
@@ -97,6 +109,27 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "snapshot-fd":
         return snapshot_fd()
+
+    if args.command == "price-match":
+        import step4_pricing
+
+        rows = step4_pricing.price_match(
+            args.league, args.home, args.away,
+            tuple(args.odds_1x2), tuple(args.odds_ou25),
+        )
+        passing = {r["family"] for r in rows if r["status"] == "PASS"}
+        print(f"{args.home} vs {args.away} ({args.league}) - {len(rows)} markets")
+        print(f"families PASS: {len(passing)}")
+        print(f"{'code':<16}{'family':<22}{'p_fair':>9}{'fair_odds':>11}{'status':>10}")
+        for r in rows:
+            print(f"{r['code']:<16}{r['family']:<22}{r['p_fair']:>9.4f}"
+                  f"{r['fair_odds']:>11.3f}{r['status']:>10}")
+        return 0
+
+    if args.command == "analyse-book":
+        import step4_pricing
+
+        return step4_pricing.analyse_book(args.file)
 
     if args.command == "ingest-historical":
         import ingest_historical
