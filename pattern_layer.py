@@ -186,7 +186,9 @@ def main() -> int:
     frame = preds.merge(raw[["match_key"] + ODDS_COLUMNS], on="match_key", how="left")
 
     ou = odds.prematch_ou25(frame)
-    p_mkt = odds.demargin(ou.odds.where(ou.available), "proportional").to_numpy()[:, 1]
+    # Index the O/U market BY NAME: ou.odds columns are ("over", "under"), so
+    # positional [:, 1] would silently select UNDER.
+    p_mkt = odds.demargin(ou.odds.where(ou.available), "proportional")["over"].to_numpy()
     p_model = frame["p_over25"].to_numpy()
     total = (frame["fthg"] + frame["ftag"]).to_numpy()
     over = (total > 2.5).astype(int)

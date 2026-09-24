@@ -66,6 +66,12 @@ AVGC_1X2 = [("AvgC", ("avg_ch", "avg_cd", "avg_ca"))]
 SHARP_CLOSING_OU25 = [("PC>2.5", ("pc>2.5", "pc<2.5"))]
 AVGC_OU25 = [("AvgC>2.5", ("avg_c>2.5", "avg_c<2.5"))]
 
+# Single-source PRE-MATCH cascades, for the price-cost table.
+PINNACLE_1X2 = [("PS", ("psh", "psd", "psa"))]
+PINNACLE_OU25 = [("P>2.5", ("p>2.5", "p<2.5"))]
+B365_1X2 = [("B365", ("b365_h", "b365_d", "b365_a"))]
+B365_OU25 = [("B365>2.5", ("b365>2.5", "b365<2.5"))]
+
 
 @dataclass
 class Market:
@@ -133,6 +139,26 @@ def sharp_closing_ou25(df: pd.DataFrame) -> Market:
 def avgc_ou25(df: pd.DataFrame) -> Market:
     """Market-average closing O/U 2.5 only."""
     return _cascade(df, AVGC_OU25, OUT_OU)
+
+
+def pinnacle_1x2(df: pd.DataFrame) -> Market:
+    """Pinnacle pre-match 1X2 only (the low-margin reference)."""
+    return _cascade(df, PINNACLE_1X2, OUT_1X2)
+
+
+def pinnacle_ou25(df: pd.DataFrame) -> Market:
+    """Pinnacle pre-match O/U 2.5 only."""
+    return _cascade(df, PINNACLE_OU25, OUT_OU)
+
+
+def b365_1x2(df: pd.DataFrame) -> Market:
+    """B365 pre-match 1X2 only."""
+    return _cascade(df, B365_1X2, OUT_1X2)
+
+
+def b365_ou25(df: pd.DataFrame) -> Market:
+    """B365 pre-match O/U 2.5 only."""
+    return _cascade(df, B365_OU25, OUT_OU)
 
 
 def prematch_ou25(df: pd.DataFrame) -> Market:

@@ -155,6 +155,37 @@ data when predicting 2020-21 itself, and could not affect 2017-18 or 2018-19, so
 the option could not affect the tune seasons. It is superseded by the
 `covid_mode` design in Step 4.
 
+### Standing tripwires (2026-09-24)
+
+> **Any hit = STOP and bug-hunt before interpreting anything.**
+
+1. A **de-margined market worse than a constant / base-rate predictor** in any
+   season × market.
+2. A **model not beating naive in-sample**.
+3. A **probability inconsistent with its own odds**:
+   `|1/odds − p_demargined| > that row's margin + 0.02`.
+4. **Calibration slope < 0**, or **corr(prob, outcome) < 0**, for any market.
+
+### Ranking rule (2026-09-24)
+
+Rank market calibration by **log-loss gain vs naive + calibration slope**.
+**ECE is reported but is NOT used for ranking.**
+
+### Margin
+
+> **Margin is the cost of betting.** Low-margin price sensitivity is
+> **descriptive, not price-hunting** — it tells us what a sharper book would
+> cost, not where to shop.
+
+### Findings and corrections (external review, 2026-09-24)
+
+An internal contradiction was reported in the totals path: the rule table
+printed market P(under) = 0.4665 alongside mean under odds 1.777
+(break-even 0.5627), and market M0 O/U log loss (0.6995–0.7113) was **worse
+than a 50/50 constant (0.6931) in all five seasons** — implausible for a real
+de-margined market. Hypothesis: **over/under swapped or misaligned** somewhere in
+the O/U path. Verified in Step 1 below; 1X2 was never under suspicion.
+
 ### Auxiliary divisions
 
 **E1 (Championship)** and **E3 (League Two)** are ingested as *auxiliary* data

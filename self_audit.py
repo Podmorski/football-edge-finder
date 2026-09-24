@@ -46,7 +46,7 @@ CLAIMED = [
     ("covid downweight_0.5 mean 1X2", 1.0237, "ARTIFACT"),
     ("blend-market pooled diff", -0.0009, "ARTIFACT"),
     ("blend b (pooled)", 0.0265, "ARTIFACT"),
-    ("O/U blend-market diff", -0.0110, "ARTIFACT"),
+    ("O/U blend-market diff", 0.0034, "ARTIFACT"),
     ("grid parity max abs diff", 0.0, "CONFIG-ONLY"),
     ("corr(model E[total], actual)", 0.0257, "ARTIFACT"),
     ("corr(model P(over), actual)", 0.0103, "ARTIFACT"),
@@ -174,9 +174,9 @@ def main() -> int:
 
     # O/U blend recomputation
     ou_ok = has_ou & np.isfinite(
-        odds.demargin(ou.odds.where(ou.available)).to_numpy()[:, 1]
+        odds.demargin(ou.odds.where(ou.available))["over"].to_numpy()
     )
-    ou_series = ou_mkt[:, 1]
+    ou_series = ou_mkt[:, 0]  # column 0 is "over"
     obl, oml = [], []
     for target in en.TARGETS:
         train_mask = ou_ok & np.isin(season_arr, [s for s in en.SEASONS if s < target])
@@ -303,11 +303,11 @@ def recompute_2d() -> dict[str, float]:
 
 
 CLAIMED_2D = [
-    ("totals M1-M0", -0.0118),
+    ("totals M1-M0", 0.0026),
     ("totals M2-M1", 0.0008),
     ("totals probe-M1", 0.0005),
     ("pattern layer_model_diff", 0.0046),
-    ("pattern layer_market_diff", 0.0047),
+    ("pattern layer_market_diff", 0.0044),
     ("rule bottom-third n", 531),
     ("rule bottom-third hit", 0.4878),
     ("rule top-third n", 620),
@@ -345,8 +345,67 @@ def audit_2d() -> int:
     return failures
 
 
+def recompute_3() -> dict[str, float]:
+    """Recompute the Prompt-2e headline numbers from their artifacts."""
+    out: dict[str, float] = {}
+    cross = pd.read_csv("reports/figures/cross_league.csv", index_col=0)
+    for slug in ("ligue_2_t2", "bundesliga_2", "bundesliga_1"):
+        out[f"{slug} model-market"] = float(cross.loc[slug, "model_minus_market"])
+        out[f"{slug} M0"] = float(cross.loc[slug, "M0"])
+        out[f"{slug} bins inspected"] = float(cross.loc[slug, "bins_inspected"])
+        out[f"{slug} bins clearing mkt avg"] = float(cross.loc[slug, "bins_clearing_market_avg"])
+    out["bundesliga_1 M2-M1"] = float(cross.loc["bundesliga_1", "M2_minus_M1"])
+
+    price = pd.read_csv("reports/figures/price_cost_payout.csv")
+    out["price-cost bins inspected"] = float(len(price))
+    out["price-cost bins clearing"] = float(price["clears"].sum())
+    return out
+
+
+CLAIMED_3 = [
+    ("ligue_2_t2 model-market", 0.0187),
+    ("bundesliga_2 model-market", 0.0177),
+    ("bundesliga_1 model-market", 0.0182),
+    ("ligue_2_t2 M0", 0.6702),
+    ("bundesliga_2 M0", 0.6782),
+    ("bundesliga_1 M0", 0.6546),
+    ("bundesliga_1 M2-M1", 0.0107),
+    ("ligue_2_t2 bins inspected", 84),
+    ("bundesliga_2 bins inspected", 74),
+    ("bundesliga_1 bins inspected", 90),
+    ("ligue_2_t2 bins clearing mkt avg", 0),
+    ("bundesliga_2 bins clearing mkt avg", 1),
+    ("bundesliga_1 bins clearing mkt avg", 1),
+    ("price-cost bins inspected", 102),
+    ("price-cost bins clearing", 0),
+]
+
+
+def audit_3() -> int:
+    print("\n" + "=" * 90)
+    print("Prompt-2e claims, recomputed from artifacts")
+    print("=" * 90)
+    got = recompute_3()
+    print(f"\n{'claim':<34}{'claimed':>12}{'recomputed':>14}{'|diff|':>11}  status")
+    failures = 0
+    for name, claimed in CLAIMED_3:
+        if name not in got:
+            print(f"{name:<34}{claimed:>12.4f}{'-':>14}{'-':>11}  NO ARTIFACT")
+            failures += 1
+            continue
+        value = got[name]
+        diff = abs(value - claimed)
+        ok = diff <= max(1e-9, 5e-5)
+        if not ok:
+            failures += 1
+        print(f"{name:<34}{claimed:>12.4f}{value:>14.4f}{diff:>11.2e}  {'OK' if ok else 'MISMATCH'}")
+    print(f"\nmismatches: {failures}")
+    return failures
+
+
 if __name__ == "__main__":
     rc = main()
     rc += audit_2d()
+    rc += audit_3()
     print("\nCOMBINED SELF-AUDIT:", "PASS" if rc == 0 else "FAIL")
     sys.exit(0 if rc == 0 else 1)

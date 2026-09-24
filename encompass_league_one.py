@@ -177,7 +177,8 @@ def main() -> int:
 
     # ---------------- O/U logistic ----------------
     ou = odds.prematch_ou25(frame)
-    ou_mkt = odds.demargin(ou.odds.where(ou.available)).to_numpy()[:, 1]
+    # BY NAME: ou.odds columns are ("over", "under"); [:, 1] would be UNDER.
+    ou_mkt = odds.demargin(ou.odds.where(ou.available))["over"].to_numpy()
     p_model_ou = frame["p_over25"].to_numpy()
     over = (frame["fthg"] + frame["ftag"] > 2.5).to_numpy().astype(float)
     ok = np.isfinite(ou_mkt)
