@@ -517,3 +517,133 @@ from the raw parquet and checks the backtest and `run.py log-close`:
 > input was wrong, so the run was repeated with the column corrected and the
 > earlier ledger row **superseded**. The fresh-process re-run reproduces every
 > headline number exactly.
+
+### MAINLINE-HIST-1 verdict stands; B365/1X2 is a LEAD (2026-09-24)
+
+**The FAIL verdict is unchanged and the `n >= 300` gate is NOT amended.** B365/1X2
+missed the gate at **n = 273**; moving the gate to fit the one near-miss would be
+fitting the rule to the result. It is recorded as a **LEAD**, not a candidate:
+
+> **LEAD — B365 / 1X2.** mean CLV **+1.94%** [+0.74%, +3.14%], n = 273, ROI
+> −3.55%. Positive CLV with a CI above 0, but one gate short and P&L negative.
+
+The **real test is automated Mozzart paper trading** (Parts E–F): the local book's
+own prices, recorded forward, settled automatically. Only after that, and only if
+it holds, is there **one shot** of the frozen rule on the locked confirmation
+seasons. **No bet is ever placed automatically.**
+
+### Era split and outliers for B365/1X2 (2026-09-24)
+
+`research/era_split.py` (read-only, no API calls) splits the 273 B365/1X2 bets at
+2019 and audits the largest-CLV bets.
+
+| era | n | mean CLV | 95% CI | ROI |
+|---|---:|---:|---|---:|
+| 2017-18..2018-19 | 122 | **+1.63%** | [−0.03%, +3.51%] | −13.31% |
+| 2019-20..2022-23 | 151 | **+2.20%** | [+0.53%, +3.74%] | +4.34% |
+
+**B365 1X2 margin per season** (mean over the four leagues): 2017-18 **+4.96%**,
+2018-19 **+4.95%**, 2019-20 +5.41%, 2020-21 +6.03%, 2021-22 +6.06%, 2022-23
++5.86% — the book's margin **rose** after 2019, so the later-era CLV is not an
+artefact of a softer book.
+
+**Pre-2019 B365 columns are genuine book prices, not copies.** Across the four
+leagues in 2017-18..2018-19 the B365 margin (2.85%–6.53%) is distinct from both
+Pinnacle (2.56%–3.51%) and the market average (4.87%–7.43%); only **2.5%–6.1%** of
+rows have `b365_h == psh` and **4.2%–10.5%** have `b365_h == bb_av_h`.
+
+> **Verdict: the signal survives post-2019.** CLV is positive in *both* eras and
+> the later era is the stronger one, with its CI above 0. The pre-2019 CI just
+> touches 0, so the early era alone would not clear the bar.
+
+**Outliers.** The 10 largest-CLV bets are 9× 1X2 and 1× AH, all on long prices
+where Pinnacle moved sharply between pre-match and close (e.g. 2019-02-11 Brest v
+Auxerre away 4.75, Pinnacle 4.30 → 3.42). They look like **genuine large line
+moves, not data errors**; the two largest (Brest v Auxerre, Clermont v Nimes) are
+flagged for a spot-check because the move exceeds 20%.
+
+**Sensitivity (not a gate).** Removing the 9 bets with CLV > 20% drops the 1X2
+mean CLV to **+1.05%** [−0.09%, +2.10%] — the CI then includes 0. So a meaningful
+part of the headline CLV rests on a handful of large-move bets; the paper-trading
+sample must be read with that in mind.
+
+### PulseScore / Mozzart discovery (2026-09-24)
+
+`pulsescore_probe.py` (bounded, every call logged to `logs/pulsescore_requests.csv`).
+
+* **Free tier is a BASIC plan: 1 request per second per bookmaker.** A second call
+  in the same second returns **HTTP 429**. No monthly figure is exposed, so the
+  local log is the source of truth: configured **monthly cap 400**, **stop at 50
+  remaining** (`pulsescore_log.py`).
+* **A pre-match endpoint exists — no STOP.** `GET /soccer/events?page=&limit=`
+  returns upcoming events with `live: false` and their **full market list with
+  odds**. The live WebSocket is not required.
+* **PS3838 (Pinnacle) is available with this key** (`/api/ps3838/soccer/leagues` →
+  126 leagues). **bet365 is not** (HTTP 404).
+* Endpoints confirmed: `/soccer/leagues` (99 leagues, 30/page),
+  `/soccer/leagues/:id/events` (returned 0 for the two leagues checked),
+  `/soccer/events` (599 upcoming events, 30/page), `/soccer/events/:id`.
+* Market shape: `canonicalMarket`, `rawName` (Serbian section), `period`
+  (`FULL_TIME`/`FIRST_HALF`/`SECOND_HALF`), `marketId` (line in
+  `30:FULL_TIME@2.5`), `selections[]` with `rawName`, `odds`,
+  `moreInfo.description`.
+* **League mapping (Mozzart Serbian names):** Bundesliga → **Nemačka 1** (4143);
+  League One → **Engleska 3** (4080); **2. Bundesliga → not in the list**;
+  **Ligue 2 → not in the list**. The 99-league list has Nemačka 1 and Nemačka 3
+  but no Nemačka 2, and Francuska 1 and Francuska 3 but no Francuska 2. The feed
+  is currently dominated by **Nations League / cup ties (international break)**, so
+  this must be **re-checked on a normal matchday** before concluding the two
+  leagues are unavailable.
+* Discovery used **17 requests** (2 wasted: one 429, one duplicate) of the 400/month.
+
+**C6 sample.** One upcoming match pulled and saved to `data/mozzart/raw/`:
+Netherlands v Germany (Nations League, 184 markets). First rows:
+
+| section (rawName) | code | odds |
+|---|---|---:|
+| Konačan ishod | `1` | 2.60 |
+| Konačan ishod | `X` | 3.90 |
+| Konačan ishod | `2` | 2.55 |
+| Dupla šansa | `1X` | 1.56 |
+| Ukupno golova na meču | `0-1` | 5.30 |
+| Ukupno golova na meču | `2+` | 1.12 |
+| Oba tima daju gol | `GG` | — |
+| Poluvreme - Kraj | `1-1` | — |
+
+> **The section decides the code, exactly as with Soccer Bet.** Mozzart prints
+> `Konačan ishod`/`Dupla šansa`/`Ukupno golova na meču`/`Oba tima daju gol`/
+> `Poluvreme - Kraj`/`Tačan rezultat`/`Daje prvi gol`/`Mozzart šansa`, and the
+> same bare code means different things under different sections.
+
+### Automated Mozzart paper trading (2026-09-24)
+
+**Mozzart is the primary automated book; Soccer Bet is the manual secondary.**
+The fair sheet now joins Mozzart's pre-match prices (PulseScore) to our fair odds
+and prints a **FLAGS** block at the top: match, kickoff, Serbian section, code,
+plain-English meaning, Mozzart odds, minimum acceptable odds (`fair x 1.035`) and
+**EV after a 20% haircut** on the fair probability. A market is flagged only when
+**all** hold:
+
+1. the family **PASSed** calibration, or it is a **SHARP main-line** market
+   (RESULT, DOUBLE_CHANCE, full-time No-Bet, GOAL_RANGE_FT);
+2. the Mozzart price is at or above `fair x 1.035`;
+3. the Pinnacle and Mozzart snapshots are **within 60 minutes** (else `STALE`).
+
+If nothing qualifies the sheet prints **“No value today.”** Each run appends one
+line to `reports/fair_sheets/summary.csv` (date, matches, markets compared, flags,
+credits).
+
+**Payout.** The user confirmed `payout = stake x odds`, no tax and no fees:
+`bookmaker_payout_factor = 1.00`, `stake_fee = 0.00` (`config/paper.yaml`).
+
+**Paper trading is fully automatic and never places a real bet.** Every flag
+becomes one paper bet (1 unit at the Mozzart price) in `data/paper/paper_bets.csv`;
+`run.py paper-close` saves the de-margined Pinnacle close for matches with paper
+bets within 30 minutes of kickoff; `run.py paper-settle` settles finished bets via
+the **section-aware** settlement; `run.py paper-report` prints n, mean CLV with a
+95% CI, virtual P&L, and the same split by family and by league.
+
+> **Real money only after >= 50 paper bets with mean CLV > 0, the 95% CI lower
+> bound > 0, and no contradicting historical evidence.** The B365/1X2 lead is
+> positive but one gate short and partly driven by a few large-move bets, so it is
+> **not** a licence to bet. **No bet is ever placed automatically.**
