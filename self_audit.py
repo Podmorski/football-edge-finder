@@ -17,6 +17,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import yaml
 
 from core import odds, walkforward as wf
 from models import league_one_dixon_coles as m
@@ -403,9 +404,81 @@ def audit_3() -> int:
     return failures
 
 
+def recompute_4() -> dict[str, float]:
+    """Recompute the Phase-3 headline numbers from their artifacts."""
+    out: dict[str, float] = {}
+    cat = yaml.safe_load(Path("config/markets_catalogue.yaml").read_text(encoding="utf-8"))["markets"]
+    out["catalogue markets"] = float(len(cat))
+    out["catalogue families"] = float(len({e["family"] for e in cat}))
+    out["do_not_bet flags"] = float(sum(1 for e in cat if e["do_not_bet"]))
+
+    fam = pd.read_csv("reports/figures/family_calibration.csv")
+    out["families passing Holm"] = float(fam["final_pass"].sum())
+    out["families passing raw"] = float(fam["raw_pass"].sum())
+    row = fam[fam["family"] == "MORE_GOALS_HALF"].iloc[0]
+    out["MORE_GOALS_HALF gain"] = float(row["gain_vs_B0"])
+    out["MORE_GOALS_HALF slope"] = float(row["slope"])
+    out["GOAL_RANGE_2H gain"] = float(fam[fam["family"] == "GOAL_RANGE_2H"].iloc[0]["gain_vs_B0"])
+    out["HTFT slope"] = float(fam[fam["family"] == "HTFT"].iloc[0]["slope"])
+
+    df = pd.read_parquet("data/predictions/derived_markets_calibration.parquet")
+    for code in ("I>II", "I=II", "I<II"):
+        sub = df[df["code"] == code]
+        out[f"{code} model"] = float(sub["p_model"].mean())
+        out[f"{code} B0"] = float(sub["p_b0"].mean())
+        out[f"{code} observed"] = float(sub["y"].mean())
+    ls = df[df["p_model"] < 0.10]
+    out["longshot model"] = float(ls["p_model"].mean())
+    out["longshot observed"] = float(ls["y"].mean())
+    return out
+
+
+CLAIMED_4 = [
+    ("catalogue markets", 207),
+    ("catalogue families", 20),
+    ("do_not_bet flags", 4),
+    ("families passing Holm", 7),
+    ("families passing raw", 10),
+    ("MORE_GOALS_HALF gain", 0.0087),
+    ("MORE_GOALS_HALF slope", 0.8633),
+    ("GOAL_RANGE_2H gain", 0.0043),
+    ("HTFT slope", 0.4421),
+    ("I>II model", 0.2819),
+    ("I>II B0", 0.3693),
+    ("I>II observed", 0.2870),
+    ("I<II model", 0.4613),
+    ("I<II observed", 0.4460),
+    ("longshot model", 0.0586),
+    ("longshot observed", 0.0588),
+]
+
+
+def audit_4() -> int:
+    print("\n" + "=" * 90)
+    print("Phase-3 claims, recomputed from artifacts")
+    print("=" * 90)
+    got = recompute_4()
+    print(f"\n{'claim':<34}{'claimed':>12}{'recomputed':>14}{'|diff|':>11}  status")
+    failures = 0
+    for name, claimed in CLAIMED_4:
+        if name not in got:
+            print(f"{name:<34}{claimed:>12.4f}{'-':>14}{'-':>11}  NO ARTIFACT")
+            failures += 1
+            continue
+        value = got[name]
+        diff = abs(value - claimed)
+        ok = diff <= max(1e-9, 5e-5)
+        if not ok:
+            failures += 1
+        print(f"{name:<34}{claimed:>12.4f}{value:>14.4f}{diff:>11.2e}  {'OK' if ok else 'MISMATCH'}")
+    print(f"\nmismatches: {failures}")
+    return failures
+
+
 if __name__ == "__main__":
     rc = main()
     rc += audit_2d()
     rc += audit_3()
+    rc += audit_4()
     print("\nCOMBINED SELF-AUDIT:", "PASS" if rc == 0 else "FAIL")
     sys.exit(0 if rc == 0 else 1)
