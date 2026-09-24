@@ -22,7 +22,45 @@ COMMANDS = {
     "refresh": "Re-pull only the current season and merge (idempotent; adds 0 rows on a repeat run).",
     "fixtures": "Pull fixtures for a date (default: tomorrow). Refuses out-of-window dates.",
     "requests-today": "Print today's API-Football request count from the local log.",
+    "snapshot-fd": "Save football-data.co.uk fixtures.csv if its content hash has changed.",
 }
+
+
+def snapshot_fd() -> int:
+    """Save football-data.co.uk fixtures.csv only when its content hash changes.
+
+    Free (no API credits). The file is the only forward-looking fixture source
+    available without an API key, so keeping a hash-gated history lets us see
+    when it rolls over to the next round.
+    """
+    import hashlib
+    from datetime import datetime, timezone
+    from pathlib import Path
+
+    import requests
+
+    url = "https://football-data.co.uk/fixtures.csv"
+    out_dir = Path("data/odds_snapshots/fd")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+    content = response.content
+    digest = hashlib.sha256(content).hexdigest()
+
+    existing = sorted(out_dir.glob("*.csv"))
+    if existing:
+        previous = hashlib.sha256(existing[-1].read_bytes()).hexdigest()
+        if previous == digest:
+            print(f"unchanged since {existing[-1].name} "
+                  f"(sha256 {digest[:16]}) - not saved")
+            return 0
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = out_dir / f"{stamp}.csv"
+    path.write_bytes(content)
+    print(f"saved {path} ({len(content)} bytes, sha256 {digest[:16]})")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -36,6 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("ingest-xg", help=COMMANDS["ingest-xg"])
     sub.add_parser("refresh", help=COMMANDS["refresh"])
     sub.add_parser("requests-today", help=COMMANDS["requests-today"])
+    sub.add_parser("snapshot-fd", help=COMMANDS["snapshot-fd"])
 
     fixtures = sub.add_parser("fixtures", help=COMMANDS["fixtures"])
     fixtures.add_argument(
@@ -55,6 +94,9 @@ def main(argv: list[str] | None = None) -> int:
 
         api_log.print_today()
         return 0
+
+    if args.command == "snapshot-fd":
+        return snapshot_fd()
 
     if args.command == "ingest-historical":
         import ingest_historical
