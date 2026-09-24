@@ -66,6 +66,7 @@ A Windows-friendly runner; no make required.
 ./venv/Scripts/python.exe run.py fixtures              # tomorrow (local date)
 ./venv/Scripts/python.exe run.py fixtures --date 2026-09-24
 ./venv/Scripts/python.exe run.py requests-today
+./venv/Scripts/python.exe run.py snapshot-fd
 ```
 
 ## Scripts
@@ -103,6 +104,39 @@ idempotent — running it twice adds 0 rows the second time.
 # Local investigation
 ./venv/Scripts/python.exe team_audit.py
 ```
+
+## Odds recorder (Phase 1.5)
+
+The project is **not** price-hunting. The recorder exists to build a history of
+**market-average payouts for markets that have no historical prices on
+football-data.co.uk** — BTTS, alternate goal lines, half-time markets, correct
+score, HT/FT and same-game combos — so the payout check can be run on them
+later. h2h and totals 2.5 are already covered free by football-data.co.uk and
+are deliberately **not** the priority.
+
+### Two request logs
+
+Both live under `logs/` (gitignored) and are the source of truth for quota,
+because provider counters lag.
+
+| Log | Covers | Helper |
+|---|---|---|
+| `logs/api_requests.csv` | API-Football (`/fixtures`, `/status`) | `api_log.py`, `run.py requests-today` |
+| `logs/odds_api_requests.csv` | The Odds API (credits from `x-requests-*` headers) | `odds_api_log.py` |
+
+### `run.py snapshot-fd`
+
+Saves `https://football-data.co.uk/fixtures.csv` to
+`data/odds_snapshots/fd/<timestamp>.csv` **only if its content hash changed**,
+so repeated runs are free no-ops. This is the only forward-looking fixture
+source available without an API key, and it is the free fallback for the odds
+recorder.
+
+### The Odds API probe
+
+`oddsapi_probe.py` performs a bounded, fully logged probe (hard cap 10 credits)
+and writes raw responses to `data/odds_snapshots/oddsapi/`. Findings and the
+proposed snapshot plan are in `reports/phase2_step6_league_one.md`.
 
 ## Findings and decisions
 
