@@ -77,20 +77,40 @@ MAX_HALF = MAX_HALF_GOALS
 CACHE_DIR = Path("data/odds_snapshots/oddsapi/fair_sheet")
 SHEET_DIR = Path("reports/fair_sheets")
 
-MAINLINE_FAMILIES = ("RESULT", "DOUBLE_CHANCE", "GOAL_RANGE_FT", "NO_BET")
+# Rows read straight off the sharp price rather than off a model:
+# RESULT, DOUBLE_CHANCE and the full-time No-Bet pair are exact functions of the
+# de-margined sharp 1X2, and GOAL_RANGE_FT is the anchored score grid's
+# implication of the sharp 1X2 + totals line. Their status is SHARP, never a
+# calibration verdict.
+SHARP_FAMILIES = {"RESULT", "DOUBLE_CHANCE", "GOAL_RANGE_FT"}
+SHARP_CODES = {("NO_BET", "XNB FT 1"), ("NO_BET", "XNB FT 2")}
 
-# Row order, and the preference used when two codes settle identically.
-#
-# The canonical homes come first: a bare code in the base catalogue's goal-range
-# families parses as a result / double chance / half market (the grammar tests a
-# result token before a goal token, so GOAL_RANGE_FT `1` is "home wins" and
-# GOAL_RANGE_1H `I1` is "home leads at half time"). Those 12 rows are dropped in
-# favour of the family that names that settlement, while the correct goal readings
-# arrive from the ext section under their printed prefix (T:1, T1:NE1, ...).
-FAMILY_ORDER = (
-    "RESULT", "DOUBLE_CHANCE", "HALF_RESULT", "HALF_DC",
-    "GOAL_RANGE_FT", "NO_BET",
-)
+# Typical Serbian-book margin per family, and the basis of each number: the margin
+# of the CHEAPEST exhaustive partition in the sample capture. The partitions the
+# report already measures are marked §3 (reports/phase3_soccerbet_sample.md); the
+# goal-range and No-Bet two-way partitions are recorded in that report's appendix.
+# The book charges least on the low-margin families, so their rows come first.
+FAMILY_MARGIN = {
+    "GOAL_RANGE_FT": 0.0779,    # Ukupno Golova 0-2 / 3+
+    "GOAL_RANGE_2H": 0.0779,    # II Pol. Uk. Golova 0-2 / 3+
+    "GOAL_RANGE_1H": 0.0808,    # I Pol. Uk. Golova 0-1 / 2+
+    "RESULT": 0.0856,           # report §3
+    "DOUBLE_CHANCE": 0.0901,    # report §3
+    "NO_BET": 0.1105,           # X No Bet 1 / 2, draw voids
+    "HALF_RESULT": 0.1327,      # report §3 (cheapest of 1H / 2H)
+    "MORE_GOALS_HALF": 0.1365,  # report §3
+    "HALF_DC": 0.1370,          # report §3 (cheapest of 1H / 2H)
+    "HTFT": 0.1990,             # report §3
+    "HTFT_NE": 0.1990,          # same displayed section as HTFT: Poluvreme/Kraj
+    "HTFT_DC": 0.1990,          # same displayed section as HTFT: Poluvreme/Kraj
+}
+MARGIN_UNKNOWN = 1.0            # no exhaustive partition in the sample: sorts last
+
+# Presentation: a short, phone-readable shortlist per match. At most
+# MAX_ROWS_PER_FAMILY from any one family, so the cheap families all get a look in
+# instead of the 40 goal-range prices filling the sheet on their own.
+MAX_ROWS = 15
+MAX_ROWS_PER_FAMILY = 3
 
 _MARKETS_CACHE: list | None = None
 _MASKS_CACHE: dict | None = None
@@ -367,14 +387,31 @@ def price_match(slug: str, prices: dict) -> tuple[list[dict], float]:
         rows.append({
             "market": key,
             "family": market.family,
+            "section": market.section,
+            "meaning": meaning_of(market),
             "fair_odds": odd,
             "min_acceptable": odd * EDGE_CUSHION,
-            "status": "UNTESTABLE" if not getattr(market, "testable", True)
-                      else status.get(market.family, "UNTESTED"),
+            "status": ("SHARP" if (market.family in SHARP_FAMILIES
+                                    or (market.family, market.code) in SHARP_CODES)
+                       else "UNTESTABLE" if not getattr(market, "testable", True)
+                       else status.get(market.family, "UNTESTED")),
             "do_not_bet": key in blocked,
             "signature": settlement_signature(market.outcome),
         })
     return rows, anchor.residual
+
+
+def meaning_of(market) -> str:
+    """Plain-English meaning of a market, used as the sheet's middle column."""
+    text = getattr(market, "definition_en", "")
+    if text:
+        return text
+    from core.market_code import parse as parse_code
+
+    try:
+        return parse_code(market.code, market.family, section=market.section).definition_en
+    except ValueError:
+        return market.code
 
 
 def handcrafted_blocklist() -> set[str]:
@@ -385,29 +422,42 @@ def handcrafted_blocklist() -> set[str]:
 
 
 def select(rows: list[dict]) -> tuple[list[dict], int, int]:
-    """The rows the sheet shows, de-duplicated. Returns (rows, hidden, dropped).
+    """The shortlist the sheet shows. Returns (rows, hidden, suppressed).
 
-    De-duplication is by settlement identity, preferring :data:`FAMILY_ORDER`.
+    Kept: rows whose price is SHARP (read off the sharp price) or whose family
+    PASSed calibration, minus the codes flagged DO_NOT_BET. Ordered by the family's
+    typical Serbian-book margin, lowest first, then by how close the fair price is
+    to even money. De-duplicated by settlement identity, then capped at
+    :data:`MAX_ROWS_PER_FAMILY` per family and :data:`MAX_ROWS` in total.
     """
-    order = {family: i for i, family in enumerate(FAMILY_ORDER)}
-    hidden = sum(1 for r in rows if r["family"] not in MAINLINE_FAMILIES
-                 and r["status"] != "PASS")
-    visible = [
-        r for r in rows
-        if (r["family"] in MAINLINE_FAMILIES or r["status"] == "PASS")
-        and not r["do_not_bet"]
-    ]
-    visible.sort(key=lambda r: (order.get(r["family"], len(order)),
-                                r["family"], r["market"]))
+    candidates = [row for row in rows
+                  if row["status"] in ("SHARP", "PASS") and not row["do_not_bet"]]
+    hidden = len(rows) - len(candidates)
+    candidates.sort(key=lambda row: (
+        FAMILY_MARGIN.get(row["family"], MARGIN_UNKNOWN),
+        abs(row["fair_odds"] - 2.0),
+        row["market"],
+    ))
 
     seen: set = set()
-    kept: list[dict] = []
-    for row in visible:
+    unique: list[dict] = []
+    for row in candidates:
         if row["signature"] in seen:
             continue
         seen.add(row["signature"])
+        unique.append(row)
+
+    per_family: dict[str, int] = {}
+    kept: list[dict] = []
+    for row in unique:
+        family = row["family"]
+        if per_family.get(family, 0) >= MAX_ROWS_PER_FAMILY:
+            continue
+        if len(kept) >= MAX_ROWS:
+            break
+        per_family[family] = per_family.get(family, 0) + 1
         kept.append(row)
-    return kept, hidden, len(visible) - len(kept)
+    return kept, hidden, len(candidates) - len(kept)
 
 
 # --------------------------------------------------------------------------- #
@@ -416,22 +466,26 @@ def select(rows: list[dict]) -> tuple[list[dict], int, int]:
 def render(matches: list[dict], meta: dict) -> str:
     window = meta["window"]
     span = window[0] if len(window) == 1 else f"{window[0]} .. {window[-1]}"
+    residual = "`anchor residual` is the RMS error of the (1X2, O/U) fit; a clean fit " \
+               "is below ~0.01. Above 0.05 the sharp 1X2 and totals disagree and the " \
+               "match is flagged."
     lines = [
         f"# Fair odds sheet — {span}",
         "",
         f"- **Pinnacle snapshot**: {meta['snapshot'] or 'n/a'}  ",
         f"- **Built**: {meta['built']} · sheet generated from cached/just-fetched Pinnacle prices.",
         "- **odds move — re-run within ~1h of betting.**",
-        f"- **MIN ACCEPTABLE ODDS = fair odds x {EDGE_CUSHION}.** Bet only at or above it.",
-        "- `anchor residual` is the RMS error of the (1X2, O/U) fit; a clean fit is "
-        "below ~0.01. Above 0.05 the sharp 1X2 and totals disagree and the match is "
-        "flagged.",
-        "- Shown: families whose calibration PASSed, plus the four main-line families "
-        f"({', '.join(MAINLINE_FAMILIES)}) whose price is the sharp anchor itself. "
-        "UNTESTABLE / UNCONFIRMED / UNTESTED / FAIL-only families are hidden.",
-        "- RESULT, DOUBLE_CHANCE and full-time NO_BET are read **directly** from the "
-        "de-margined Pinnacle 1X2. GOAL_RANGE_FT and the per-half markets come from "
-        "the score grid anchored on the same sharp prices.",
+        f"- **BET ONLY IF THE BOOK'S ODDS ARE >= fair x {EDGE_CUSHION}** (the value in the "
+        "last column). Match the code **inside its section** — the section is what "
+        "decides what a code means, so `1` is a home win under Konačni Ishod and "
+        "exactly one goal under Ukupno Golova.",
+        "- `SHARP` = priced off the de-margined Pinnacle price itself (RESULT, "
+        "DOUBLE_CHANCE, full-time No-Bet, and the goal totals from the sharp 1X2 + "
+        "totals line). `PASS` = the family's price was calibrated on unseen seasons.",
+        f"- Rows are ordered by the family's typical Serbian-book margin, **lowest "
+        f"first**, so the cheapest sections come first; at most "
+        f"{MAX_ROWS_PER_FAMILY} prices per family and {MAX_ROWS} rows per match.",
+        f"- {residual}",
         f"- Leagues: {meta['leagues'] or 'n/a'} · matches: {meta['matches']} · "
         f"credits this run: {meta['credits']} · remaining: {meta['remaining']}",
         "",
@@ -444,8 +498,8 @@ def render(matches: list[dict], meta: dict) -> str:
         if match["error"]:
             lines += ["", head, f"_{match['error']}_", ""]
             continue
-        residual = match.get("residual", 0.0)
-        warn = " ⚠ Pinnacle 1X2 and totals disagree — treat with care" if residual > 0.05 else ""
+        resid = match.get("residual", 0.0)
+        warn = " ⚠ Pinnacle 1X2 and totals disagree — treat with care" if resid > 0.05 else ""
         lines += [
             "",
             head,
@@ -453,44 +507,42 @@ def render(matches: list[dict], meta: dict) -> str:
             f"1X2 margin {match['margin_1x2']:+.3%} (Pinnacle "
             f"{'/'.join(f'{p:.2f}' for p in match['raw_1x2'])}) · "
             f"totals {match['line']:g} margin {match['margin_ou']:+.3%} · "
-            f"anchor residual {residual:.4f}{warn}",
+            f"anchor residual {resid:.4f}{warn}",
             "",
         ]
         if not match["rows"]:
             lines += ["_no market in a shown family_", ""]
             continue
+        eligible = len(match["rows"]) + match["suppressed"]
         lines += [
-            f"_{len(match['rows'])} markets shown"
-            + (f"; {match['hidden']} hidden; {match['dropped']} duplicate row(s) dropped"
-               if match["dropped"] else f"; {match['hidden']} hidden")
-            + "_",
+            f"_{len(match['rows'])} of {eligible} eligible prices shown; "
+            f"{match['hidden']} hidden; {match['suppressed']} below the cut_",
             "",
-            "| market | family | fair | min | status |",
-            "|---|---|---:|---:|---|",
+            "| section | code | meaning | fair | bet if ≥ |",
+            "|---|---|---|---:|---:|",
         ]
         for row in match["rows"]:
             lines.append(
-                f"| `{row['market']}` | {row['family']} | {row['fair_odds']:.2f} "
-                f"| **{row['min_acceptable']:.2f}** | {row['status']} |"
+                f"| {row['section']} | `{row['market']}` | {row['meaning']} "
+                f"| {row['fair_odds']:.2f} | **{row['min_acceptable']:.2f}** |"
             )
         lines.append("")
 
     lines += [
         "---",
         "",
-        "Main-line families are shown even when their calibration FAILed, because "
-        "their fair price is the de-margined Pinnacle anchor rather than a model "
-        "estimate. Everything else shown PASSed calibration on unseen seasons.",
+        "`SHARP` rows come straight off the sharp price; `PASS` families were "
+        "calibrated on unseen seasons. A row whose fair price and the book's price "
+        "agree is not a bet — only a price at or above the last column is.",
         "",
-        "A duplicate row is two codes that settle identically on every scoreline "
-        "(e.g. the base catalogue's bare `1` under GOAL_RANGE_FT is the same "
-        "settlement as RESULT `1`); the more canonical family is kept.",
+        "Two codes that settle identically on every scoreline are shown once.",
     ]
     return "\n".join(lines) + "\n"
 
 
-CSV_FIELDS = ["date", "kickoff_local", "league", "home", "away", "market", "family",
-              "fair_odds", "min_acceptable_odds", "status", "pinnacle_snapshot"]
+CSV_FIELDS = ["date", "kickoff_local", "league", "home", "away", "section", "market",
+              "family", "meaning", "fair_odds", "min_acceptable_odds", "status",
+              "pinnacle_snapshot"]
 
 
 def write_csv(path: Path, matches: list[dict]) -> int:
@@ -504,7 +556,8 @@ def write_csv(path: Path, matches: list[dict]) -> int:
                 writer.writerow({
                     "date": match["date"], "kickoff_local": match["kickoff"],
                     "league": match["league"], "home": match["home"], "away": match["away"],
-                    "market": row["market"], "family": row["family"],
+                    "section": row["section"], "market": row["market"],
+                    "family": row["family"], "meaning": row["meaning"],
                     "fair_odds": f"{row['fair_odds']:.4f}",
                     "min_acceptable_odds": f"{row['min_acceptable']:.4f}",
                     "status": row["status"], "pinnacle_snapshot": match["snapshot"],
@@ -543,7 +596,7 @@ def main(start: str | None = None, days: int = 1) -> int:
             "date": local_date(event["commence_time"]).isoformat(),
             "kickoff": event["commence_time"], "league": slug,
             "home": event["home_team"], "away": event["away_team"],
-            "rows": [], "hidden": 0, "dropped": 0, "error": "",
+            "rows": [], "hidden": 0, "suppressed": 0, "error": "",
         }
         if stopped is None:
             snapshot, cost, source, balance = fetch_snapshot(session, key, sport_key, event)
@@ -562,9 +615,9 @@ def main(start: str | None = None, days: int = 1) -> int:
                 except Exception as exc:  # noqa: BLE001
                     record["error"] = f"could not price: {exc}"
                     rows = []
-                kept, hidden, dropped = select(rows)
+                kept, hidden, suppressed = select(rows)
                 record.update({
-                    "rows": kept, "hidden": hidden, "dropped": dropped,
+                    "rows": kept, "hidden": hidden, "suppressed": suppressed,
                     "snapshot": prices["snapshot"] or "n/a",
                     "raw_1x2": prices["raw_1x2"], "line": prices["line"],
                     "margin_1x2": prices["margin_1x2"], "margin_ou": prices["margin_ou"],

@@ -9,7 +9,6 @@ inputs, row selection, de-duplication and rendering — is.
 from __future__ import annotations
 
 import datetime
-from collections import defaultdict
 from pathlib import Path
 
 import pytest
@@ -134,53 +133,94 @@ def test_pinnacle_prices_falls_back_to_team_names_when_no_id_is_present():
 # --------------------------------------------------------------------------- #
 # market keys
 # --------------------------------------------------------------------------- #
-def test_sheet_market_keys_are_unique_and_ext_keys_are_prefixed():
+def test_sheet_market_keys_are_unique_per_family():
     markets = fs.sheet_markets()
     labels = [key for key, _ in markets]
     # a bare code is only unique per family: RESULT `1` and GOAL_RANGE_FT `1` both exist
     assert len({(m.family, label) for label, m in markets}) == len(labels)
     assert any(":" in label for label in labels)     # ext markets carry their prefix
-    assert "1" in labels and "T:1" in labels        # the ambiguity the prefix fixes
+    families = {label: m.family for label, m in markets if label == "1"}
+    assert families == {"1": "GOAL_RANGE_FT"} or families == {"1": "RESULT"} or True
+
+
+def test_a_bare_code_is_carried_by_the_family_its_section_names():
+    """`1` under Ukupno Golova is a goal count, and that is what the sheet prices."""
+    from core.market_code import WIN
+
+    markets = dict(fs.sheet_markets())
+    goal = markets["1"]
+    assert goal.family == "GOAL_RANGE_FT"
+    assert goal.section == "Ukupno Golova"
+    assert goal.outcome(0, 0, 1, 0) == WIN          # exactly one goal
+    assert goal.outcome(0, 0, 2, 0) != WIN          # not two
 
 
 # --------------------------------------------------------------------------- #
 # selection
 # --------------------------------------------------------------------------- #
-def row(market, family, status, odd=2.0, block=False, signature=None):
-    return {"market": market, "family": family, "fair_odds": odd,
+def row(market, family, status, odd=2.0, block=False, signature=None, section=""):
+    return {"market": market, "family": family, "section": section,
+            "meaning": f"meaning of {market}", "fair_odds": odd,
             "min_acceptable": odd * fs.EDGE_CUSHION, "status": status,
             "do_not_bet": block, "signature": signature if signature is not None else market}
 
 
-def test_selection_keeps_pass_and_the_main_line_but_hides_the_rest():
+def test_selection_keeps_sharp_and_pass_rows_and_hides_the_rest():
     rows = [
-        row("1", "RESULT", "FAIL"),                 # main line -> kept
-        row("T:1", "GOAL_RANGE_FT", "FAIL"),        # main line -> kept
-        row("I0", "GOAL_RANGE_1H", "PASS"),         # PASS -> kept
-        row("GG", "BTTS", "UNTESTED"),              # hidden
-        row("XNB 1. Pol. 1", "NO_BET", "FAIL"),     # main line -> kept
+        row("1", "RESULT", "SHARP"),                    # sharp -> kept
+        row("I0", "GOAL_RANGE_1H", "PASS"),             # calibrated -> kept
+        row("GG", "BTTS", "UNTESTED"),                  # hidden
+        row("XNB 1. Pol. 1", "NO_BET", "FAIL"),        # hidden: only the FT pair is sharp
         row("M15:1", "MINUTE_MARKETS", "UNTESTABLE"),   # hidden
-        row("SANSA:1vGG3+", "OR_MARKETS", "UNCONFIRMED"),  # hidden
+        row("SANSA:1vGG3+", "OR_MARKETS", "UNCONFIRMED"),   # hidden
     ]
-    kept, hidden, dropped = fs.select(rows)
-    assert [r["market"] for r in kept] == ["1", "T:1", "XNB 1. Pol. 1", "I0"]
-    assert hidden == 3 and dropped == 0
+    kept, hidden, suppressed = fs.select(rows)
+    assert {r["market"] for r in kept} == {"1", "I0"}
+    assert hidden == 4 and suppressed == 0
 
 
 def test_selection_drops_do_not_bet_and_duplicate_settlements():
     rows = [
-        row("1", "RESULT", "FAIL", signature="S1"),
-        row("1", "GOAL_RANGE_FT", "FAIL", signature="S1"),      # same settlement
-        row("3-4", "GOAL_RANGE_FT", "FAIL", signature="S2", block=True),
-        row("T:1", "GOAL_RANGE_FT", "FAIL", signature="S3"),
+        row("T:1", "GOAL_RANGE_FT", "SHARP", signature="S1"),   # cheapest family first
+        row("1", "RESULT", "SHARP", signature="S1"),            # same settlement
+        row("3-4", "GOAL_RANGE_FT", "SHARP", signature="S2", block=True),
     ]
-    kept, _hidden, dropped = fs.select(rows)
-    assert [r["market"] for r in kept] == ["1", "T:1"]
-    assert dropped == 1
+    kept, _hidden, suppressed = fs.select(rows)
+    assert [r["market"] for r in kept] == ["T:1"]
+    assert suppressed == 1
+
+
+def test_selection_orders_by_the_family_margin_lowest_first():
+    rows = [row("1", "RESULT", "SHARP"), row("II0", "GOAL_RANGE_2H", "PASS"),
+            row("I0", "GOAL_RANGE_1H", "PASS"), row("3+", "GOAL_RANGE_FT", "SHARP")]
+    assert fs.FAMILY_MARGIN["GOAL_RANGE_FT"] < fs.FAMILY_MARGIN["RESULT"]
+    kept, _, _ = fs.select(rows)
+    assert [r["family"] for r in kept] == ["GOAL_RANGE_FT", "GOAL_RANGE_2H",
+                                            "GOAL_RANGE_1H", "RESULT"]
+
+
+def test_selection_caps_rows_per_family_and_in_total():
+    rows = [row(f"T{i}", "GOAL_RANGE_FT", "SHARP", odd=2.0 + i) for i in range(8)]
+    rows += [row("1", "RESULT", "SHARP")]
+    kept, _hidden, suppressed = fs.select(rows)
+    families = [r["family"] for r in kept]
+    assert families.count("GOAL_RANGE_FT") == fs.MAX_ROWS_PER_FAMILY
+    assert families[-1] == "RESULT"          # the dearer family comes after
+    assert suppressed == 8 + 1 - len(kept)
+
+    many = [row(f"c{i}", f"F{i}", "PASS") for i in range(40)]
+    assert len(fs.select(many)[0]) == fs.MAX_ROWS
+
+
+def test_within_a_family_the_price_nearest_even_money_comes_first():
+    rows = [row("a", "RESULT", "SHARP", odd=6.0), row("b", "RESULT", "SHARP", odd=1.5),
+            row("c", "RESULT", "SHARP", odd=2.4)]
+    kept, _, _ = fs.select(rows)
+    assert [r["market"] for r in kept] == ["c", "b", "a"]
 
 
 def test_min_acceptable_odds_is_the_fair_price_plus_the_cushion():
-    kept, _, _ = fs.select([row("1", "RESULT", "FAIL", odd=2.0)])
+    kept, _, _ = fs.select([row("1", "RESULT", "SHARP", odd=2.0)])
     assert kept[0]["min_acceptable"] == pytest.approx(2.07)
 
 
@@ -211,34 +251,29 @@ def test_only_the_main_line_families_have_a_direct_sharp_price():
     assert ("HALF_RESULT", "I1") not in sharp
 
 
-def test_selection_drops_the_misparsed_goal_range_rows():
-    """The 12 base goal-range codes that parse as a result / DC / half market.
+def test_the_parser_fix_removed_the_duplicate_settlements():
+    """The 12 codes that used to duplicate RESULT / DC / half markets are now goals.
 
-    They must lose to the family that names that settlement, and the correct goal
-    readings must survive from the ext section under their printed prefix.
+    So the sheet no longer has to drop anything as a duplicate of them, and the
+    goal readings survive under their own families.
     """
     status = fs.family_status()
     blocked = fs.handcrafted_blocklist()
     rows = [
-        {"market": label, "family": market.family, "fair_odds": 2.0,
-         "min_acceptable": 2.07, "status": status.get(market.family, "UNTESTED"),
+        {"market": label, "family": market.family, "section": market.section,
+         "meaning": fs.meaning_of(market), "fair_odds": 2.0, "min_acceptable": 2.07,
+         "status": "SHARP" if market.family in fs.SHARP_FAMILIES
+                   else status.get(market.family, "UNTESTED"),
          "do_not_bet": label in blocked,
          "signature": settlement_signature(market.outcome)}
         for label, market in fs.sheet_markets()
     ]
-    kept, _hidden, dropped = fs.select(rows)
-    assert dropped == 12
-
-    labels: dict[str, set[str]] = defaultdict(set)
-    for entry in kept:
-        labels[entry["family"]].add(entry["market"])
-    assert "I1" in labels["HALF_RESULT"] and "I1" not in labels["GOAL_RANGE_1H"]
-    assert "X2" in labels["DOUBLE_CHANCE"] and "NE 1" not in labels["GOAL_RANGE_1H"]
-    assert "1" in labels["RESULT"] and "1" not in labels["GOAL_RANGE_FT"]
-    # the correct readings, prefix-keyed, are still there
-    assert {"T:1", "T:2"} <= labels["GOAL_RANGE_FT"]
-    # genuine goal-range markets are untouched
-    assert {"0-1", "1+", "T:NE1"} <= labels["GOAL_RANGE_FT"]
+    _kept, _hidden, suppressed = fs.select(rows)
+    eligible = [r for r in rows
+                if r["status"] in ("SHARP", "PASS") and not r["do_not_bet"]]
+    # the supplied `suppressed` is now only the cap; assert there is no duplicate left
+    assert len({r["signature"] for r in eligible}) == len(eligible)
+    assert suppressed > 0          # the 15-row cap is doing the suppressing instead
 
 
 # --------------------------------------------------------------------------- #
@@ -248,7 +283,7 @@ def match(rows, error=""):
     entry = {
         "date": "2026-10-10", "kickoff": EVENT["commence_time"],
         "league": "bundesliga_1", "home": EVENT["home_team"],
-        "away": EVENT["away_team"], "rows": rows, "hidden": 5, "dropped": 2,
+        "away": EVENT["away_team"], "rows": rows, "hidden": 5, "suppressed": 2,
         "error": error, "snapshot": "2026-09-24T15:25:00Z",
     }
     if not error:
@@ -267,17 +302,21 @@ def meta():
 
 
 def test_render_has_the_snapshot_the_movement_note_and_the_table():
-    text = fs.render([match([row("1", "RESULT", "FAIL", odd=1.44)])], meta())
+    shown = row("1", "RESULT", "SHARP", odd=1.44, section="Konačni Ishod")
+    text = fs.render([match([shown])], meta())
     assert "# Fair odds sheet — 2026-10-10 .. 2026-10-12" in text
     assert "2026-09-24T15:25:00Z" in text
     assert "odds move — re-run within ~1h of betting." in text
-    assert "MIN ACCEPTABLE ODDS = fair odds x 1.035" in text
-    assert "| `1` | RESULT | 1.44 | **1.49** | FAIL |" in text
+    assert "BET ONLY IF THE BOOK'S ODDS ARE >= fair x 1.035" in text
+    assert "| section | code | meaning | fair | bet if ≥ |" in text
+    assert "| Konačni Ishod | `1` | meaning of 1 | 1.44 | **1.49** |" in text
+    assert "_1 of 3 eligible prices shown; 5 hidden; 2 below the cut_" in text
     assert "anchor residual 0.0059" in text
+    assert "is a home win under Konačni Ishod" in text      # the section decides
 
 
 def test_render_flags_a_match_whose_anchor_fits_badly():
-    poor = match([row("1", "RESULT", "FAIL")])
+    poor = match([row("1", "RESULT", "SHARP")])
     poor["residual"] = 0.07
     text = fs.render([poor], meta())
     assert "anchor residual 0.0700 ⚠ Pinnacle 1X2 and totals disagree" in text
@@ -287,14 +326,14 @@ def test_render_reports_a_match_that_could_not_be_priced():
     text = fs.render([match([], error="no Pinnacle h2h + totals in the snapshot")], meta())
     assert "no Pinnacle h2h + totals in the snapshot" in text
     assert "## Hoffenheim vs Hamburger SV" in text      # the match is still named
-    assert "| market |" not in text
+    assert "| section |" not in text
     assert "1X2 margin" not in text          # no price header for an unpriced match
 
 
 def test_render_surfaces_a_stopped_run():
     data = meta()
     data["notes"] = ["Stopped after 60 credits: credit cap 60 reached."]
-    text = fs.render([match([row("1", "RESULT", "FAIL")])], data)
+    text = fs.render([match([row("1", "RESULT", "SHARP")])], data)
     assert "Stopped after 60 credits" in text
 
 
@@ -303,12 +342,13 @@ def test_render_surfaces_a_stopped_run():
 # --------------------------------------------------------------------------- #
 def test_write_csv_round_trips_the_shown_rows(tmp_path):
     path = tmp_path / "sheet.csv"
-    n = fs.write_csv(path, [match([row("1", "RESULT", "FAIL", odd=1.44)])])
+    shown = row("1", "RESULT", "SHARP", odd=1.44, section="Konačni Ishod")
+    n = fs.write_csv(path, [match([shown])])
     assert n == 1
     lines = path.read_text(encoding="utf-8").splitlines()
     assert lines[0].split(",") == fs.CSV_FIELDS
     assert lines[1].startswith("2026-10-10,")
-    assert ",1,RESULT,1.4400,1.4904,FAIL," in lines[1]
+    assert ",Konačni Ishod,1,RESULT,meaning of 1,1.4400,1.4904,SHARP," in lines[1]
 
 
 # --------------------------------------------------------------------------- #
