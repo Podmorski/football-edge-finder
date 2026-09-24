@@ -59,30 +59,32 @@ def _dc_grid(lam: float, mu: float, rho: float, max_goals: int) -> np.ndarray:
     return grid / grid.sum()
 
 
-def _ft_probs(grid: np.ndarray) -> tuple[float, float, float, float]:
+def _ft_probs(grid: np.ndarray, line: float = 2.5) -> tuple[float, float, float, float]:
     i, j = np.indices(grid.shape)
     home = float(grid[i > j].sum())
     draw = float(grid[i == j].sum())
     away = float(grid[i < j].sum())
-    over = float(grid[(i + j) >= 3].sum())
+    over = float(grid[(i + j) > line].sum())
     return home, draw, away, over
 
 
 def solve_anchor(
-    p_home: float, p_draw: float, p_away: float, p_over25: float,
-    rho: float = DEFAULT_RHO, max_goals: int = 15,
+    p_home: float, p_draw: float, p_away: float, p_over: float,
+    rho: float = DEFAULT_RHO, max_goals: int = 15, line: float = 2.5,
 ) -> Anchor:
     """Least-squares fit of (lambda, mu) to the de-margined pre-match market.
 
     Uses L-BFGS-B on the log-rates: gradient-based, so it converges in tens of
     iterations rather than the thousands a Nelder-Mead restart would need.
+    ``line`` is the goal line ``p_over`` refers to: the sharp book may quote the
+    total at 3.25 rather than the usual 2.5.
     """
-    target = np.array([p_home, p_draw, p_away, p_over25])
+    target = np.array([p_home, p_draw, p_away, p_over])
 
     def objective(params):
         lam, mu = np.exp(params)
         grid = _dc_grid(lam, mu, rho, max_goals)
-        return float(np.sum((np.array(_ft_probs(grid)) - target) ** 2))
+        return float(np.sum((np.array(_ft_probs(grid, line)) - target) ** 2))
 
     bounds = [(np.log(0.05), np.log(6.0)), (np.log(0.05), np.log(6.0))]
     best = None
