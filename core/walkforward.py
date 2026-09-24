@@ -261,6 +261,35 @@ def team_spell_starts(pool: pd.DataFrame, cutoff: pd.Timestamp, team: str) -> li
     return starts
 
 
+def newcomer_prior_members(
+    pool: pd.DataFrame,
+    cutoff: pd.Timestamp,
+    label_map: dict[tuple[str, str], str],
+    target_season: str | None,
+) -> dict[str, list[tuple[str, str]]]:
+    """Teams (and arrival season) behind each prior bucket, for reporting.
+
+    Same inclusion rule as :func:`newcomer_priors`: arrivals from seasons
+    strictly before the target, and only once past their first year.
+    """
+    starts = season_start_dates(pool)
+    members: dict[str, list[tuple[str, str]]] = {
+        "promoted_in": [],
+        "relegated_in": [],
+        "other": [],
+    }
+    for (season, team), label in label_map.items():
+        if target_season is not None and season >= target_season:
+            continue
+        season_start = starts.get(season)
+        if season_start is None:
+            continue
+        if (cutoff - season_start).days <= NEWCOMER_HORIZON_DAYS:
+            continue
+        members.setdefault(label, []).append((team, season))
+    return members
+
+
 def newcomer_priors(
     pool: pd.DataFrame,
     params: pd.Series,
