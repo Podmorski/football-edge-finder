@@ -32,7 +32,7 @@ from core.market_code import (
     direct_markets,
     parse,
 )
-from core.soccerbet_ext import PREFIX_SECTION, SECTION_UNCONFIRMED, resolve
+from core.soccerbet_ext import resolve
 
 OUT = Path("config/markets_catalogue.yaml")
 # Codes observed in the one Soccer Bet capture we hold. ``data/`` is gitignored,
@@ -256,7 +256,7 @@ def build_ext_markets(base_markets: list[Market]) -> dict:
         base_signatures.setdefault(settlement_signature(market.outcome), (market.family, market.code))
     base_families = {m.family for m in base_markets}
 
-    groups: dict[str, dict[str, list[str]]] = {}
+    groups: dict[str, dict[tuple[str, str], list[str]]] = {}
     coincidences: dict[str, dict[str, str]] = {}
     untestable: dict[str, set[str]] = {}
     unconfirmed: list[dict] = []
@@ -277,7 +277,9 @@ def build_ext_markets(base_markets: list[Market]) -> dict:
                 signature = settlement_signature(market.outcome)
                 if market.family in base_families and signature in base_signatures:
                     continue
-                groups.setdefault(market.family, {}).setdefault(prefix, []).append(code)
+                # group by (prefix, section): GG and HF carry more than one section
+                groups.setdefault(market.family, {}).setdefault(
+                    (prefix, market.section), []).append(code)
                 if signature in base_signatures:
                     family, base_code = base_signatures[signature]
                     coincidences.setdefault(market.family, {})[f"{prefix}:{code}"] = f"{family} {base_code}"
@@ -289,12 +291,12 @@ def build_ext_markets(base_markets: list[Market]) -> dict:
             "prefixes": [
                 {
                     "prefix": prefix,
-                    "section": PREFIX_SECTION.get(prefix, SECTION_UNCONFIRMED),
-                    "codes": sorted(groups[family][prefix]),
+                    "section": section,
+                    "codes": sorted(groups[family][(prefix, section)]),
                     **(({"settles_like_a_base_market": coincidences[family]})
                        if family in coincidences else {}),
                 }
-                for prefix in sorted(groups[family])
+                for prefix, section in sorted(groups[family])
             ],
         }
         for family in sorted(groups)

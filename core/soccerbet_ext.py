@@ -108,7 +108,62 @@ PREFIX_SECTION: dict[str, str] = {
     "PDG2": "II Pol. Prvi Daje Gol",
     # confirmed by the user (2026-09-24): 12 codes, 1H + 2H x 1/X/2 x GG/NG
     "HRG": "Soccer Kombinacije Poluvreme-GG",
+    # confirmed by the user (2026-09-24): the remaining printed prefixes
+    "HT": "Domaćin Ukupno Golova",
+    "HT1": "1. Pol. Domaćin Uk. Golova",
+    "HT2": "2. Pol. Domaćin Uk. Golova",
+    "AT": "Gost Ukupno Golova",
+    "AT1": "1. Pol. Gost Uk. Golova",
+    "AT2": "2. Pol. Gost Uk. Golova",
+    "C": "Ukupno Golova Kombinacije",
+    "CH": "Domaćin Uk. Golova Kombinacije",
+    "CA": "Gost Uk. Golova Kombinacije",
+    "CS": "Tačan Rezultat",
+    "CS1": "1. Pol. Tačan Rezultat",
+    "PN": "Par/Nepar",
+    "GG": "Oba Tima Daju Gol",
+    "R": "Soccer Kombinacije Konačni Ishod",
+    "DCG": "Soccer Kombinacije Dupla Šansa",
+    "HFG": "Soccer Kombinacije Poluvreme/Kraj",
+    "GGC": "Soccer Kombinacije GG",
+    "PGC": "Soccer Kombinacije Prvi Daje Gol",
+    "SANSA": "Soccer Šansa",
+    "M15": "15 Minuta",
+    "M30": "30 Minuta",
 }
+
+# GG and HF carry several displayed sections under one prefix, so their section
+# depends on the code. The user confirmed the split (2026-09-24).
+GG_SECTION_FT = "Oba Tima Daju Gol"
+GG_SECTION_1H = "1. Pol. Oba Tima Daju Gol"
+GG_SECTION_2H = "2. Pol. Oba Tima Daju Gol"
+HF_SECTION = "Poluvreme/Kraj"
+HF_SECTION_DC = "Poluvreme/Kraj DS"
+
+
+def section_for(prefix: str, code: str) -> str:
+    """The Serbian section a printed ``PREFIX:code`` is displayed under.
+
+    Most prefixes have exactly one section. ``GG`` and ``HF`` resolve per code:
+    the ``IGG``/``ING`` codes are the 1st-half BTTS section, ``IIGG``/``IING`` the
+    2nd-half one, and the ``&``-joined combos the full-time section; ``HF``'s
+    double-chance codes are the ``Poluvreme/Kraj DS`` section. An unknown prefix
+    is flagged, never guessed.
+    """
+    if prefix == "GG":
+        raw = code.strip().upper()
+        if "&" in raw:
+            return GG_SECTION_FT
+        if raw in ("IIGG", "IING"):
+            return GG_SECTION_2H
+        if raw in ("IGG", "ING"):
+            return GG_SECTION_1H
+        return GG_SECTION_FT
+    if prefix == "HF":
+        if any(part in DC_TOKENS for part in code.split("-")):
+            return HF_SECTION_DC
+        return HF_SECTION
+    return PREFIX_SECTION.get(prefix, SECTION_UNCONFIRMED)
 
 TEAM_GOALS_FAMILIES = {
     "TEAM_GOALS_HOME_FT", "TEAM_GOALS_AWAY_FT",
@@ -375,10 +430,11 @@ class ExtMarket:
     def section(self) -> str:
         """The Serbian Soccer Bet section this price is displayed under.
 
-        Derived from the printed prefix; ``(section not confirmed)`` when we have no
-        confirmed display name for that prefix, so it is never invented.
+        Derived from the printed prefix (and, for ``GG``/``HF``, the code);
+        ``(section not confirmed)`` when we have no confirmed display name, so it
+        is never invented.
         """
-        return PREFIX_SECTION.get(self.prefix, SECTION_UNCONFIRMED)
+        return section_for(self.prefix, self.code)
 
     def outcome(self, hth: int, hta: int, fth: int, fta: int) -> str:
         return self.settle(hth, hta, fth, fta)

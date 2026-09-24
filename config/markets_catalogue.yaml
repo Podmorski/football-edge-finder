@@ -2092,28 +2092,34 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: GG
-      section: (section not confirmed)
+      section: 1. Pol. Oba Tima Daju Gol
+      codes:
+      - IGG
+      - ING
+    - prefix: GG
+      section: 2. Pol. Oba Tima Daju Gol
+      codes:
+      - IIGG
+      - IING
+    - prefix: GG
+      section: Oba Tima Daju Gol
       codes:
       - 2GG
       - 2NG
       - GG
-      - IGG
-      - IIGG
-      - IING
-      - ING
       - NG
   - family: BTTS_COMBOS
     testable: true
     prefixes:
     - prefix: GG
-      section: (section not confirmed)
+      section: Oba Tima Daju Gol
       codes:
       - IGG&IIGG
       - IGG&IING
       - ING&IIGG
       - ING&IING
     - prefix: GGC
-      section: (section not confirmed)
+      section: Soccer Kombinacije GG
       codes:
       - GG&2-3
       - GG&3+
@@ -2139,7 +2145,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CS
-      section: (section not confirmed)
+      section: Tačan Rezultat
       codes:
       - 0:0
       - 0:1
@@ -2170,7 +2176,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CS1
-      section: (section not confirmed)
+      section: 1. Pol. Tačan Rezultat
       codes:
       - 0:0
       - 0:1
@@ -2194,7 +2200,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: DCG
-      section: (section not confirmed)
+      section: Soccer Kombinacije Dupla Šansa
       codes:
       - 12&0-1
       - 12&0-2
@@ -2300,7 +2306,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: C
-      section: (section not confirmed)
+      section: Ukupno Golova Kombinacije
       codes:
       - I0-1&II1+
       - I0-1&II1-2
@@ -2354,7 +2360,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HFG
-      section: (section not confirmed)
+      section: Soccer Kombinacije Poluvreme/Kraj
       codes:
       - 1-1&0-2
       - 1-1&0-3
@@ -2456,7 +2462,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: PN
-      section: (section not confirmed)
+      section: Par/Nepar
       codes:
       - Nepar
       - Par
@@ -2464,7 +2470,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: SANSA
-      section: (section not confirmed)
+      section: Soccer Šansa
       codes:
       - 0:1v0:2v0:3
       - 1-1v2-2
@@ -2516,7 +2522,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: R
-      section: (section not confirmed)
+      section: Soccer Kombinacije Konačni Ishod
       codes:
       - 1&0-3
       - 1&0-4
@@ -2597,7 +2603,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: AT1
-      section: (section not confirmed)
+      section: 1. Pol. Gost Uk. Golova
       codes:
       - '0'
       - 0-1
@@ -2612,7 +2618,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: AT2
-      section: (section not confirmed)
+      section: 2. Pol. Gost Uk. Golova
       codes:
       - '0'
       - 0-1
@@ -2627,7 +2633,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: AT
-      section: (section not confirmed)
+      section: Gost Ukupno Golova
       codes:
       - '0'
       - 0-1
@@ -2655,7 +2661,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HT1
-      section: (section not confirmed)
+      section: 1. Pol. Domaćin Uk. Golova
       codes:
       - '0'
       - 0-1
@@ -2670,7 +2676,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HT2
-      section: (section not confirmed)
+      section: 2. Pol. Domaćin Uk. Golova
       codes:
       - '0'
       - 0-1
@@ -2685,7 +2691,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HT
-      section: (section not confirmed)
+      section: Domaćin Ukupno Golova
       codes:
       - '0'
       - 0-1
@@ -2714,7 +2720,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CA
-      section: (section not confirmed)
+      section: Gost Uk. Golova Kombinacije
       codes:
       - I0-1&II0-1
       - I0-1&II0-2
@@ -2732,7 +2738,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CH
-      section: (section not confirmed)
+      section: Domaćin Uk. Golova Kombinacije
       codes:
       - I0-1&II0-1
       - I0-1&II0-2
@@ -2765,18 +2771,18 @@ ext_markets:
   - prefix: SANSA
     code: 1vGG3+
     family: OR_MARKETS
-    section: (section not confirmed)
+    section: Soccer Šansa
     status: UNCONFIRMED
     note: could not parse 'GG3+'
   - prefix: SANSA
     code: 2vGG3+
     family: OR_MARKETS
-    section: (section not confirmed)
+    section: Soccer Šansa
     status: UNCONFIRMED
     note: could not parse 'GG3+'
   - prefix: SANSA
     code: I2-3+vII3+
     family: OR_MARKETS
-    section: (section not confirmed)
+    section: Soccer Šansa
     status: UNCONFIRMED
     note: could not parse 'I2-3+'

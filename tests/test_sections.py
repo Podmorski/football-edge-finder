@@ -260,7 +260,27 @@ def test_poluvreme_gg_is_registered_with_all_12_codes():
 def test_untestable_sections_are_named_or_flagged_never_invented():
     from core.soccerbet_ext import SECTION_UNCONFIRMED, resolve
 
-    for prefix in ("PDG", "PDG1", "PDG2", "HF", "T", "T1", "T2", "HRG", "FT"):
+    for prefix in ("PDG", "PDG1", "PDG2", "HF", "T", "T1", "T2", "HRG", "FT",
+                   "HT", "HT1", "HT2", "AT", "AT1", "AT2", "C", "CH", "CA",
+                   "CS", "CS1", "PN", "GG", "R", "DCG", "HFG", "GGC", "PGC",
+                   "SANSA", "M15", "M30"):
         assert resolve(prefix, "1").section != SECTION_UNCONFIRMED
     # a prefix with no confirmed display name says so instead of guessing
-    assert resolve("SANSA", "1v3+").section == SECTION_UNCONFIRMED
+    assert resolve("ZZZ", "1").section == SECTION_UNCONFIRMED
+
+
+def test_gg_and_hf_sections_depend_on_the_code():
+    """GG and HF carry several displayed sections under one prefix."""
+    from core.soccerbet_ext import resolve
+
+    assert resolve("GG", "GG").section == "Oba Tima Daju Gol"
+    assert resolve("GG", "NG").section == "Oba Tima Daju Gol"
+    assert resolve("GG", "2GG").section == "Oba Tima Daju Gol"
+    assert resolve("GG", "IGG").section == "1. Pol. Oba Tima Daju Gol"
+    assert resolve("GG", "ING").section == "1. Pol. Oba Tima Daju Gol"
+    assert resolve("GG", "IIGG").section == "2. Pol. Oba Tima Daju Gol"
+    assert resolve("GG", "IING").section == "2. Pol. Oba Tima Daju Gol"
+    assert resolve("GG", "IGG&IIGG").section == "Oba Tima Daju Gol"
+    assert resolve("HF", "1-1").section == "Poluvreme/Kraj"
+    assert resolve("HF", "NEX-1").section == "Poluvreme/Kraj"
+    assert resolve("HF", "1X-1X").section == "Poluvreme/Kraj DS"
