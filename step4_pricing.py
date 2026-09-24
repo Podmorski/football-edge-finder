@@ -35,7 +35,7 @@ from core.soccerbet_ext import ExtMarket, resolve
 
 MAX_HALF = 6
 DIRECT_FAMILIES = {
-    "WIN_BOTH_HALVES", "WIN_TO_NIL", "MARGIN", "NO_BET",
+    "WIN_BOTH_HALVES", "WIN_BOTH_HALVES_TO_NIL", "WIN_TO_NIL", "MARGIN", "NO_BET",
     "MORE_GOALS_HALF", "FIRST_GOAL", "TO_QUALIFY",
 }
 CALIBRATION_CSV = Path("reports/figures/family_calibration.csv")
@@ -62,7 +62,8 @@ def load_markets() -> list:
         if entry["family"] in DIRECT_FAMILIES:
             out.append(direct[entry["code"]])
         else:
-            out.append(parse(entry["code"], entry["family"]))
+            out.append(parse(entry["code"], entry["family"], entry.get("label_sr", ""),
+                             entry.get("definition_en", ""), section=entry.get("section")))
     return out
 
 

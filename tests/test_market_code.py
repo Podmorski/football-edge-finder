@@ -245,7 +245,7 @@ def test_spaces_around_ampersand_are_optional():
 # catalogue round-trip
 # --------------------------------------------------------------------------- #
 DIRECT_FAMILIES = {
-    "WIN_BOTH_HALVES", "WIN_TO_NIL", "MARGIN", "NO_BET",
+    "WIN_BOTH_HALVES", "WIN_BOTH_HALVES_TO_NIL", "WIN_TO_NIL", "MARGIN", "NO_BET",
     "MORE_GOALS_HALF", "FIRST_GOAL", "TO_QUALIFY",
 }
 
@@ -260,9 +260,11 @@ def test_parser_round_trips_every_catalogue_code():
         if entry["family"] in DIRECT_FAMILIES:
             market = direct[entry["code"]]
         else:
-            market = parse(entry["code"], entry["family"], entry["label_sr"], entry["definition_en"])
+            market = parse(entry["code"], entry["family"], entry["label_sr"],
+                           entry["definition_en"], section=entry["section"])
         assert market.code == entry["code"]
         assert market.family == entry["family"]
+        assert market.section == entry["section"]
         assert market.definition_en == entry["definition_en"]
         assert market.testable == entry["testable"]
 

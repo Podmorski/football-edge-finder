@@ -65,12 +65,38 @@ def test_every_ext_code_resolves_to_its_declared_family():
         assert market.family == family, f"{prefix}:{code} -> {market.family}"
 
 
-def test_no_ext_code_repeats_a_base_market():
-    """A code whose settlement matches a base market must not be listed."""
-    base = {settlement_signature(m.outcome) for m in step4_pricing.load_markets()}
+def recorded_coincidences() -> dict[str, str]:
+    """{PREFIX:code -> the base market it settles like} from the catalogue."""
+    doc = yaml.safe_load(CATALOGUE.read_text(encoding="utf-8"))
+    out: dict[str, str] = {}
+    for family in doc["ext_markets"]["families"]:
+        for group in family["prefixes"]:
+            out.update(group.get("settles_like_a_base_market", {}))
+    return out
+
+
+def test_ext_codes_that_repeat_a_base_market_are_recorded_not_hidden():
+    """A printed code is kept inside a family the base does not cover.
+
+    When such a code happens to settle like a base market it must be **recorded**,
+    never silently dropped: e.g. `CS1:0:0` is the same bet as `GOAL_RANGE_1H I0`
+    (no first-half goals), and `HRG:IX&ING` is the same bet again in its own section.
+    """
+    base: dict[tuple, str] = {}
+    for market in step4_pricing.load_markets():
+        base.setdefault(settlement_signature(market.outcome),
+                        f"{market.family} {market.code}")
+    recorded = recorded_coincidences()
+    assert len(recorded) >= 3
+
     for _family, prefix, code in ext_codes():
-        assert settlement_signature(resolve(prefix, code).outcome) not in base, (
-            f"{prefix}:{code} duplicates a base market")
+        key = f"{prefix}:{code}"
+        signature = settlement_signature(resolve(prefix, code).outcome)
+        if signature in base:
+            assert recorded.get(key) == base[signature], (
+                f"{key} settles like {base[signature]} but is not recorded as such")
+        else:
+            assert key not in recorded, f"{key} is recorded as a duplicate but is not one"
 
 
 def test_ext_codes_are_listed_once_each():

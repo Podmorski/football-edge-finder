@@ -76,6 +76,40 @@ PREFIX_MAP: dict[str, str] = {
     "M30": "MINUTE_MARKETS",
 }
 
+# Soccer Bet section as displayed, per printed prefix. A prefix we have no
+# confirmed display name for is flagged, never guessed: the section decides what
+# a code means, so an invented name would be worse than an admitted gap.
+SECTION_UNCONFIRMED = "(section not confirmed)"
+
+PREFIX_SECTION: dict[str, str] = {
+    "FT": "Konačni Ishod",
+    "DC": "Dupla Šansa",
+    "DP": "Dupla Pobeda",
+    "DSP": "Dupla Super Pobeda",
+    "SP": "Super Pobeda",
+    "HP": "Hendikep Pobeda (HP)",
+    "HH": "Hendikep Pobeda (HH)",
+    "E1": "Hendikep Pobeda (tačno jedan gol razlike)",
+    "E2": "Hendikep Pobeda (tačno dva gola razlike)",
+    "H1": "I Poluvreme",
+    "H2": "II Poluvreme",
+    "H1DC": "I Pol. Dupla Šansa",
+    "H2DC": "II Pol. Dupla Šansa",
+    "XNB": "X No Bet",
+    "H1XNB": "1. Pol. X No Bet",
+    "H2XNB": "2. Pol. X No Bet",
+    "T": "Ukupno Golova",
+    "T1": "I Pol. Uk. Golova",
+    "T2": "II Pol. Uk. Golova",
+    "PV": "Pada Više Golova",
+    "HF": "Poluvreme/Kraj",
+    "PDG": "Prvi Daje Gol",
+    "PDG1": "I Pol. Prvi Daje Gol",
+    "PDG2": "II Pol. Prvi Daje Gol",
+    # confirmed by the user (2026-09-24): 12 codes, 1H + 2H x 1/X/2 x GG/NG
+    "HRG": "Soccer Kombinacije Poluvreme-GG",
+}
+
 TEAM_GOALS_FAMILIES = {
     "TEAM_GOALS_HOME_FT", "TEAM_GOALS_AWAY_FT",
     "TEAM_GOALS_HOME_1H", "TEAM_GOALS_AWAY_1H",
@@ -336,6 +370,15 @@ class ExtMarket:
     settle: Callable[[int, int, int, int], str]
     status: str = "OK"
     note: str = ""
+
+    @property
+    def section(self) -> str:
+        """The Serbian Soccer Bet section this price is displayed under.
+
+        Derived from the printed prefix; ``(section not confirmed)`` when we have no
+        confirmed display name for that prefix, so it is never invented.
+        """
+        return PREFIX_SECTION.get(self.prefix, SECTION_UNCONFIRMED)
 
     def outcome(self, hth: int, hta: int, fth: int, fta: int) -> str:
         return self.settle(hth, hta, fth, fta)

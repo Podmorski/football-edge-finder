@@ -32,7 +32,7 @@ from core.market_code import (
     direct_markets,
     parse,
 )
-from core.soccerbet_ext import resolve
+from core.soccerbet_ext import PREFIX_SECTION, SECTION_UNCONFIRMED, resolve
 
 OUT = Path("config/markets_catalogue.yaml")
 # Codes observed in the one Soccer Bet capture we hold. ``data/`` is gitignored,
@@ -51,51 +51,54 @@ EXT_NOTE = (
 )
 EXT_UNCONFIRMED_REASON = "the printed code has no unambiguous reading; refused rather than guessed"
 
-# (code, family, serbian label, english definition)
-CODE_ENTRIES: list[tuple[str, str, str, str]] = []
+# (code, family, section, serbian label, english definition)
+CODE_ENTRIES: list[tuple[str, str, str, str, str]] = []
 
 
-def add(codes: list[str], family: str, labels: dict[str, str], definitions: dict[str, str]) -> None:
+def add(codes: list[str], family: str, section: str, labels: dict[str, str],
+        definitions: dict[str, str]) -> None:
     for code in codes:
-        CODE_ENTRIES.append((code, family, labels.get(code, code), definitions.get(code, "")))
+        CODE_ENTRIES.append((code, family, section, labels.get(code, code),
+                             definitions.get(code, "")))
 
 
 # --- RESULT / DOUBLE_CHANCE -------------------------------------------------
-add(["1", "X", "2"], "RESULT",
+add(["1", "X", "2"], "RESULT", "Konačni Ishod",
     {"1": "1", "X": "X", "2": "2"},
     {"1": "Home wins the match", "X": "Draw", "2": "Away wins the match"})
-add(["1X", "12", "X2"], "DOUBLE_CHANCE",
+add(["1X", "12", "X2"], "DOUBLE_CHANCE", "Dupla Šansa",
     {"1X": "1X", "12": "12", "X2": "X2"},
     {"1X": "Home or draw", "12": "Home or away", "X2": "Away or draw"})
 
 # --- HALF_RESULT / HALF_DC --------------------------------------------------
-add(["I1", "IX", "I2"], "HALF_RESULT",
+add(["I1", "IX", "I2"], "HALF_RESULT", "I Poluvreme",
     {"I1": "I Pol. 1", "IX": "I Pol. X", "I2": "I Pol. 2"},
     {"I1": "Home leads at half time", "IX": "Half-time draw", "I2": "Away leads at half time"})
-add(["II1", "IIX", "II2"], "HALF_RESULT",
+add(["II1", "IIX", "II2"], "HALF_RESULT", "II Poluvreme",
     {"II1": "II Pol. 1", "IIX": "II Pol. X", "II2": "II Pol. 2"},
     {"II1": "Home wins the second half", "IIX": "Second half drawn", "II2": "Away wins the second half"})
-add(["I1X", "IX2", "I12"], "HALF_DC",
+add(["I1X", "IX2", "I12"], "HALF_DC", "I Pol. Dupla Šansa",
     {"I1X": "I Pol. 1X", "IX2": "I Pol. X2", "I12": "I Pol. 12"},
     {"I1X": "Home or draw at half time", "IX2": "Away or draw at half time", "I12": "Not a half-time draw"})
-add(["II1X", "IIX2", "II12"], "HALF_DC",
+add(["II1X", "IIX2", "II12"], "HALF_DC", "II Pol. Dupla Šansa",
     {"II1X": "II Pol. 1X", "IIX2": "II Pol. X2", "II12": "II Pol. 12"},
     {"II1X": "Home or draw in the second half", "IIX2": "Away or draw in the second half",
      "II12": "Second half not drawn"})
 
 # --- HTFT (9 basic + the double-chance variants) ----------------------------
+HTFT_SECTION = "Poluvreme/Kraj"
 HTFT_BASIC = ["1-1", "1-X", "1-2", "X-1", "X-X", "X-2", "2-1", "2-X", "2-2"]
-add(HTFT_BASIC, "HTFT", {c: c for c in HTFT_BASIC},
+add(HTFT_BASIC, "HTFT", HTFT_SECTION, {c: c for c in HTFT_BASIC},
     {c: f"Half time {c.split('-')[0]}, full time {c.split('-')[1]}" for c in HTFT_BASIC})
 HTFT_DC = [
     "1X-1X", "1X-12", "1X-X2", "12-1X", "12-12", "12-X2", "X2-1X", "X2-12", "X2-X2",
     "1X-1", "1X-X", "1X-2", "12-1", "12-X", "12-2", "X2-1", "X2-X", "X2-2",
     "1-1X", "1-12", "1-X2", "X-1X", "X-12", "X-X2", "2-1X", "2-12", "2-X2",
 ]
-add(HTFT_DC, "HTFT_DC", {c: c for c in HTFT_DC},
+add(HTFT_DC, "HTFT_DC", HTFT_SECTION, {c: c for c in HTFT_DC},
     {c: f"Half time {c.split('-')[0]}, full time {c.split('-')[1]}" for c in HTFT_DC})
 HTFT_NE = ["NE 1-1", "NE X-1", "NE X-X", "NE X-2", "NE 2-2"]
-add(HTFT_NE, "HTFT_NE", {c: c for c in HTFT_NE},
+add(HTFT_NE, "HTFT_NE", HTFT_SECTION, {c: c for c in HTFT_NE},
     {c: f"Not (half time {c[3:].split('-')[0]}, full time {c[3:].split('-')[1]})" for c in HTFT_NE})
 
 # --- GOAL_RANGE_FT ----------------------------------------------------------
@@ -104,7 +107,7 @@ FT_GOALS = ["0-1", "0-2", "0-3", "0-4", "1", "1+", "1-2", "1-3", "1-4", "1-5", "
             "4", "4+", "4-5", "4-6", "5", "5+", "6+", "7+"]
 FT_NE = ["NE 1", "NE 1-2", "NE 1-3", "NE 1-4", "NE 2", "NE 4-6", "NE 3-4", "NE 3-5",
          "NE 3-6", "NE 4-5", "NE 3"]
-add(FT_GOALS + FT_NE, "GOAL_RANGE_FT", {c: c for c in FT_GOALS + FT_NE},
+add(FT_GOALS + FT_NE, "GOAL_RANGE_FT", "Ukupno Golova", {c: c for c in FT_GOALS + FT_NE},
     {c: f"Full-time total goals {c}" for c in FT_GOALS + FT_NE})
 
 # --- GOAL_RANGE_1H / 2H -----------------------------------------------------
@@ -112,8 +115,10 @@ H1 = ["I0", "I0-1", "I0-2", "I1", "NE 1", "I1+", "I1-2", "NE 2", "I2", "I2+",
       "I2-3", "I2-4", "I3", "I3+", "I4+"]
 H2 = ["II0", "II0-1", "II0-2", "II1", "NE 1", "II1+", "II1-2", "II1-3", "NE 2",
       "II2", "II2+", "II2-3", "II2-4", "II3", "II3+", "II4+"]
-add(H1, "GOAL_RANGE_1H", {c: c for c in H1}, {c: f"First-half total goals {c}" for c in H1})
-add(H2, "GOAL_RANGE_2H", {c: c for c in H2}, {c: f"Second-half total goals {c}" for c in H2})
+add(H1, "GOAL_RANGE_1H", "I Pol. Uk. Golova", {c: c for c in H1},
+    {c: f"First-half total goals {c}" for c in H1})
+add(H2, "GOAL_RANGE_2H", "II Pol. Uk. Golova", {c: c for c in H2},
+    {c: f"Second-half total goals {c}" for c in H2})
 
 # --- HALF_GOAL_COMBOS -------------------------------------------------------
 COMBOS = [
@@ -123,15 +128,19 @@ COMBOS = [
     "I2+&4+", "NE I1-3&II1-3", "I2-3&4+", "NE I1+&II2+", "NE I1+&II1+",
     "I2-3&II2-3", "I2-3&II2+", "I2-3&II1-3", "I2-3&II1-2", "I2-3&II1+",
 ]
-add(COMBOS, "HALF_GOAL_COMBOS", {c: c for c in COMBOS},
+add(COMBOS, "HALF_GOAL_COMBOS", "Uk. Golova Kombinacije", {c: c for c in COMBOS},
     {c: f"Half-goal combination {c}" for c in COMBOS})
 
 # --- RESULT_AND_GOALS / HTFT_AND_GOALS --------------------------------------
-RAG = ["1 & 2+", "1 & 3+", "1 & 4+", "2 & 2+", "2 & 3+", "2 & 4+",
-       "1 & 0-2", "1 & 2-3", "2 & 0-2", "2 & 2-3"]
-add(RAG, "RESULT_AND_GOALS", {c: c for c in RAG}, {c: f"Result and goals: {c}" for c in RAG})
+RAG = ["1 & 2+", "1 & 3+", "1 & 4+", "2 & 2+", "2 & 3+", "2 & 4+"]
+RAG_RANGE = ["1 & 0-2", "1 & 2-3", "2 & 0-2", "2 & 2-3"]
+add(RAG, "RESULT_AND_GOALS", "Match Outcome & Goals Combinations", {c: c for c in RAG},
+    {c: f"Result and goals: {c}" for c in RAG})
+add(RAG_RANGE, "RESULT_AND_GOALS", "Win & Under / Range Goals", {c: c for c in RAG_RANGE},
+    {c: f"Result and goals: {c}" for c in RAG_RANGE})
 HAG = ["1-1 & 2+", "1-1 & 3+", "2-2 & 2+", "2-2 & 3+"]
-add(HAG, "HTFT_AND_GOALS", {c: c for c in HAG}, {c: f"HT/FT and goals: {c}" for c in HAG})
+add(HAG, "HTFT_AND_GOALS", "Half + Match Outcome Combinations", {c: c for c in HAG},
+    {c: f"HT/FT and goals: {c}" for c in HAG})
 
 # --- MORE_GOALS_HALF is implemented directly (see core.market_code.direct_markets) ---
 
@@ -153,9 +162,24 @@ def settlement_signature(outcome) -> tuple:
 
 
 def build_ext_markets(base_markets: list[Market]) -> dict:
-    """Build the ``ext_markets`` section from the sample capture + the ext layer."""
-    base_signatures = {settlement_signature(m.outcome) for m in base_markets}
+    """Build the ``ext_markets`` section from the sample capture + the ext layer.
+
+    A printed code is dropped only when **its own family already exists in the base
+    catalogue and its settlement coincides with a base market** — that is the
+    re-listing the crashed draft did wholesale, and the bare code is the canonical
+    carrier there. Inside a family the base does not cover, every printed code is
+    kept, and a code that happens to settle like a base market is recorded in
+    ``settles_like_a_base_market`` rather than silently dropped (e.g. the
+    Poluvreme-GG price ``IX&ING`` is a 0-0 first half, the same bet as
+    ``GOAL_RANGE_1H I0``).
+    """
+    base_signatures: dict[tuple, tuple[str, str]] = {}
+    for market in base_markets:
+        base_signatures.setdefault(settlement_signature(market.outcome), (market.family, market.code))
+    base_families = {m.family for m in base_markets}
+
     groups: dict[str, dict[str, list[str]]] = {}
+    coincidences: dict[str, dict[str, str]] = {}
     untestable: dict[str, set[str]] = {}
     unconfirmed: list[dict] = []
 
@@ -166,19 +190,32 @@ def build_ext_markets(base_markets: list[Market]) -> dict:
             if market.status == "UNCONFIRMED":
                 unconfirmed.append({
                     "prefix": prefix, "code": code, "family": market.family,
+                    "section": market.section,
                     "status": "UNCONFIRMED", "note": market.note or EXT_UNCONFIRMED_REASON,
                 })
             elif market.status == "UNTESTABLE":
                 untestable.setdefault(market.family, set()).add(prefix)
-            elif settlement_signature(market.outcome) not in base_signatures:
+            else:
+                signature = settlement_signature(market.outcome)
+                if market.family in base_families and signature in base_signatures:
+                    continue
                 groups.setdefault(market.family, {}).setdefault(prefix, []).append(code)
+                if signature in base_signatures:
+                    family, base_code = base_signatures[signature]
+                    coincidences.setdefault(market.family, {})[f"{prefix}:{code}"] = f"{family} {base_code}"
 
     families = [
         {
             "family": family,
             "testable": True,
             "prefixes": [
-                {"prefix": prefix, "codes": sorted(groups[family][prefix])}
+                {
+                    "prefix": prefix,
+                    "section": PREFIX_SECTION.get(prefix, SECTION_UNCONFIRMED),
+                    "codes": sorted(groups[family][prefix]),
+                    **(({"settles_like_a_base_market": coincidences[family]})
+                       if family in coincidences else {}),
+                }
                 for prefix in sorted(groups[family])
             ],
         }
@@ -213,9 +250,9 @@ def main() -> int:
     errors: list[str] = []
     markets: list[Market] = []
 
-    for code, family, label_sr, definition_en in CODE_ENTRIES:
+    for code, family, section, label_sr, definition_en in CODE_ENTRIES:
         try:
-            market: Market = parse(code, family, label_sr, definition_en)
+            market: Market = parse(code, family, label_sr, definition_en, section=section)
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{family} {code!r}: {exc}")
             continue
@@ -225,6 +262,7 @@ def main() -> int:
             "label_sr": label_sr,
             "definition_en": market.definition_en,
             "family": family,
+            "section": market.section,
             "period": market.period,
             "source": "soccerbet_rules",
             "testable": market.testable,
@@ -239,6 +277,7 @@ def main() -> int:
             "label_sr": market.label_sr,
             "definition_en": market.definition_en,
             "family": market.family,
+            "section": market.section,
             "period": market.period,
             "source": "soccerbet_rules",
             "testable": market.testable,
@@ -260,7 +299,10 @@ def main() -> int:
         "source": "docs/soccerbet_rules_sr.txt",
         "note": (
             "Any parseable code is priceable. Codes not listed here are accepted at "
-            "runtime with family UNLISTED until calibration-tested."
+            "runtime with family UNLISTED until calibration-tested. `section` is the "
+            "Serbian Soccer Bet section as displayed; the SECTION decides what a code "
+            "means, because a bare code does not (1 is a home win under Konačni Ishod "
+            "and exactly one goal under Ukupno Golova)."
         ),
         "markets": entries,
     }

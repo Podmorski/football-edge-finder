@@ -1,12 +1,16 @@
 generated_by: step1_catalogue.py
 source: docs/soccerbet_rules_sr.txt
 note: Any parseable code is priceable. Codes not listed here are accepted at runtime
-  with family UNLISTED until calibration-tested.
+  with family UNLISTED until calibration-tested. `section` is the Serbian Soccer Bet
+  section as displayed; the SECTION decides what a code means, because a bare code
+  does not (1 is a home win under Konačni Ishod and exactly one goal under Ukupno
+  Golova).
 markets:
 - code: '1'
   label_sr: '1'
   definition_en: Home wins the match
   family: RESULT
+  section: Konačni Ishod
   period: FT
   source: soccerbet_rules
   testable: true
@@ -16,6 +20,7 @@ markets:
   label_sr: X
   definition_en: Draw
   family: RESULT
+  section: Konačni Ishod
   period: FT
   source: soccerbet_rules
   testable: true
@@ -25,6 +30,7 @@ markets:
   label_sr: '2'
   definition_en: Away wins the match
   family: RESULT
+  section: Konačni Ishod
   period: FT
   source: soccerbet_rules
   testable: true
@@ -34,6 +40,7 @@ markets:
   label_sr: 1X
   definition_en: Home or draw
   family: DOUBLE_CHANCE
+  section: Dupla Šansa
   period: FT
   source: soccerbet_rules
   testable: true
@@ -43,6 +50,7 @@ markets:
   label_sr: '12'
   definition_en: Home or away
   family: DOUBLE_CHANCE
+  section: Dupla Šansa
   period: FT
   source: soccerbet_rules
   testable: true
@@ -52,6 +60,7 @@ markets:
   label_sr: X2
   definition_en: Away or draw
   family: DOUBLE_CHANCE
+  section: Dupla Šansa
   period: FT
   source: soccerbet_rules
   testable: true
@@ -61,6 +70,7 @@ markets:
   label_sr: I Pol. 1
   definition_en: Home leads at half time
   family: HALF_RESULT
+  section: I Poluvreme
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -70,6 +80,7 @@ markets:
   label_sr: I Pol. X
   definition_en: Half-time draw
   family: HALF_RESULT
+  section: I Poluvreme
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -79,6 +90,7 @@ markets:
   label_sr: I Pol. 2
   definition_en: Away leads at half time
   family: HALF_RESULT
+  section: I Poluvreme
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -88,6 +100,7 @@ markets:
   label_sr: II Pol. 1
   definition_en: Home wins the second half
   family: HALF_RESULT
+  section: II Poluvreme
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -97,6 +110,7 @@ markets:
   label_sr: II Pol. X
   definition_en: Second half drawn
   family: HALF_RESULT
+  section: II Poluvreme
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -106,6 +120,7 @@ markets:
   label_sr: II Pol. 2
   definition_en: Away wins the second half
   family: HALF_RESULT
+  section: II Poluvreme
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -115,6 +130,7 @@ markets:
   label_sr: I Pol. 1X
   definition_en: Home or draw at half time
   family: HALF_DC
+  section: I Pol. Dupla Šansa
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -124,6 +140,7 @@ markets:
   label_sr: I Pol. X2
   definition_en: Away or draw at half time
   family: HALF_DC
+  section: I Pol. Dupla Šansa
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -133,6 +150,7 @@ markets:
   label_sr: I Pol. 12
   definition_en: Not a half-time draw
   family: HALF_DC
+  section: I Pol. Dupla Šansa
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -142,6 +160,7 @@ markets:
   label_sr: II Pol. 1X
   definition_en: Home or draw in the second half
   family: HALF_DC
+  section: II Pol. Dupla Šansa
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -151,6 +170,7 @@ markets:
   label_sr: II Pol. X2
   definition_en: Away or draw in the second half
   family: HALF_DC
+  section: II Pol. Dupla Šansa
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -160,6 +180,7 @@ markets:
   label_sr: II Pol. 12
   definition_en: Second half not drawn
   family: HALF_DC
+  section: II Pol. Dupla Šansa
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -169,6 +190,7 @@ markets:
   label_sr: 1-1
   definition_en: Half time 1, full time 1
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -178,6 +200,7 @@ markets:
   label_sr: 1-X
   definition_en: Half time 1, full time X
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -187,6 +210,7 @@ markets:
   label_sr: 1-2
   definition_en: Half time 1, full time 2
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -196,6 +220,7 @@ markets:
   label_sr: X-1
   definition_en: Half time X, full time 1
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -205,6 +230,7 @@ markets:
   label_sr: X-X
   definition_en: Half time X, full time X
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -214,6 +240,7 @@ markets:
   label_sr: X-2
   definition_en: Half time X, full time 2
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -223,6 +250,7 @@ markets:
   label_sr: 2-1
   definition_en: Half time 2, full time 1
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -232,6 +260,7 @@ markets:
   label_sr: 2-X
   definition_en: Half time 2, full time X
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -241,6 +270,7 @@ markets:
   label_sr: 2-2
   definition_en: Half time 2, full time 2
   family: HTFT
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -250,6 +280,7 @@ markets:
   label_sr: 1X-1X
   definition_en: Half time 1X, full time 1X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -259,6 +290,7 @@ markets:
   label_sr: 1X-12
   definition_en: Half time 1X, full time 12
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -268,6 +300,7 @@ markets:
   label_sr: 1X-X2
   definition_en: Half time 1X, full time X2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -277,6 +310,7 @@ markets:
   label_sr: 12-1X
   definition_en: Half time 12, full time 1X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -286,6 +320,7 @@ markets:
   label_sr: 12-12
   definition_en: Half time 12, full time 12
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -295,6 +330,7 @@ markets:
   label_sr: 12-X2
   definition_en: Half time 12, full time X2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -304,6 +340,7 @@ markets:
   label_sr: X2-1X
   definition_en: Half time X2, full time 1X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -313,6 +350,7 @@ markets:
   label_sr: X2-12
   definition_en: Half time X2, full time 12
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -322,6 +360,7 @@ markets:
   label_sr: X2-X2
   definition_en: Half time X2, full time X2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -331,6 +370,7 @@ markets:
   label_sr: 1X-1
   definition_en: Half time 1X, full time 1
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -340,6 +380,7 @@ markets:
   label_sr: 1X-X
   definition_en: Half time 1X, full time X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -349,6 +390,7 @@ markets:
   label_sr: 1X-2
   definition_en: Half time 1X, full time 2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -358,6 +400,7 @@ markets:
   label_sr: 12-1
   definition_en: Half time 12, full time 1
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -367,6 +410,7 @@ markets:
   label_sr: 12-X
   definition_en: Half time 12, full time X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -376,6 +420,7 @@ markets:
   label_sr: 12-2
   definition_en: Half time 12, full time 2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -385,6 +430,7 @@ markets:
   label_sr: X2-1
   definition_en: Half time X2, full time 1
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -394,6 +440,7 @@ markets:
   label_sr: X2-X
   definition_en: Half time X2, full time X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -403,6 +450,7 @@ markets:
   label_sr: X2-2
   definition_en: Half time X2, full time 2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -412,6 +460,7 @@ markets:
   label_sr: 1-1X
   definition_en: Half time 1, full time 1X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -421,6 +470,7 @@ markets:
   label_sr: 1-12
   definition_en: Half time 1, full time 12
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -430,6 +480,7 @@ markets:
   label_sr: 1-X2
   definition_en: Half time 1, full time X2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -439,6 +490,7 @@ markets:
   label_sr: X-1X
   definition_en: Half time X, full time 1X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -448,6 +500,7 @@ markets:
   label_sr: X-12
   definition_en: Half time X, full time 12
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -457,6 +510,7 @@ markets:
   label_sr: X-X2
   definition_en: Half time X, full time X2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -466,6 +520,7 @@ markets:
   label_sr: 2-1X
   definition_en: Half time 2, full time 1X
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -475,6 +530,7 @@ markets:
   label_sr: 2-12
   definition_en: Half time 2, full time 12
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -484,6 +540,7 @@ markets:
   label_sr: 2-X2
   definition_en: Half time 2, full time X2
   family: HTFT_DC
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -493,6 +550,7 @@ markets:
   label_sr: NE 1-1
   definition_en: Not (half time 1, full time 1)
   family: HTFT_NE
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -502,6 +560,7 @@ markets:
   label_sr: NE X-1
   definition_en: Not (half time X, full time 1)
   family: HTFT_NE
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -511,6 +570,7 @@ markets:
   label_sr: NE X-X
   definition_en: Not (half time X, full time X)
   family: HTFT_NE
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -520,6 +580,7 @@ markets:
   label_sr: NE X-2
   definition_en: Not (half time X, full time 2)
   family: HTFT_NE
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -529,6 +590,7 @@ markets:
   label_sr: NE 2-2
   definition_en: Not (half time 2, full time 2)
   family: HTFT_NE
+  section: Poluvreme/Kraj
   period: FT
   source: soccerbet_rules
   testable: true
@@ -538,6 +600,7 @@ markets:
   label_sr: 0-1
   definition_en: Full-time total goals 0-1
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -547,6 +610,7 @@ markets:
   label_sr: 0-2
   definition_en: Full-time total goals 0-2
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -556,6 +620,7 @@ markets:
   label_sr: 0-3
   definition_en: Full-time total goals 0-3
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -565,6 +630,7 @@ markets:
   label_sr: 0-4
   definition_en: Full-time total goals 0-4
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -574,6 +640,7 @@ markets:
   label_sr: '1'
   definition_en: Full-time total goals 1
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -583,6 +650,7 @@ markets:
   label_sr: 1+
   definition_en: Full-time total goals 1+
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -592,6 +660,7 @@ markets:
   label_sr: 1-2
   definition_en: Full-time total goals 1-2
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -601,6 +670,7 @@ markets:
   label_sr: 1-3
   definition_en: Full-time total goals 1-3
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -610,6 +680,7 @@ markets:
   label_sr: 1-4
   definition_en: Full-time total goals 1-4
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -619,6 +690,7 @@ markets:
   label_sr: 1-5
   definition_en: Full-time total goals 1-5
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -628,6 +700,7 @@ markets:
   label_sr: 1-6
   definition_en: Full-time total goals 1-6
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -637,6 +710,7 @@ markets:
   label_sr: '2'
   definition_en: Full-time total goals 2
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -646,6 +720,7 @@ markets:
   label_sr: 2+
   definition_en: Full-time total goals 2+
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -655,6 +730,7 @@ markets:
   label_sr: 2-3
   definition_en: Full-time total goals 2-3
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -664,6 +740,7 @@ markets:
   label_sr: 2-4
   definition_en: Full-time total goals 2-4
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -673,6 +750,7 @@ markets:
   label_sr: 2-5
   definition_en: Full-time total goals 2-5
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -682,6 +760,7 @@ markets:
   label_sr: 2-6
   definition_en: Full-time total goals 2-6
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -691,6 +770,7 @@ markets:
   label_sr: '3'
   definition_en: Full-time total goals 3
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -700,6 +780,7 @@ markets:
   label_sr: 3+
   definition_en: Full-time total goals 3+
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -709,6 +790,7 @@ markets:
   label_sr: 3-4
   definition_en: Full-time total goals 3-4
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -719,6 +801,7 @@ markets:
   label_sr: 3-5
   definition_en: Full-time total goals 3-5
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -728,6 +811,7 @@ markets:
   label_sr: 3-6
   definition_en: Full-time total goals 3-6
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -737,6 +821,7 @@ markets:
   label_sr: '4'
   definition_en: Full-time total goals 4
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -746,6 +831,7 @@ markets:
   label_sr: 4+
   definition_en: Full-time total goals 4+
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -755,6 +841,7 @@ markets:
   label_sr: 4-5
   definition_en: Full-time total goals 4-5
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -764,6 +851,7 @@ markets:
   label_sr: 4-6
   definition_en: Full-time total goals 4-6
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -773,6 +861,7 @@ markets:
   label_sr: '5'
   definition_en: Full-time total goals 5
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -782,6 +871,7 @@ markets:
   label_sr: 5+
   definition_en: Full-time total goals 5+
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -791,6 +881,7 @@ markets:
   label_sr: 6+
   definition_en: Full-time total goals 6+
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -800,6 +891,7 @@ markets:
   label_sr: 7+
   definition_en: Full-time total goals 7+
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -809,6 +901,7 @@ markets:
   label_sr: NE 1
   definition_en: Full-time total goals NE 1
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -818,6 +911,7 @@ markets:
   label_sr: NE 1-2
   definition_en: Full-time total goals NE 1-2
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -827,6 +921,7 @@ markets:
   label_sr: NE 1-3
   definition_en: Full-time total goals NE 1-3
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -836,6 +931,7 @@ markets:
   label_sr: NE 1-4
   definition_en: Full-time total goals NE 1-4
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -845,6 +941,7 @@ markets:
   label_sr: NE 2
   definition_en: Full-time total goals NE 2
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -854,6 +951,7 @@ markets:
   label_sr: NE 4-6
   definition_en: Full-time total goals NE 4-6
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -863,6 +961,7 @@ markets:
   label_sr: NE 3-4
   definition_en: Full-time total goals NE 3-4
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -872,6 +971,7 @@ markets:
   label_sr: NE 3-5
   definition_en: Full-time total goals NE 3-5
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -881,6 +981,7 @@ markets:
   label_sr: NE 3-6
   definition_en: Full-time total goals NE 3-6
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -890,6 +991,7 @@ markets:
   label_sr: NE 4-5
   definition_en: Full-time total goals NE 4-5
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -899,6 +1001,7 @@ markets:
   label_sr: NE 3
   definition_en: Full-time total goals NE 3
   family: GOAL_RANGE_FT
+  section: Ukupno Golova
   period: FT
   source: soccerbet_rules
   testable: true
@@ -908,6 +1011,7 @@ markets:
   label_sr: I0
   definition_en: First-half total goals I0
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -917,6 +1021,7 @@ markets:
   label_sr: I0-1
   definition_en: First-half total goals I0-1
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -926,6 +1031,7 @@ markets:
   label_sr: I0-2
   definition_en: First-half total goals I0-2
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -935,6 +1041,7 @@ markets:
   label_sr: I1
   definition_en: First-half total goals I1
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -944,6 +1051,7 @@ markets:
   label_sr: NE 1
   definition_en: First-half total goals NE 1
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -953,6 +1061,7 @@ markets:
   label_sr: I1+
   definition_en: First-half total goals I1+
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -962,6 +1071,7 @@ markets:
   label_sr: I1-2
   definition_en: First-half total goals I1-2
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -971,6 +1081,7 @@ markets:
   label_sr: NE 2
   definition_en: First-half total goals NE 2
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -980,6 +1091,7 @@ markets:
   label_sr: I2
   definition_en: First-half total goals I2
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -989,6 +1101,7 @@ markets:
   label_sr: I2+
   definition_en: First-half total goals I2+
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -998,6 +1111,7 @@ markets:
   label_sr: I2-3
   definition_en: First-half total goals I2-3
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -1007,6 +1121,7 @@ markets:
   label_sr: I2-4
   definition_en: First-half total goals I2-4
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -1016,6 +1131,7 @@ markets:
   label_sr: I3
   definition_en: First-half total goals I3
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -1025,6 +1141,7 @@ markets:
   label_sr: I3+
   definition_en: First-half total goals I3+
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -1034,6 +1151,7 @@ markets:
   label_sr: I4+
   definition_en: First-half total goals I4+
   family: GOAL_RANGE_1H
+  section: I Pol. Uk. Golova
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -1043,6 +1161,7 @@ markets:
   label_sr: II0
   definition_en: Second-half total goals II0
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1052,6 +1171,7 @@ markets:
   label_sr: II0-1
   definition_en: Second-half total goals II0-1
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1061,6 +1181,7 @@ markets:
   label_sr: II0-2
   definition_en: Second-half total goals II0-2
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1070,6 +1191,7 @@ markets:
   label_sr: II1
   definition_en: Second-half total goals II1
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1079,6 +1201,7 @@ markets:
   label_sr: NE 1
   definition_en: Second-half total goals NE 1
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1088,6 +1211,7 @@ markets:
   label_sr: II1+
   definition_en: Second-half total goals II1+
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1097,6 +1221,7 @@ markets:
   label_sr: II1-2
   definition_en: Second-half total goals II1-2
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1106,6 +1231,7 @@ markets:
   label_sr: II1-3
   definition_en: Second-half total goals II1-3
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1115,6 +1241,7 @@ markets:
   label_sr: NE 2
   definition_en: Second-half total goals NE 2
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1124,6 +1251,7 @@ markets:
   label_sr: II2
   definition_en: Second-half total goals II2
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1133,6 +1261,7 @@ markets:
   label_sr: II2+
   definition_en: Second-half total goals II2+
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1142,6 +1271,7 @@ markets:
   label_sr: II2-3
   definition_en: Second-half total goals II2-3
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1151,6 +1281,7 @@ markets:
   label_sr: II2-4
   definition_en: Second-half total goals II2-4
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1160,6 +1291,7 @@ markets:
   label_sr: II3
   definition_en: Second-half total goals II3
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1169,6 +1301,7 @@ markets:
   label_sr: II3+
   definition_en: Second-half total goals II3+
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1178,6 +1311,7 @@ markets:
   label_sr: II4+
   definition_en: Second-half total goals II4+
   family: GOAL_RANGE_2H
+  section: II Pol. Uk. Golova
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1187,6 +1321,7 @@ markets:
   label_sr: I0-1&II0-1
   definition_en: Half-goal combination I0-1&II0-1
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1196,6 +1331,7 @@ markets:
   label_sr: I0-1&II0-2
   definition_en: Half-goal combination I0-1&II0-2
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1205,6 +1341,7 @@ markets:
   label_sr: I0-1&II0-3
   definition_en: Half-goal combination I0-1&II0-3
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1214,6 +1351,7 @@ markets:
   label_sr: I0-2&II0-1
   definition_en: Half-goal combination I0-2&II0-1
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1223,6 +1361,7 @@ markets:
   label_sr: I0-2&II0-2
   definition_en: Half-goal combination I0-2&II0-2
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1232,6 +1371,7 @@ markets:
   label_sr: I0-2&II0-3
   definition_en: Half-goal combination I0-2&II0-3
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1241,6 +1381,7 @@ markets:
   label_sr: I1+&II1+
   definition_en: Half-goal combination I1+&II1+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1250,6 +1391,7 @@ markets:
   label_sr: I1+&II2+
   definition_en: Half-goal combination I1+&II2+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1259,6 +1401,7 @@ markets:
   label_sr: I1+&II3+
   definition_en: Half-goal combination I1+&II3+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1268,6 +1411,7 @@ markets:
   label_sr: I1-2&II1-2
   definition_en: Half-goal combination I1-2&II1-2
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1277,6 +1421,7 @@ markets:
   label_sr: I1-3&II1-3
   definition_en: Half-goal combination I1-3&II1-3
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1286,6 +1431,7 @@ markets:
   label_sr: I2+&II1+
   definition_en: Half-goal combination I2+&II1+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1295,6 +1441,7 @@ markets:
   label_sr: I2+&II2+
   definition_en: Half-goal combination I2+&II2+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1304,6 +1451,7 @@ markets:
   label_sr: I2+&II3+
   definition_en: Half-goal combination I2+&II3+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1313,6 +1461,7 @@ markets:
   label_sr: I1+&2+
   definition_en: Half-goal combination I1+&2+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1322,6 +1471,7 @@ markets:
   label_sr: I1+&3+
   definition_en: Half-goal combination I1+&3+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1331,6 +1481,7 @@ markets:
   label_sr: I1-2&3+
   definition_en: Half-goal combination I1-2&3+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1340,6 +1491,7 @@ markets:
   label_sr: I1-2&4+
   definition_en: Half-goal combination I1-2&4+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1349,6 +1501,7 @@ markets:
   label_sr: I2+&3+
   definition_en: Half-goal combination I2+&3+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1358,6 +1511,7 @@ markets:
   label_sr: I2+&4+
   definition_en: Half-goal combination I2+&4+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1367,6 +1521,7 @@ markets:
   label_sr: NE I1-3&II1-3
   definition_en: Half-goal combination NE I1-3&II1-3
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1376,6 +1531,7 @@ markets:
   label_sr: I2-3&4+
   definition_en: Half-goal combination I2-3&4+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1385,6 +1541,7 @@ markets:
   label_sr: NE I1+&II2+
   definition_en: Half-goal combination NE I1+&II2+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1394,6 +1551,7 @@ markets:
   label_sr: NE I1+&II1+
   definition_en: Half-goal combination NE I1+&II1+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1403,6 +1561,7 @@ markets:
   label_sr: I2-3&II2-3
   definition_en: Half-goal combination I2-3&II2-3
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1412,6 +1571,7 @@ markets:
   label_sr: I2-3&II2+
   definition_en: Half-goal combination I2-3&II2+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1421,6 +1581,7 @@ markets:
   label_sr: I2-3&II1-3
   definition_en: Half-goal combination I2-3&II1-3
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1430,6 +1591,7 @@ markets:
   label_sr: I2-3&II1-2
   definition_en: Half-goal combination I2-3&II1-2
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1439,6 +1601,7 @@ markets:
   label_sr: I2-3&II1+
   definition_en: Half-goal combination I2-3&II1+
   family: HALF_GOAL_COMBOS
+  section: Uk. Golova Kombinacije
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1448,6 +1611,7 @@ markets:
   label_sr: 1 & 2+
   definition_en: 'Result and goals: 1 & 2+'
   family: RESULT_AND_GOALS
+  section: Match Outcome & Goals Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1457,6 +1621,7 @@ markets:
   label_sr: 1 & 3+
   definition_en: 'Result and goals: 1 & 3+'
   family: RESULT_AND_GOALS
+  section: Match Outcome & Goals Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1466,6 +1631,7 @@ markets:
   label_sr: 1 & 4+
   definition_en: 'Result and goals: 1 & 4+'
   family: RESULT_AND_GOALS
+  section: Match Outcome & Goals Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1475,6 +1641,7 @@ markets:
   label_sr: 2 & 2+
   definition_en: 'Result and goals: 2 & 2+'
   family: RESULT_AND_GOALS
+  section: Match Outcome & Goals Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1484,6 +1651,7 @@ markets:
   label_sr: 2 & 3+
   definition_en: 'Result and goals: 2 & 3+'
   family: RESULT_AND_GOALS
+  section: Match Outcome & Goals Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1493,6 +1661,7 @@ markets:
   label_sr: 2 & 4+
   definition_en: 'Result and goals: 2 & 4+'
   family: RESULT_AND_GOALS
+  section: Match Outcome & Goals Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1502,6 +1671,7 @@ markets:
   label_sr: 1 & 0-2
   definition_en: 'Result and goals: 1 & 0-2'
   family: RESULT_AND_GOALS
+  section: Win & Under / Range Goals
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1511,6 +1681,7 @@ markets:
   label_sr: 1 & 2-3
   definition_en: 'Result and goals: 1 & 2-3'
   family: RESULT_AND_GOALS
+  section: Win & Under / Range Goals
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1520,6 +1691,7 @@ markets:
   label_sr: 2 & 0-2
   definition_en: 'Result and goals: 2 & 0-2'
   family: RESULT_AND_GOALS
+  section: Win & Under / Range Goals
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1529,6 +1701,7 @@ markets:
   label_sr: 2 & 2-3
   definition_en: 'Result and goals: 2 & 2-3'
   family: RESULT_AND_GOALS
+  section: Win & Under / Range Goals
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1538,6 +1711,7 @@ markets:
   label_sr: 1-1 & 2+
   definition_en: 'HT/FT and goals: 1-1 & 2+'
   family: HTFT_AND_GOALS
+  section: Half + Match Outcome Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1547,6 +1721,7 @@ markets:
   label_sr: 1-1 & 3+
   definition_en: 'HT/FT and goals: 1-1 & 3+'
   family: HTFT_AND_GOALS
+  section: Half + Match Outcome Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1556,6 +1731,7 @@ markets:
   label_sr: 2-2 & 2+
   definition_en: 'HT/FT and goals: 2-2 & 2+'
   family: HTFT_AND_GOALS
+  section: Half + Match Outcome Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1565,6 +1741,7 @@ markets:
   label_sr: 2-2 & 3+
   definition_en: 'HT/FT and goals: 2-2 & 3+'
   family: HTFT_AND_GOALS
+  section: Half + Match Outcome Combinations
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1574,6 +1751,7 @@ markets:
   label_sr: Dupla Pobeda 1
   definition_en: home wins both halves
   family: WIN_BOTH_HALVES
+  section: Dupla Pobeda
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1583,6 +1761,7 @@ markets:
   label_sr: Dupla Pobeda 1&4+
   definition_en: home wins both halves and total goals >= 4
   family: WIN_BOTH_HALVES
+  section: Dupla Pobeda
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1592,6 +1771,7 @@ markets:
   label_sr: Dupla Pobeda 2
   definition_en: away wins both halves
   family: WIN_BOTH_HALVES
+  section: Dupla Pobeda
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1601,6 +1781,7 @@ markets:
   label_sr: Dupla Pobeda 2&4+
   definition_en: away wins both halves and total goals >= 4
   family: WIN_BOTH_HALVES
+  section: Dupla Pobeda
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1609,7 +1790,8 @@ markets:
 - code: DSP 1
   label_sr: Dupla Super Pobeda 1
   definition_en: home wins both halves and away scores 0
-  family: WIN_BOTH_HALVES
+  family: WIN_BOTH_HALVES_TO_NIL
+  section: Dupla Super Pobeda
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1618,7 +1800,8 @@ markets:
 - code: DSP 2
   label_sr: Dupla Super Pobeda 2
   definition_en: away wins both halves and home scores 0
-  family: WIN_BOTH_HALVES
+  family: WIN_BOTH_HALVES_TO_NIL
+  section: Dupla Super Pobeda
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1628,6 +1811,7 @@ markets:
   label_sr: Super Pobeda 1
   definition_en: home wins and opponent scores 0
   family: WIN_TO_NIL
+  section: Super Pobeda
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1637,6 +1821,7 @@ markets:
   label_sr: Super Pobeda 2
   definition_en: away wins and opponent scores 0
   family: WIN_TO_NIL
+  section: Super Pobeda
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1646,6 +1831,7 @@ markets:
   label_sr: Hendikep Pobeda 1
   definition_en: home wins by >= 2
   family: MARGIN
+  section: Hendikep Pobeda (HP)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1655,6 +1841,7 @@ markets:
   label_sr: HH 1 3+
   definition_en: home wins by >= 3
   family: MARGIN
+  section: Hendikep Pobeda (HH)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1664,6 +1851,7 @@ markets:
   label_sr: Pobeda tacno 1 razlike 1
   definition_en: home wins by exactly 1
   family: MARGIN
+  section: Hendikep Pobeda (tačno jedan gol razlike)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1673,6 +1861,7 @@ markets:
   label_sr: Pobeda tacno 2 razlike 1
   definition_en: home wins by exactly 2
   family: MARGIN
+  section: Hendikep Pobeda (tačno dva gola razlike)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1682,6 +1871,7 @@ markets:
   label_sr: Hendikep Pobeda 2
   definition_en: away wins by >= 2
   family: MARGIN
+  section: Hendikep Pobeda (HP)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1691,6 +1881,7 @@ markets:
   label_sr: HH 2 3+
   definition_en: away wins by >= 3
   family: MARGIN
+  section: Hendikep Pobeda (HH)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1700,6 +1891,7 @@ markets:
   label_sr: Pobeda tacno 1 razlike 2
   definition_en: away wins by exactly 1
   family: MARGIN
+  section: Hendikep Pobeda (tačno jedan gol razlike)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1709,6 +1901,7 @@ markets:
   label_sr: Pobeda tacno 2 razlike 2
   definition_en: away wins by exactly 2
   family: MARGIN
+  section: Hendikep Pobeda (tačno dva gola razlike)
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1718,6 +1911,7 @@ markets:
   label_sr: X No Bet FT 1
   definition_en: home wins, draw voids (FT)
   family: NO_BET
+  section: X No Bet
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1727,6 +1921,7 @@ markets:
   label_sr: X No Bet FT 2
   definition_en: away wins, draw voids (FT)
   family: NO_BET
+  section: X No Bet
   period: FT
   source: soccerbet_rules
   testable: true
@@ -1736,6 +1931,7 @@ markets:
   label_sr: X No Bet 1. Pol. 1
   definition_en: home wins, draw voids (1. Pol.)
   family: NO_BET
+  section: 1. Pol. X No Bet
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -1746,6 +1942,7 @@ markets:
   label_sr: X No Bet 1. Pol. 2
   definition_en: away wins, draw voids (1. Pol.)
   family: NO_BET
+  section: 1. Pol. X No Bet
   period: 1H
   source: soccerbet_rules
   testable: true
@@ -1755,6 +1952,7 @@ markets:
   label_sr: X No Bet 2. Pol. 1
   definition_en: home wins, draw voids (2. Pol.)
   family: NO_BET
+  section: 2. Pol. X No Bet
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1764,6 +1962,7 @@ markets:
   label_sr: X No Bet 2. Pol. 2
   definition_en: away wins, draw voids (2. Pol.)
   family: NO_BET
+  section: 2. Pol. X No Bet
   period: 2H
   source: soccerbet_rules
   testable: true
@@ -1773,6 +1972,7 @@ markets:
   label_sr: I>II
   definition_en: 1H goals > 2H goals
   family: MORE_GOALS_HALF
+  section: Pada Više Golova
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1782,6 +1982,7 @@ markets:
   label_sr: I = II
   definition_en: 1H goals == 2H goals
   family: MORE_GOALS_HALF
+  section: Pada Više Golova
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1791,6 +1992,7 @@ markets:
   label_sr: I<II
   definition_en: 1H goals < 2H goals
   family: MORE_GOALS_HALF
+  section: Pada Više Golova
   period: MIXED
   source: soccerbet_rules
   testable: true
@@ -1800,6 +2002,7 @@ markets:
   label_sr: Prvi Daje Gol FT 1
   definition_en: home scores the first goal (FT)
   family: FIRST_GOAL
+  section: Prvi Daje Gol
   period: FT
   source: soccerbet_rules
   testable: false
@@ -1809,6 +2012,7 @@ markets:
   label_sr: Prvi Daje Gol FT 2
   definition_en: away scores the first goal (FT)
   family: FIRST_GOAL
+  section: Prvi Daje Gol
   period: FT
   source: soccerbet_rules
   testable: false
@@ -1818,6 +2022,7 @@ markets:
   label_sr: Prvi Daje Gol 1. Pol. 1
   definition_en: home scores the first goal (1. Pol.)
   family: FIRST_GOAL
+  section: I Pol. Prvi Daje Gol
   period: 1H
   source: soccerbet_rules
   testable: false
@@ -1827,6 +2032,7 @@ markets:
   label_sr: Prvi Daje Gol 1. Pol. 2
   definition_en: away scores the first goal (1. Pol.)
   family: FIRST_GOAL
+  section: I Pol. Prvi Daje Gol
   period: 1H
   source: soccerbet_rules
   testable: false
@@ -1836,6 +2042,7 @@ markets:
   label_sr: Prvi Daje Gol 2. Pol. 1
   definition_en: home scores the first goal (2. Pol.)
   family: FIRST_GOAL
+  section: II Pol. Prvi Daje Gol
   period: 2H
   source: soccerbet_rules
   testable: false
@@ -1845,6 +2052,7 @@ markets:
   label_sr: Prvi Daje Gol 2. Pol. 2
   definition_en: away scores the first goal (2. Pol.)
   family: FIRST_GOAL
+  section: II Pol. Prvi Daje Gol
   period: 2H
   source: soccerbet_rules
   testable: false
@@ -1854,6 +2062,7 @@ markets:
   label_sr: Prolazi Dalje 1
   definition_en: home progresses to the next round
   family: TO_QUALIFY
+  section: Prolazi Dalje
   period: FT
   source: soccerbet_rules
   testable: false
@@ -1863,6 +2072,7 @@ markets:
   label_sr: Prolazi Dalje 2
   definition_en: away progresses to the next round
   family: TO_QUALIFY
+  section: Prolazi Dalje
   period: FT
   source: soccerbet_rules
   testable: false
@@ -1882,6 +2092,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: GG
+      section: (section not confirmed)
       codes:
       - 2GG
       - 2NG
@@ -1895,12 +2106,14 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: GG
+      section: (section not confirmed)
       codes:
       - IGG&IIGG
       - IGG&IING
       - ING&IIGG
       - ING&IING
     - prefix: GGC
+      section: (section not confirmed)
       codes:
       - GG&2-3
       - GG&3+
@@ -1926,6 +2139,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CS
+      section: (section not confirmed)
       codes:
       - 0:0
       - 0:1
@@ -1956,7 +2170,9 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CS1
+      section: (section not confirmed)
       codes:
+      - 0:0
       - 0:1
       - 0:2
       - 0:3
@@ -1972,10 +2188,13 @@ ext_markets:
       - '3:1'
       - '3:2'
       - '3:3'
+      settles_like_a_base_market:
+        CS1:0:0: GOAL_RANGE_1H I0
   - family: DOUBLE_CHANCE_AND_GOALS
     testable: true
     prefixes:
     - prefix: DCG
+      section: (section not confirmed)
       codes:
       - 12&0-1
       - 12&0-2
@@ -2068,38 +2287,20 @@ ext_markets:
       - X2&I<II
       - X2&I=II
       - X2&I>II
+      settles_like_a_base_market:
+        DCG:12&0-1: GOAL_RANGE_FT 1
   - family: GOAL_RANGE_1H
     testable: true
     prefixes:
     - prefix: T1
+      section: I Pol. Uk. Golova
       codes:
-      - '1'
       - 1-3
-      - '2'
-      - NE1
-      - NE2
-  - family: GOAL_RANGE_2H
-    testable: true
-    prefixes:
-    - prefix: T2
-      codes:
-      - '1'
-      - '2'
-      - NE1
-      - NE2
-  - family: GOAL_RANGE_FT
-    testable: true
-    prefixes:
-    - prefix: T
-      codes:
-      - '1'
-      - '2'
-      - NE1
-      - NE2
   - family: HALF_GOAL_COMBOS
     testable: true
     prefixes:
     - prefix: C
+      section: (section not confirmed)
       codes:
       - I0-1&II1+
       - I0-1&II1-2
@@ -2132,6 +2333,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HRG
+      section: Soccer Kombinacije Poluvreme-GG
       codes:
       - I1&IGG
       - I1&ING
@@ -2142,11 +2344,17 @@ ext_markets:
       - II2&IIGG
       - II2&IING
       - IIX&IIGG
+      - IIX&IING
       - IX&IGG
+      - IX&ING
+      settles_like_a_base_market:
+        HRG:IX&ING: GOAL_RANGE_1H I0
+        HRG:IIX&IING: GOAL_RANGE_2H II0
   - family: HTFT_AND_GOALS
     testable: true
     prefixes:
     - prefix: HFG
+      section: (section not confirmed)
       codes:
       - 1-1&0-2
       - 1-1&0-3
@@ -2248,6 +2456,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: PN
+      section: (section not confirmed)
       codes:
       - Nepar
       - Par
@@ -2255,9 +2464,11 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: SANSA
+      section: (section not confirmed)
       codes:
       - 0:1v0:2v0:3
       - 1-1v2-2
+      - 1-1vX-1
       - 1-1vX-X
       - 1-2v2-1
       - 1:0v2:0v3:0
@@ -2267,6 +2478,7 @@ ext_markets:
       - 1vGG
       - 1vI2+
       - 1vI3+
+      - 2-2vX-2
       - 2-2vX-X
       - 2:1v3:1v4:1
       - 2v3+
@@ -2290,11 +2502,21 @@ ext_markets:
       - IGGvIIGG
       - IXvX
       - NGIvGGII
+      - X-1vX-2
+      - X-XvX-1
+      - X-XvX-2
       - Xv3+
+      settles_like_a_base_market:
+        SANSA:1-1vX-1: HTFT_DC 1X-1
+        SANSA:X-1vX-2: HTFT_DC X-12
+        SANSA:X-XvX-1: HTFT_DC X-1X
+        SANSA:X-XvX-2: HTFT_DC X-X2
+        SANSA:2-2vX-2: HTFT_DC X2-2
   - family: RESULT_AND_GOALS
     testable: true
     prefixes:
     - prefix: R
+      section: (section not confirmed)
       codes:
       - 1&0-3
       - 1&0-4
@@ -2375,6 +2597,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: AT1
+      section: (section not confirmed)
       codes:
       - '0'
       - 0-1
@@ -2389,6 +2612,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: AT2
+      section: (section not confirmed)
       codes:
       - '0'
       - 0-1
@@ -2403,6 +2627,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: AT
+      section: (section not confirmed)
       codes:
       - '0'
       - 0-1
@@ -2430,6 +2655,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HT1
+      section: (section not confirmed)
       codes:
       - '0'
       - 0-1
@@ -2444,6 +2670,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HT2
+      section: (section not confirmed)
       codes:
       - '0'
       - 0-1
@@ -2458,6 +2685,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: HT
+      section: (section not confirmed)
       codes:
       - '0'
       - 0-1
@@ -2486,6 +2714,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CA
+      section: (section not confirmed)
       codes:
       - I0-1&II0-1
       - I0-1&II0-2
@@ -2503,6 +2732,7 @@ ext_markets:
     testable: true
     prefixes:
     - prefix: CH
+      section: (section not confirmed)
       codes:
       - I0-1&II0-1
       - I0-1&II0-2
@@ -2535,15 +2765,18 @@ ext_markets:
   - prefix: SANSA
     code: 1vGG3+
     family: OR_MARKETS
+    section: (section not confirmed)
     status: UNCONFIRMED
     note: could not parse 'GG3+'
   - prefix: SANSA
     code: 2vGG3+
     family: OR_MARKETS
+    section: (section not confirmed)
     status: UNCONFIRMED
     note: could not parse 'GG3+'
   - prefix: SANSA
     code: I2-3+vII3+
     family: OR_MARKETS
+    section: (section not confirmed)
     status: UNCONFIRMED
     note: could not parse 'I2-3+'
