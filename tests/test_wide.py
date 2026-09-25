@@ -56,9 +56,9 @@ PAPER = {"edge_cushion": 1.035, "ev_haircut": 0.20, "max_gap_minutes": 60}
 def _rows():
     return [
         {"family": "RESULT", "code": "1", "market": "1", "meaning": "home win",
-         "fair_odds": 2.0, "min_acceptable": 2.07},
+         "fair_odds": 2.0, "min_acceptable": 2.07, "provenance": "DIRECT"},
         {"family": "HALF_RESULT", "code": "I1", "market": "I1", "meaning": "1H home win",
-         "fair_odds": 2.0, "min_acceptable": 2.07},
+         "fair_odds": 2.0, "min_acceptable": 2.07, "provenance": "DERIVED"},
     ]
 
 

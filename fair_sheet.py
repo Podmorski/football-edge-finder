@@ -48,6 +48,7 @@ import pandas as pd
 import requests
 import yaml
 
+import api_guard
 import coverage
 import odds_api_log
 import ps3838_odds
@@ -195,13 +196,19 @@ def load_key() -> str:
 
 
 def _call(session, key, path, params=None, note=""):
+    allowed, reason = api_guard.check("odds_api")
+    if not allowed:
+        api_guard.refuse("odds_api", reason, note or path)
+        raise RuntimeError(f"Odds API budget: {reason}")
     query = {"apiKey": key}
     if params:
         query.update(params)
     response = session.get(f"{BASE}{path}", params=query, timeout=30)
+    cost = response.headers.get("x-requests-last", "")
+    api_guard.note("odds_api", int(float(cost)) if str(cost).strip() else 0)
     odds_api_log.log_request(
         endpoint=path, params=params or {}, http_status=response.status_code,
-        cost=response.headers.get("x-requests-last", ""),
+        cost=cost,
         used=response.headers.get("x-requests-used", ""),
         remaining=response.headers.get("x-requests-remaining", ""),
         notes=note,
@@ -366,28 +373,67 @@ def pinnacle_prices(event: dict, snapshot) -> dict | None:
     raw_ou = np.array([lines[point]["Over"], lines[point]["Under"]], dtype=float)
     p_ou = odds.demargin(pd.DataFrame([raw_ou]), "power").to_numpy()[0]
 
+    # Every full-time totals line, de-margined: a GOAL_RANGE_FT threshold that
+    # matches one of these is priced DIRECTLY off the sharp line, not the grid.
+    all_lines: dict[float, dict[str, float]] = {}
+    for pt, side in lines.items():
+        raw = np.array([side["Over"], side["Under"]], dtype=float)
+        p = odds.demargin(pd.DataFrame([raw]), "power").to_numpy()[0]
+        all_lines[float(pt)] = {"over": float(p[0]), "under": float(p[1])}
+
     return {
         "p_home": float(p_1x2[0]), "p_draw": float(p_1x2[1]), "p_away": float(p_1x2[2]),
         "p_over": float(p_ou[0]), "line": float(point),
         "raw_1x2": [float(x) for x in raw_1x2], "raw_ou": [float(x) for x in raw_ou],
         "margin_1x2": float((1.0 / raw_1x2).sum() - 1.0),
         "margin_ou": float((1.0 / raw_ou).sum() - 1.0),
+        "totals": all_lines,
         "snapshot": book.get("last_update") or h2h.get("last_update") or "",
     }
 
 
+def direct_goal_codes(totals: dict) -> dict[tuple[str, str], tuple[float, float]]:
+    """GOAL_RANGE_FT codes that ARE a Pinnacle totals line, with their de-margined p.
+
+    ``N+`` (at least N goals) is Over (N - 0.5); ``0-N`` (0 to N goals) is Under
+    (N + 0.5). A code with no matching line is not returned, so it stays
+    model-derived.
+    """
+    out: dict[tuple[str, str], tuple[float, float]] = {}
+    for line, sides in (totals or {}).items():
+        over, under = line + 0.5, line - 0.5
+        if over == int(over):
+            out[("GOAL_RANGE_FT", f"{int(over)}+")] = (sides["over"], 0.0)
+        if under == int(under) and under >= 0:
+            out[("GOAL_RANGE_FT", f"0-{int(under)}")] = (sides["under"], 0.0)
+    return out
+
+
+def direct_provenance(prices: dict) -> set[tuple[str, str]]:
+    """(family, code) whose fair price **is** a de-margined Pinnacle line.
+
+    Only the 1X2 results and the goal thresholds that match a totals line qualify.
+    Double chance, No-Bet and the other goal ranges are exact functions of the
+    sharp lines but are not a Pinnacle line themselves, so they are DERIVED.
+    """
+    out = {("RESULT", "1"), ("RESULT", "X"), ("RESULT", "2")}
+    out |= set(direct_goal_codes(prices.get("totals") or {}))
+    return out
+
+
 def sharp_overrides(prices: dict) -> dict[tuple[str, str], tuple[float, float]]:
-    """Markets the de-margined sharp 1X2 prices **directly**, with no model between.
+    """Markets the de-margined sharp prices **directly**, with no model between.
 
     Pinnacle's h2h *is* the price of a 1X2 outcome, so fitting a grid and reading
     the same outcome back off it would only add the anchor's residual error
     (typically ~2% at these margins). Double chance and the full-time
-    stake-back-No-Bet prices are exact functions of the same three numbers.
-    Everything else — goal ranges, per-half markets — has to come from the score
-    grid anchored on the same sharp prices.
+    stake-back-No-Bet prices are exact functions of the same three numbers, and a
+    goal threshold that matches a totals line (``4+`` = Over 3.5) is the line
+    itself. Everything else — the other goal ranges, per-half markets — has to
+    come from the score grid anchored on the same sharp prices.
     """
     home, draw, away = prices["p_home"], prices["p_draw"], prices["p_away"]
-    return {
+    out = {
         ("RESULT", "1"): (home, 0.0),
         ("RESULT", "X"): (draw, 0.0),
         ("RESULT", "2"): (away, 0.0),
@@ -397,6 +443,8 @@ def sharp_overrides(prices: dict) -> dict[tuple[str, str], tuple[float, float]]:
         ("NO_BET", "XNB FT 1"): (home, draw),
         ("NO_BET", "XNB FT 2"): (away, draw),
     }
+    out.update(direct_goal_codes(prices.get("totals") or {}))
+    return out
 
 
 def price_match(slug: str, prices: dict) -> tuple[list[dict], float]:
@@ -409,6 +457,7 @@ def price_match(slug: str, prices: dict) -> tuple[list[dict], float]:
     probs = batch_market_probs(grids_to_flat([grid]), masks())
     status = family_status()
     sharp = sharp_overrides(prices)
+    direct_markets = direct_provenance(prices)
     blocked = handcrafted_blocklist()
 
     rows = []
@@ -435,6 +484,8 @@ def price_match(slug: str, prices: dict) -> tuple[list[dict], float]:
                        else "UNTESTABLE" if not getattr(market, "testable", True)
                        else status.get(market.family, "UNTESTED")),
             "do_not_bet": key in blocked,
+            "provenance": ("DIRECT" if (market.family, market.code) in direct_markets
+                           else "DERIVED"),
             "signature": settlement_signature(market.outcome),
         })
     return rows, anchor.residual
@@ -570,12 +621,20 @@ def snapshot_gap_minutes(pinnacle_iso: str | None, mozzart_iso: str | None) -> f
 
 
 def compute_flags(match: dict, mozzart: dict | None, paper: dict) -> list[dict]:
-    """Rows where Mozzart beats fair x cushion on an eligible family.
+    """Rows where Mozzart beats fair x cushion on an eligible market.
 
-    Eligible: the family PASSed calibration, or it is a SHARP main-line market
-    (RESULT, DOUBLE_CHANCE, full-time No-Bet, GOAL_RANGE_FT). A row is flagged
-    only when the Mozzart price is at or above ``fair x cushion``; when the two
-    snapshots are more than ``max_gap_minutes`` apart the flag is marked STALE.
+    Eligibility follows the fair price's **provenance**:
+
+    * **DIRECT** — the fair price is a de-margined Pinnacle line for that exact
+      market (a 1X2 result, or a goal threshold that matches a totals line such as
+      ``4+`` = Over 3.5). It runs on the SHARP_WIDE track in every league.
+    * **DERIVED** — the price came from the model (or is an exact function of the
+      sharp lines but not a line itself, e.g. double chance). It may be flagged
+      only in one of our four modelled leagues and only when the family PASSed
+      calibration; it runs on the MODEL_4L track.
+
+    A row is flagged only when the Mozzart price is at or above ``fair x cushion``;
+    when the two snapshots are more than ``max_gap_minutes`` apart it is STALE.
     """
     if mozzart is None or not match.get("rows"):
         return []
@@ -586,14 +645,12 @@ def compute_flags(match: dict, mozzart: dict | None, paper: dict) -> list[dict]:
     flags = []
     for row in match["rows"]:
         family = row["family"]
-        sharp_family = (family in FLAG_SHARP_FAMILIES
-                        or (family, row["code"]) in FLAG_SHARP_CODES)
-        eligible = sharp_family or status.get(family) == "PASS"
+        provenance = row.get("provenance", "DERIVED")
+        if provenance == "DIRECT":
+            eligible, track = True, TRACK_SHARP
+        else:
+            eligible, track = modelled and status.get(family) == "PASS", TRACK_MODEL
         if not eligible:
-            continue
-        # Tracks (B1/B2): the sharp main line runs in every league both books
-        # price; a model family is limited to our four modelled leagues.
-        if not sharp_family and not modelled:
             continue
         quote = mozzart["odds"].get((family, row["code"]))
         if quote is None:
@@ -605,7 +662,7 @@ def compute_flags(match: dict, mozzart: dict | None, paper: dict) -> list[dict]:
         flags.append({
             "home": match["home"], "away": match["away"], "league": match["league"],
             "kickoff": match["kickoff"], "family": family,
-            "track": TRACK_SHARP if sharp_family else TRACK_MODEL,
+            "track": track, "provenance": provenance,
             "section": quote["section"], "code": quote["code"],
             "market": row["market"], "meaning": row["meaning"],
             "mozzart_odds": quote["odds"], "fair_odds": row["fair_odds"],
@@ -907,7 +964,10 @@ def odds_api_events(session, key, slugs, window, now, horizon):
 # entry point
 # --------------------------------------------------------------------------- #
 def main(start: str | None = None, days: int = 1,
-         within_minutes: int | None = None, only: list[str] | None = None) -> int:
+         within_minutes: int | None = None, only: list[str] | None = None,
+         max_requests: int | None = None) -> int:
+    if max_requests is not None:
+        api_guard.start_session(max_requests)
     first = date.fromisoformat(start) if start else date.today()
     window = {first + timedelta(days=offset) for offset in range(max(days, 1))}
     now = datetime.now(timezone.utc)

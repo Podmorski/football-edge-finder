@@ -100,7 +100,8 @@ A Windows-friendly runner; no make required.
 | `kickoff_run.py` | Derives the day's kickoff windows and runs the sheet ~2h before one | — |
 | `weekly.py` | Weekly refresh + Mozzart top-up check + paper report | `reports/paper_report.md` |
 | `health.py` | Daily health summary | `reports/health.md` |
-| `budget_plan.py` | Recomputed monthly budget + margin for both APIs | stdout |
+| `budget_plan.py` | Recomputed monthly budget + margin for both APIs, and the scheduled per-run cap | stdout |
+| `api_guard.py` | One hard cap in front of every PulseScore / Odds API call (session cap, monthly cap, 50 reserve) | `logs/api_refusals.csv` |
 | `scheduler.py` | Windows Task Scheduler tasks (create/delete/dry-run) | `logs/scheduler.log` |
 | `pulsescore_log.py` | Local PulseScore request log + monthly budget (cap 400, stop at 50) | `logs/pulsescore_requests.csv` |
 | `team_audit_mozzart.py` | Cross-source team-name audit (Mozzart / Odds API / historical) | stdout |

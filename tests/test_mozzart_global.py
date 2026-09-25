@@ -29,6 +29,7 @@ def test_fetch_events_filters_by_label_and_stamps_the_slug(monkeypatch):
 
 def test_global_feed_stops_at_until_and_reuses_the_cache(monkeypatch, tmp_path):
     monkeypatch.setattr(mozzart_odds, "EVENTS_CACHE", tmp_path / "g.json")
+    monkeypatch.setattr(mozzart_odds, "FEED_STATS", tmp_path / "feed.json")
     pages = {
         1: {"totalPages": 3, "events": [
             _event("Engleska 4", "2026-09-25T12:00:00.000Z", "1"),

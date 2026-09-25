@@ -30,6 +30,7 @@ from pathlib import Path
 
 import requests
 
+import api_guard
 import pulsescore_log
 from core import league_registry
 
@@ -38,6 +39,7 @@ TIMEOUT = 30
 THROTTLE_SECONDS = 1.2          # BASIC plan: 1 request/second per bookmaker
 PAGE_SIZE = 30                  # fixed by the API; `limit` is ignored
 EVENTS_CACHE = Path("data/mozzart/global_events.json")
+FEED_STATS = Path("data/mozzart/feed_stats.json")
 # A pass costs one request per 30 events, so a re-run within the hour reuses the
 # snapshot instead of paying for the feed again (mirrors PS3838's sheet cache).
 EVENTS_MAX_AGE_MINUTES = 60
@@ -57,8 +59,9 @@ def load_key() -> str:
 
 
 def _get(session, key, path, params=None, note=""):
-    allowed, reason = pulsescore_log.budget_ok()
+    allowed, reason = api_guard.check("pulsescore")
     if not allowed:
+        api_guard.refuse("pulsescore", reason, note or path)
         raise RuntimeError(f"PulseScore budget: {reason}")
     wait = THROTTLE_SECONDS - (time.monotonic() - _last_call[0])
     if wait > 0:
@@ -67,6 +70,7 @@ def _get(session, key, path, params=None, note=""):
                            headers={"X-Secret": key, "Accept": "application/json"},
                            timeout=TIMEOUT)
     _last_call[0] = time.monotonic()
+    api_guard.note("pulsescore")
     pulsescore_log.log_request(endpoint=path, params=params or {},
                                http_status=response.status_code, cost=1, notes=note)
     response.raise_for_status()
@@ -83,18 +87,41 @@ def _read_cache() -> dict | None:
         doc = json.loads(EVENTS_CACHE.read_text(encoding="utf-8"))
         return {"fetched_at": datetime.fromisoformat(doc["fetched_at"]),
                 "until": datetime.fromisoformat(doc["until"]) if doc.get("until") else None,
+                "total": doc.get("total"), "total_pages": doc.get("total_pages"),
                 "events": doc["events"]}
     except (ValueError, KeyError, OSError):
         return None
 
 
-def _write_cache(fetched_at: datetime, until: datetime | None, events: list[dict]) -> None:
+def _write_cache(fetched_at: datetime, until: datetime | None, events: list[dict],
+                 total: int | None, total_pages: int | None) -> None:
     EVENTS_CACHE.parent.mkdir(parents=True, exist_ok=True)
     EVENTS_CACHE.write_text(json.dumps({
         "fetched_at": fetched_at.isoformat(timespec="seconds"),
         "until": until.isoformat(timespec="seconds") if until else None,
+        "total": total, "total_pages": total_pages,
         "events": events,
     }, ensure_ascii=False), encoding="utf-8")
+
+
+def _write_stats(fetched_at: datetime, total: int | None, total_pages: int | None,
+                 pages_used: int, events_kept: int) -> None:
+    """The last pass's shape, for the daily health report (no API call)."""
+    FEED_STATS.parent.mkdir(parents=True, exist_ok=True)
+    FEED_STATS.write_text(json.dumps({
+        "fetched_at": fetched_at.isoformat(timespec="seconds"),
+        "total": total, "total_pages": total_pages,
+        "pages_used": pages_used, "events_kept": events_kept,
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def read_stats() -> dict | None:
+    if not FEED_STATS.exists():
+        return None
+    try:
+        return json.loads(FEED_STATS.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return None
 
 
 def _covers(cached_until: datetime | None, wanted_until: datetime | None) -> bool:
@@ -124,16 +151,21 @@ def fetch_global_events(session, key, until: datetime | None = None,
     if cached is not None and max_age_minutes is not None:
         age = datetime.now(timezone.utc) - cached["fetched_at"]
         if age <= timedelta(minutes=max_age_minutes) and _covers(cached["until"], until):
+            _write_stats(cached["fetched_at"], cached.get("total"),
+                         cached.get("total_pages"), 0, len(cached["events"]))
             return cached["events"], cached["fetched_at"]
 
     fetched_at = datetime.now(timezone.utc)
     events: list[dict] = []
     page = 1
+    total: int | None = None
     total_pages: int | None = None
     while True:
         doc = _get(session, key, "/soccer/events", {"page": page, "limit": PAGE_SIZE},
                    note=f"mozzart global events p{page}")
         batch = [e for e in (doc or {}).get("events", []) if isinstance(e, dict)]
+        if total is None and (doc or {}).get("total") is not None:
+            total = int(doc["total"])
         if total_pages is None and (doc or {}).get("totalPages"):
             total_pages = int(doc["totalPages"])
         crossed = False
@@ -149,7 +181,8 @@ def fetch_global_events(session, key, until: datetime | None = None,
             break
         page += 1
     events.sort(key=lambda event: event.get("startTime", ""))
-    _write_cache(fetched_at, until, events)
+    _write_cache(fetched_at, until, events, total, total_pages)
+    _write_stats(fetched_at, total, total_pages, page, len(events))
     return events, fetched_at
 
 

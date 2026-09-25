@@ -33,9 +33,10 @@ LOG = Path("data/paper/paper_bets.csv")
 PAPER_CONFIG = Path("config/paper.yaml")
 
 FIELDS = [
-    "date", "kickoff", "league", "track", "home", "away", "family", "section", "code",
-    "meaning", "mozzart_odds", "fair_odds", "min_acceptable", "ev", "stake",
-    "mozzart_snapshot", "pinnacle_snapshot", "pinnacle_close", "clv", "result", "pnl",
+    "date", "kickoff", "league", "track", "provenance", "home", "away", "family",
+    "section", "code", "meaning", "mozzart_odds", "fair_odds", "min_acceptable", "ev",
+    "stake", "mozzart_snapshot", "pinnacle_snapshot", "pinnacle_close", "clv", "result",
+    "pnl",
 ]
 CLOSE_WINDOW_MINUTES = 30
 SETTLE_AFTER_HOURS = 3
@@ -78,6 +79,7 @@ def record(flags: list[dict]) -> int:
             "date": fs.local_date(flag["kickoff"]).isoformat(),
             "kickoff": flag["kickoff"], "league": flag["league"],
             "track": flag.get("track", fs.TRACK_SHARP),
+            "provenance": flag.get("provenance", "DERIVED"),
             "home": flag["home"], "away": flag["away"], "family": flag["family"],
             "section": flag["section"], "code": flag["code"], "meaning": flag["meaning"],
             "mozzart_odds": f"{flag['mozzart_odds']:.4f}",

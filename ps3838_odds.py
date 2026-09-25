@@ -36,6 +36,7 @@ import numpy as np
 import pandas as pd
 import requests
 
+import api_guard
 import pulsescore_log
 from core import league_registry
 
@@ -57,8 +58,9 @@ def load_key() -> str:
 
 
 def _get(session, key, path, params=None, note="") -> dict | None:
-    allowed, reason = pulsescore_log.budget_ok()
+    allowed, reason = api_guard.check("pulsescore")
     if not allowed:
+        api_guard.refuse("pulsescore", reason, note or path)
         raise RuntimeError(f"PulseScore budget: {reason}")
     wait = THROTTLE_SECONDS - (time.monotonic() - _last_call[0])
     if wait > 0:
@@ -67,6 +69,7 @@ def _get(session, key, path, params=None, note="") -> dict | None:
                            headers={"X-Secret": key, "Accept": "application/json"},
                            timeout=TIMEOUT)
     _last_call[0] = time.monotonic()
+    api_guard.note("pulsescore")
     pulsescore_log.log_request(endpoint=f"/api/ps3838{path}", params=params or {},
                                http_status=response.status_code, cost=1, notes=note)
     try:
@@ -219,12 +222,21 @@ def sharp_prices(event: dict) -> dict | None:
     raw_ou = np.array([lines[point]["OVER"], lines[point]["UNDER"]], dtype=float)
     p_ou = odds_mod.demargin(pd.DataFrame([raw_ou]), "power").to_numpy()[0]
 
+    # Every full-time totals line, de-margined: a GOAL_RANGE_FT threshold that
+    # matches one of these is priced DIRECTLY off the sharp line, not the grid.
+    all_lines: dict[float, dict[str, float]] = {}
+    for pt, side in lines.items():
+        raw = np.array([side["OVER"], side["UNDER"]], dtype=float)
+        p = odds_mod.demargin(pd.DataFrame([raw]), "power").to_numpy()[0]
+        all_lines[float(pt)] = {"over": float(p[0]), "under": float(p[1])}
+
     return {
         "p_home": float(p_1x2[0]), "p_draw": float(p_1x2[1]), "p_away": float(p_1x2[2]),
         "p_over": float(p_ou[0]), "line": float(point),
         "raw_1x2": [float(x) for x in raw_1x2], "raw_ou": [float(x) for x in raw_ou],
         "margin_1x2": float((1.0 / raw_1x2).sum() - 1.0),
         "margin_ou": float((1.0 / raw_ou).sum() - 1.0),
+        "totals": all_lines,
         "snapshot": event.get("updatedAt") or (mr.get("updatedAt") or ""),
     }
 

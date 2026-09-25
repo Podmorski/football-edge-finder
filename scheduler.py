@@ -130,19 +130,22 @@ def _weekly(name: str, start: str, args: str, description: str) -> dict:
 
 
 def tasks() -> list[dict]:
+    import budget_plan
+
+    cap = f"--max-requests {budget_plan.RUN_CAP}"
     return [
-        _daily("FairSheetDaily", "09:00", "fair-sheet --days 1",
+        _daily("FairSheetDaily", "09:00", f"fair-sheet --days 1 {cap}",
                "Daily fair-odds sheet + flags (PS3838 primary sharp, same run as Mozzart)."),
-        _daily("FairSheetPreKick", "10:00", "kickoff-run",
+        _daily("FairSheetPreKick", "10:00", f"kickoff-run {cap}",
                "One fair-sheet run ~2h before each main kickoff window on match days.",
                interval="PT20M", duration="PT13H"),
-        _daily("PaperClose", "12:00", "paper-close",
+        _daily("PaperClose", "12:00", f"paper-close {cap}",
                "Save the PS3838 close for paper bets kicking off in the next 30 min.",
                interval="PT15M", duration="PT10H"),
-        _daily("ResultsDaily", "08:00", "results",
+        _daily("ResultsDaily", "08:00", f"results {cap}",
                "Settle finished paper bets, then write reports/health.md."),
-        _weekly("Weekly", "07:30", "weekly",
-               "Weekly: current-season refresh + Mozzart top-up check + paper-report."),
+        _weekly("Weekly", "07:30", f"weekly {cap}",
+                "Weekly: current-season refresh + Mozzart top-up check + paper-report."),
     ]
 
 

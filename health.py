@@ -70,6 +70,25 @@ def _failures(lines: list[str]) -> list[str]:
     return bad[-8:]
 
 
+def _feed_line() -> str:
+    """The last Mozzart global-feed pass: total pages and pages actually used."""
+    import mozzart_odds
+
+    stats = mozzart_odds.read_stats()
+    if not stats:
+        return "no pass recorded yet"
+    return (f"{stats.get('total')} event(s) over {stats.get('total_pages')} page(s); "
+            f"last run used {stats.get('pages_used')} page(s) "
+            f"({stats.get('events_kept')} in-scope kept)")
+
+
+def _refusals() -> list[str]:
+    import api_guard
+
+    return [f"{row['timestamp']} | {row['provider']} | {row['reason']} | {row['note']}"
+            for row in api_guard.read_refusals()[-8:]]
+
+
 def write() -> int:
     lines = _tail(SCHEDULER_LOG)
     last = _last_runs(lines)
@@ -108,6 +127,7 @@ def write() -> int:
         f"- PulseScore: {ps_used} used this month, {ps_left} remaining "
         f"(cap {pulsescore_log.MONTHLY_CAP})",
         f"- The Odds API: {odds_used} credits today, account remaining {odds_remaining}",
+        f"- Mozzart global feed: {_feed_line()}",
         f"- paper bets recorded today: {bets_today}",
         "",
         "## Last run per task",
@@ -119,6 +139,8 @@ def write() -> int:
         out += ["_no scheduled runs in logs/scheduler.log yet._"]
     out += ["", "## Recent failures / warnings", ""]
     out += [f"- `{line}`" for line in failures] or ["- none"]
+    out += ["", "## Refused API calls", ""]
+    out += [f"- `{line}`" for line in _refusals()] or ["- none"]
     out += [
         "",
         "## Disable all tasks",

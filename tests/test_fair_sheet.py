@@ -247,7 +247,8 @@ def test_compute_flags_needs_an_eligible_family_and_the_cushion(monkeypatch):
         {"family": "MORE_GOALS_HALF", "code": "I>II", "market": "I>II",
          "meaning": "more goals in the 1st half", "fair_odds": 2.0, "min_acceptable": 2.07},
         {"family": "RESULT", "code": "1", "market": "1",
-         "meaning": "home win", "fair_odds": 2.0, "min_acceptable": 2.07},
+         "meaning": "home win", "fair_odds": 2.0, "min_acceptable": 2.07,
+         "provenance": "DIRECT"},
     ])
     mozzart = {"fetched_at": "2026-09-26T12:10:00Z", "odds": {
         ("GOAL_RANGE_1H", "I0"): {"odds": 2.10, "section": "Ukupno golova prvo poluvreme",
@@ -268,7 +269,8 @@ def test_compute_flags_marks_stale_when_the_snapshots_are_far_apart(monkeypatch)
     monkeypatch.setattr(fs, "family_status", lambda: {})
     match = _flag_match([
         {"family": "RESULT", "code": "1", "market": "1",
-         "meaning": "home win", "fair_odds": 2.0, "min_acceptable": 2.07},
+         "meaning": "home win", "fair_odds": 2.0, "min_acceptable": 2.07,
+         "provenance": "DIRECT"},
     ])
     mozzart = {"fetched_at": "2026-09-26T14:30:00Z", "odds": {
         ("RESULT", "1"): {"odds": 2.50, "section": "Konačan ishod", "code": "1",
@@ -310,6 +312,53 @@ def test_only_the_main_line_families_have_a_direct_sharp_price():
     # goal ranges and per-half markets still need the anchored score grid
     assert ("GOAL_RANGE_FT", "3+") not in sharp
     assert ("HALF_RESULT", "I1") not in sharp
+
+
+def test_direct_goal_codes_map_thresholds_to_totals_lines():
+    totals = {2.5: {"over": 0.50, "under": 0.50}, 3.5: {"over": 0.48, "under": 0.52}}
+    codes = fs.direct_goal_codes(totals)
+    assert codes[("GOAL_RANGE_FT", "3+")] == (0.50, 0.0)      # Over 2.5
+    assert codes[("GOAL_RANGE_FT", "0-2")] == (0.50, 0.0)     # Under 2.5
+    assert codes[("GOAL_RANGE_FT", "4+")] == (0.48, 0.0)      # Over 3.5
+    assert codes[("GOAL_RANGE_FT", "0-3")] == (0.52, 0.0)     # Under 3.5
+    # a range with no matching line stays model-derived
+    assert ("GOAL_RANGE_FT", "3-6") not in codes
+
+
+def test_direct_provenance_is_only_the_1x2_and_matching_goal_lines():
+    prices = {"totals": {3.5: {"over": 0.48, "under": 0.52}}}
+    direct = fs.direct_provenance(prices)
+    assert ("RESULT", "1") in direct and ("GOAL_RANGE_FT", "4+") in direct
+    assert ("DOUBLE_CHANCE", "1X") not in direct
+    assert ("NO_BET", "XNB FT 1") not in direct
+    assert ("GOAL_RANGE_FT", "3-6") not in direct
+
+
+def test_derived_markets_flag_only_in_a_modelled_pass_league(monkeypatch):
+    monkeypatch.setattr(fs, "family_status", lambda: {"GOAL_RANGE_1H": "PASS"})
+    rows = [{"family": "GOAL_RANGE_1H", "code": "I0", "market": "I0", "meaning": "x",
+             "fair_odds": 2.0, "min_acceptable": 2.07, "provenance": "DERIVED"}]
+    mozzart = {"fetched_at": "2026-09-26T12:10:00Z", "odds": {
+        ("GOAL_RANGE_1H", "I0"): {"odds": 2.10, "section": "s", "code": "0",
+                                    "description": ""}}}
+    flags = fs.compute_flags(_flag_match(rows), mozzart, PAPER)
+    assert len(flags) == 1 and flags[0]["track"] == fs.TRACK_MODEL
+    assert flags[0]["provenance"] == "DERIVED"
+    widened = dict(_flag_match(rows), league="eng_league_two")
+    assert fs.compute_flags(widened, mozzart, PAPER) == []
+
+
+def test_direct_markets_flag_on_the_sharp_track_in_any_league(monkeypatch):
+    monkeypatch.setattr(fs, "family_status", lambda: {})
+    rows = [{"family": "GOAL_RANGE_FT", "code": "4+", "market": "4+", "meaning": "x",
+             "fair_odds": 2.0, "min_acceptable": 2.07, "provenance": "DIRECT"}]
+    mozzart = {"fetched_at": "2026-09-26T12:10:00Z", "odds": {
+        ("GOAL_RANGE_FT", "4+"): {"odds": 2.10, "section": "s", "code": "4+",
+                                    "description": ""}}}
+    widened = dict(_flag_match(rows), league="eng_league_two")
+    flags = fs.compute_flags(widened, mozzart, PAPER)
+    assert len(flags) == 1 and flags[0]["track"] == fs.TRACK_SHARP
+    assert flags[0]["provenance"] == "DIRECT"
 
 
 def test_the_parser_fix_removed_the_duplicate_settlements():

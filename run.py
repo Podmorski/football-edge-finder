@@ -83,6 +83,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
+    # Every command that can make a PulseScore / Odds API call carries the per-run
+    # cap; the scheduled tasks pass one sized from budget_plan.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--max-requests", type=int, default=None,
+                        help="Per-run cap on PulseScore + Odds API cost "
+                             "(default 10 for an ad-hoc run).")
+
     sub.add_parser("ingest-historical", help=COMMANDS["ingest-historical"])
     sub.add_parser("ingest-xg", help=COMMANDS["ingest-xg"])
     sub.add_parser("refresh", help=COMMANDS["refresh"])
@@ -102,7 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
     mainline = sub.add_parser("compare-mainline", help=COMMANDS["compare-mainline"])
     mainline.add_argument("--file", required=True)
 
-    sheet = sub.add_parser("fair-sheet", help=COMMANDS["fair-sheet"])
+    sheet = sub.add_parser("fair-sheet", help=COMMANDS["fair-sheet"], parents=[common])
     sheet.add_argument("--date", default=None,
                        help="First day of the window, YYYY-MM-DD. Defaults to today.")
     sheet.add_argument("--days", type=int, default=1,
@@ -116,14 +123,14 @@ def build_parser() -> argparse.ArgumentParser:
     log_close.add_argument("--file", default=None,
                            help="Bet log CSV (default: data/bet_log.csv).")
 
-    sub.add_parser("paper-close", help=COMMANDS["paper-close"])
-    sub.add_parser("paper-settle", help=COMMANDS["paper-settle"])
+    sub.add_parser("paper-close", help=COMMANDS["paper-close"], parents=[common])
+    sub.add_parser("paper-settle", help=COMMANDS["paper-settle"], parents=[common])
     sub.add_parser("paper-report", help=COMMANDS["paper-report"])
-    sub.add_parser("results", help=COMMANDS["results"])
+    sub.add_parser("results", help=COMMANDS["results"], parents=[common])
     sub.add_parser("health", help=COMMANDS["health"])
-    sub.add_parser("weekly", help=COMMANDS["weekly"])
+    sub.add_parser("weekly", help=COMMANDS["weekly"], parents=[common])
     sub.add_parser("budget-plan", help=COMMANDS["budget-plan"])
-    kickoff = sub.add_parser("kickoff-run", help=COMMANDS["kickoff-run"])
+    kickoff = sub.add_parser("kickoff-run", help=COMMANDS["kickoff-run"], parents=[common])
     kickoff.add_argument("--force", action="store_true",
                          help="Run the fair sheet even if no window is due now.")
 
@@ -139,6 +146,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    import api_guard
+
+    api_guard.start_session(getattr(args, "max_requests", None))
 
     if args.command == "requests-today":
         import api_log
@@ -178,7 +189,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "fair-sheet":
         import fair_sheet
 
-        return fair_sheet.main(args.date, args.days, args.within_minutes, args.league)
+        return fair_sheet.main(args.date, args.days, args.within_minutes, args.league,
+                               args.max_requests)
 
     if args.command == "log-close":
         import bet_log

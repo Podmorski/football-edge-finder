@@ -70,6 +70,31 @@ def test_health_leads_with_zero_joins_when_nothing_joined(tmp_path, monkeypatch)
     assert text.index("ZERO JOINS") < text.index("MOZZART COVERAGE GAP")
 
 
+def test_health_reports_the_feed_and_refusals(tmp_path, monkeypatch):
+    monkeypatch.setattr(coverage, "PATH", tmp_path / "coverage.json")
+    coverage.write({date(2026, 9, 26)},
+                   {"eng_premier": {"ps3838": 8, "mozzart": 8, "joined": 7}})
+    out = tmp_path / "health.md"
+    monkeypatch.setattr(health, "OUT", out)
+    monkeypatch.setattr(health, "SCHEDULER_LOG", tmp_path / "none.log")
+    monkeypatch.setattr(health, "PAPER_LOG", tmp_path / "none.csv")
+
+    import api_guard
+    import mozzart_odds
+
+    monkeypatch.setattr(mozzart_odds, "FEED_STATS", tmp_path / "feed.json")
+    mozzart_odds._write_stats(datetime.now(timezone.utc), 580, 20, 12, 25)
+    monkeypatch.setattr(api_guard, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(api_guard, "REFUSAL_LOG", tmp_path / "refusals.csv")
+    api_guard.refuse("pulsescore", "session cap 10 reached", "mozzart global events p1")
+
+    assert health.write() == 0
+    text = out.read_text(encoding="utf-8")
+    assert "580 event(s) over 20 page(s); last run used 12 page(s)" in text
+    assert "## Refused API calls" in text
+    assert "session cap 10 reached" in text
+
+
 def test_fetch_league_reuses_a_fresh_snapshot(tmp_path, monkeypatch):
     monkeypatch.setattr(ps3838_odds, "CACHE_DIR", tmp_path)
     calls = []

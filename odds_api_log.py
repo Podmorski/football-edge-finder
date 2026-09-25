@@ -80,6 +80,19 @@ def credits_used_today() -> int:
     return total
 
 
+def credits_used_this_month() -> int:
+    key = date.today().strftime("%Y-%m")
+    total = 0
+    for row in read_rows():
+        if row["timestamp"][:7] != key:
+            continue
+        try:
+            total += int(float(row["cost"]))
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
 def print_today() -> None:
     today = date.today()
     rows = [r for r in read_rows() if r["timestamp"][:10] == today.isoformat()]

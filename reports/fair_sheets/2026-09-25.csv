@@ -1,0 +1,31 @@
+date,kickoff_local,league,home,away,section,market,family,meaning,fair_odds,min_acceptable_odds,status,pinnacle_snapshot
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,1.9654,2.0342,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Ukupno Golova,NE 3-5,GOAL_RANGE_FT,Full-time: not 3 to 5 goals,1.9213,1.9885,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7173,1.7774,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Konačni Ishod,2,RESULT,Away wins the match,2.3573,2.4398,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Dupla Šansa,1X,DOUBLE_CHANCE,Home or draw,1.7368,1.7975,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,X No Bet,XNB FT 2,NO_BET,"away wins, draw voids (FT)",1.7372,1.7980,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Poluvreme,IX,HALF_RESULT,Half-time draw,2.4527,2.5386,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Pada Više Golova,I>II,MORE_GOALS_HALF,more goals in the 1st half than in the 2nd,3.4591,3.5801,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Pol. Dupla Šansa,I12,HALF_DC,Not a half-time draw,1.6884,1.7475,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Poluvreme/Kraj,NE 2-2,HTFT_NE,not (Away leads at half time and away wins at full time),1.3418,1.3888,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Poluvreme/Kraj,2-2,HTFT,Away leads at half time and away wins at full time,3.9258,4.0632,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,II Pol. Uk. Golova,II2+,GOAL_RANGE_2H,2nd half: at least 2 goals,2.0359,2.1071,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Ukupno Golova,3-5,GOAL_RANGE_FT,Full-time: 3 to 5 goals,2.0855,2.1584,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,I Pol. Uk. Golova,NE 1,GOAL_RANGE_1H,1st half: not exactly 1 goal,1.5570,1.6115,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T17:00:00+00:00,ger_liga3,Havelse,Fortuna Koln,Konačni Ishod,1,RESULT,Home wins the match,3.1976,3.3095,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Ukupno Golova,3-6,GOAL_RANGE_FT,Full-time: 3 to 6 goals,1.9483,2.0165,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,II Pol. Uk. Golova,II0-1,GOAL_RANGE_2H,2nd half: 0 to 1 goals,1.8885,1.9546,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,I Pol. Uk. Golova,I1-2,GOAL_RANGE_1H,1st half: 1 to 2 goals,1.7181,1.7782,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Konačni Ishod,1,RESULT,Home wins the match,1.5846,1.6401,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Dupla Šansa,X2,DOUBLE_CHANCE,Away or draw,2.7105,2.8054,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,X No Bet,XNB FT 1,NO_BET,"home wins, draw voids (FT)",1.2574,1.3015,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,II Poluvreme,II1,HALF_RESULT,Home wins the second half,1.9548,2.0232,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Pada Više Golova,I>II,MORE_GOALS_HALF,more goals in the 1st half than in the 2nd,3.3324,3.4490,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,II Pol. Dupla Šansa,IIX2,HALF_DC,Away or draw in the second half,2.0473,2.1190,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Poluvreme/Kraj,NE 1-1,HTFT_NE,not (Home leads at half time and home wins at full time),1.6845,1.7435,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Poluvreme/Kraj,1-1,HTFT,Home leads at half time and home wins at full time,2.4608,2.5469,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Ukupno Golova,NE 3-6,GOAL_RANGE_FT,Full-time: not 3 to 6 goals,2.0545,2.1264,SHARP,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,II Pol. Uk. Golova,II2+,GOAL_RANGE_2H,2nd half: at least 2 goals,2.1255,2.1999,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,I Pol. Uk. Golova,NE 1,GOAL_RANGE_1H,1st half: not exactly 1 goal,1.5577,1.6122,PASS,2026-09-25T07:00:03.654Z
+2026-09-25,2026-09-25T18:30:00+00:00,esp_segunda,Girona,Albacete,Konačni Ishod,X,RESULT,Draw,4.8432,5.0128,SHARP,2026-09-25T07:00:03.654Z

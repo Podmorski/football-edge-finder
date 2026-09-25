@@ -29,7 +29,7 @@ B365_RATE = 1.0 / 30.0          # historical 1X2 flag rate (~1 per 30 matches)
 SUSPECT_MULTIPLE = 3.0
 TRACKS = ("SHARP_WIDE", "MODEL_4L")
 
-FIELDS = ["match", "kickoff", "family", "section", "code", "meaning",
+FIELDS = ["match", "kickoff", "family", "provenance", "section", "code", "meaning",
           "mozzart_odds", "fair_odds", "min_acceptable",
           "mozzart_snapshot", "ps3838_snapshot"]
 
@@ -40,10 +40,11 @@ def _load_state() -> dict:
             doc = json.loads(STATE.read_text(encoding="utf-8"))
             doc.setdefault("samples", {})
             doc.setdefault("stats", {})
+            doc.setdefault("notes", [])
             return doc
         except (ValueError, OSError):
             pass
-    return {"samples": {}, "stats": {}}
+    return {"samples": {}, "stats": {}, "notes": []}
 
 
 def _row(flag: dict) -> dict:
@@ -51,6 +52,7 @@ def _row(flag: dict) -> dict:
         "match": f"{flag['home']} vs {flag['away']}",
         "kickoff": flag["kickoff"],
         "family": flag["family"],
+        "provenance": flag.get("provenance", "DERIVED"),
         "section": flag.get("section", ""),
         "code": flag.get("code", ""),
         "meaning": flag.get("meaning", ""),
@@ -103,6 +105,10 @@ def _render(state: dict) -> str:
                   "|" + "---|" * len(FIELDS)]
         for row in sample:
             lines.append("| " + " | ".join(str(row.get(field, "")) for field in FIELDS) + " |")
+        lines.append("")
+    if state.get("notes"):
+        lines += ["## Re-classified flags", ""]
+        lines += [f"- {note}" for note in state["notes"]]
         lines.append("")
     lines += [
         "---",

@@ -40,6 +40,10 @@ ODDS_FALLBACK_PER_MONTH = 20         # PS3838 should cover every league
 SCORES_PER_MONTH = 20                # 2 credits/league/day, few settling leagues
 ODDS_CAP = 500
 MIN_MARGIN = 0.20
+# Per-run cap handed to the scheduled tasks (``--max-requests``): the PS3838
+# per-league fetches (<= active leagues) plus the Mozzart global-feed pages
+# (<= 20 for the whole feed) plus any Odds API fallback, with headroom.
+RUN_CAP = 40
 
 
 def matches_per_week(slug: str) -> float | None:
@@ -93,6 +97,7 @@ def main() -> int:
           f"(the fixture gate uses the free events endpoint)")
     print()
     print(f"rule: keep both margins >= {MIN_MARGIN:.0%}.")
+    print(f"scheduled per-run cap (--max-requests): {RUN_CAP}")
     return 0
 
 

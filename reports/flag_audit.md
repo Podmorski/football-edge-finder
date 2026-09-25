@@ -12,18 +12,20 @@ than 10.0% of matches.
 
 ## SHARP_WIDE — ok
 
-flags 1 / matches 45 = rate 2.22% (threshold 10.00%)
-
-| match | kickoff | family | section | code | meaning | mozzart_odds | fair_odds | min_acceptable | mozzart_snapshot | ps3838_snapshot |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Stockport County vs Peterborough United | 2026-09-26T14:00:00+00:00 | GOAL_RANGE_FT | Ukupno golova na meču | 4+ | Full-time: at least 4 goals | 1.950 | 1.8796 | 1.9454 | 2026-09-24T21:36:43+00:00 | 2026-09-24T20:57:47.214Z |
-
-## MODEL_4L — ok
-
-flags 0 / matches 45 = rate 0.00% (threshold 10.00%)
+flags 0 / matches 47 = rate 0.00% (threshold 10.00%)
 
 _no flags recorded yet._
 
+## MODEL_4L — ok
+
+flags 0 / matches 47 = rate 0.00% (threshold 10.00%)
+
+_no flags recorded yet._
+
+## Re-classified flags
+
+- Stockport County vs Peterborough United GOAL_RANGE_FT 4+ (2026-09-26): re-classified DIRECT — PS3838 carries Over/Under 3.5, so the fair price is the de-margined line (2.0914), not the model's 1.8796. Mozzart 1.95 no longer clears the 2.1646 minimum, so the flag is withdrawn.
+
 ---
 
-_updated 2026-09-24T21:39:41+00:00_
+_updated 2026-09-25T07:24:45+00:00_
